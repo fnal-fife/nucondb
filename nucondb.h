@@ -34,6 +34,6 @@ public:
 				    // rounds when down to nearest 604800 sec bound
      int getChannelData(double t, int chan, ...); // fetches data via 
      char *format_string();
-     long int Folder::getKey(double);
+     long int getKey(double);
 };
 
