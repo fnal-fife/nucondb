@@ -80,7 +80,7 @@ Folder::getTimes(double when) {
 
 std::vector<std::string>
 split(std::string s, char c ){
-   int pos, p2;
+   size_t pos, p2;
    pos = 0;
    std::vector<std::string> res;
    while( std::string::npos != (p2 = s.find(c,pos)) ) {
@@ -140,7 +140,6 @@ Folder::fetchData(long key) {
 // get all channels for time nearest when into cache
 void
 Folder::fetchData(double when) {
-    double reftime;
     std::string columnstr;
     long int key;
 
@@ -166,7 +165,7 @@ Folder::fetchData(double when) {
     if (when > _times.back().when) {
        key = _times.back().key;
     } else {
-	for(int i = 0; i < _times.size()-1 ; i++ ) {
+	for(unsigned int i = 0; i < _times.size()-1 ; i++ ) {
 	    if ( when >= _times[i].when and when < _times[i+1].when) {
                key = _times[i].key;
 	    }
@@ -281,10 +280,8 @@ test_gettimes(Folder &d) {
 
 void
 test_getchanneldata_window(Folder &f) {
-   char buf[512];
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
    int i1, i2, i3, i4, i5;
-   int i, n;
 
    std::cout << "looking for first time:" << "\n";
    f.getChannelData(1283590373.9924,1000110,
@@ -299,10 +296,9 @@ test_getchanneldata_window(Folder &f) {
 
 void
 test_getchanneldata(Folder &f) {
-   char buf[512];
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
    int i1, i2, i3, i4, i5;
-   int i, n;
+   int i;
 
 
    for (i = 10; i < 70; i+=10) {

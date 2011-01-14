@@ -157,7 +157,6 @@ WebAPI::WebAPI(std::string url) {
 
 void
 test_WebAPI_fetchurl() {
-   int res;
    std::string line;
 
 
