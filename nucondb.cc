@@ -280,11 +280,30 @@ test_gettimes(Folder &d) {
 }
 
 void
+test_getchanneldata_window(Folder &f) {
+   char buf[512];
+   static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
+   int i1, i2, i3, i4, i5;
+   int i, n;
+
+   std::cout << "looking for first time:" << "\n";
+   f.getChannelData(1283590373.9924,1000110,
+	         &i1, &i2, &i3, &i4, &i5,
+                 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
+   std::cout << "looking for second time:" << "\n";
+   f.getChannelData(1283592173.9924,1000110,
+	         &i1, &i2, &i3, &i4, &i5,
+                 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
+
+}
+
+void
 test_getchanneldata(Folder &f) {
    char buf[512];
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
    int i1, i2, i3, i4, i5;
    int i, n;
+
 
    for (i = 10; i < 70; i+=10) {
 	   f.getChannelData((double)time(0), 1000100 + i, 
@@ -316,5 +335,6 @@ main() {
    Folder d2("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
    test_gettimes(d2);
    test_getchanneldata(d2);
+   test_getchanneldata_window(d2);
 }
 #endif
