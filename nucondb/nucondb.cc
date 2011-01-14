@@ -237,7 +237,7 @@ char *
 Folder::format_string() {
     std::vector<std::string>::iterator it;
     static char buf[1024];
-    char *sep = "";
+    char *sep = (char *)"";
 
     buf[0] = 0;
     
@@ -254,7 +254,7 @@ Folder::format_string() {
         case 'l': strcat(buf, "%ld"); break; // long integer
         default:  strcat(buf, "%ld"); break; // unknowns are long(?)
         }
-        sep = ",";
+        sep = (char *)",";
     }
     strcat(buf,"\n");
     _debug && std::cout << "\n got: " << buf;
@@ -270,10 +270,10 @@ test_gettimes(Folder &d) {
   
    tl = d.getTimes((double)time(0));
    std::cout << "got time list: ";
-   sep = "{";
+   sep = (char *)"{";
    for( it = tl.begin(); it != tl.end(); it++) {
        std::cout << sep << it->when << ":" << it->key;
-       sep = ",";
+       sep = (char *)",";
    }
    std::cout << "}\n";
 }
