@@ -86,6 +86,15 @@ WebAPI::WebAPI(std::string url) {
          pu = parseurl(url);
 
 	 hostp = gethostbyname(pu.host.c_str());
+         if (!hostp) {
+	     retries++;
+	     if (retries > 14) {
+		 return;
+	     }
+             _debug && std::cout << "gethostname failed , waiting ...";
+	     sleep(1);
+             continue;
+         }
 	 _debug && std::cout << "looking up host " << pu.host << " got " << hostp->h_name << "\n";
 
 	 server.sin_family = AF_INET;
@@ -96,7 +105,7 @@ WebAPI::WebAPI(std::string url) {
 	 while (connect(s,(struct sockaddr *)&server,sizeof(server)) < 0) {
 	     retries++;
 	     if (retries > 14) {
-		 //throw("timeout... no connection after a day");
+		 return;
 	     }
              _debug && std::cout << "connect failed , waiting ...";
 	     sleep(5 << retries);
@@ -106,11 +115,12 @@ WebAPI::WebAPI(std::string url) {
          
 	 // start of black magic -- use stdio_filebuf class to 
          // attach to socket...
-         __gnu_cxx::stdio_filebuf<char> *buf_in = new  __gnu_cxx::stdio_filebuf<char> (dup(s), std::fstream::in|std::fstream::binary);
-         _fromsite.std::ios::rdbuf(buf_in);
+         _buf_in = new  __gnu_cxx::stdio_filebuf<char> (dup(s), std::fstream::in|std::fstream::binary); // this leaked, but not anymore?
+         _fromsite.std::ios::rdbuf(_buf_in);
 
-         __gnu_cxx::stdio_filebuf<char> *buf_out = new  __gnu_cxx::stdio_filebuf<char>(dup(s), std::fstream::out|std::fstream::binary);
+         __gnu_cxx::stdio_filebuf<char> *buf_out = new  __gnu_cxx::stdio_filebuf<char>(dup(s), std::fstream::out|std::fstream::binary); // this leaked, but not anymore?
          _tosite.std::ios::rdbuf(buf_out);
+
 
 	 close(s);		      // don't need original dd anymore...
 	 // end of black magic
@@ -145,14 +155,21 @@ WebAPI::WebAPI(std::string url) {
 	 _debug && std::cout << "http status: " << status << std::endl;
 
 	 _tosite.close();
+         delete buf_out;
 
 	 if (status < 301 || status > 303 ) {
             redirectflag = 0;
 	 } else {
 	     // we're going to redirect again, so close the _fromsite side
 	     _fromsite.close();
+             delete _buf_in;
          }
      }
+}
+
+WebAPI::~WebAPI() {
+    _tosite.close();
+    delete _buf_in;
 }
 
 void

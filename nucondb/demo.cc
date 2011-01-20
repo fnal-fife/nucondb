@@ -7,22 +7,26 @@ using namespace std;
 
 void
 timestamp() {
+    static char buf[64];
     time_t t;
     char *p;
+
     t = time(0);
-    p = ctime(&t);
+    p = ctime_r(&t, buf);
     p[20] = 0;
     std::cout << p;
     std::cout.flush();
+
 }
 
 struct _Setw _ = setw(9);
 
+
 int
-main() {
+doit() {
    char buf[512];
    static double d[9];
-   static int chbits[4];
+   static int chbits[6];
    int i, n, chan;
    //double lookuptime = 1290651324.1;
    double lookuptime = 1283848809.799920;
@@ -39,7 +43,7 @@ main() {
    timestamp();
    cout << "starting...\n";
 
-   for(i = 1; i < 5; i++ ) {
+   for(i = 1; i < 10; i++ ) {
        for (chan = 1000110; chan < 1000170; chan+=20) {
 
 	   f.getChannelData(
@@ -59,4 +63,11 @@ main() {
                 << endl;
        }
    }
+}
+
+int
+main() {
+   doit();
+   cout << "finishing...\n";
+   timestamp();
 }
