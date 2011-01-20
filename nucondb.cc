@@ -16,6 +16,7 @@ int Folder::_debug(0);
 Folder::Folder( std::string name, std::string url ) {
    _foldername = name;
    _url = url;
+   _cache_key = -1;
    _cache_start = 0;
    _cache_end = 0;
 }
