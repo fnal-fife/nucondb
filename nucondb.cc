@@ -201,7 +201,7 @@ Folder::getChannelData(double t, int chan, ...) {
     }
 
     // binary search for channel...
-    while( l < m && m < r ) {
+    while( l < r ) {
         _debug && std::cout << "searching l: " << l 
                            << " m: " << m 
                            << " r: " << r;
