@@ -308,9 +308,16 @@ test_getchanneldata(Folder &f) {
 		 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
 
            std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
-	   std::cout << "got for channel " << i << ": " <<
+	   std::cout << "got for channel " << 1000100+ i << ": " <<
 	    std::setw(9)<<d1 << std::setw(9)<<d2 << std::setw(9)<<d3 << std::setw(9)<<d4 << std::setw(9)<<d5 << std::setw(9)<<d6 << std::setw(9)<<d7 << std::setw(9)<<d8 << std::setw(9)<<d9 << std::endl;
    }
+   f.getChannelData((double)time(0), 8820704, 
+	 &i1, &i2, &i3, &i4, &i5, 
+	 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
+
+   std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+   std::cout << "got for channel " << 8820704 << ": " <<
+    std::setw(9)<<d1 << std::setw(9)<<d2 << std::setw(9)<<d3 << std::setw(9)<<d4 << std::setw(9)<<d5 << std::setw(9)<<d6 << std::setw(9)<<d7 << std::setw(9)<<d8 << std::setw(9)<<d9 << std::endl;
 }
 
 #ifdef UNITTEST
