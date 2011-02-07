@@ -11,6 +11,22 @@
 // debug flag
 int WebAPI::_debug(0);
 
+//
+// initialize exception
+// - zero fill whole structure
+// - set message and tag fields
+// this works if we're subclassed from GaudiException or our
+// SimpleException...
+//
+WebAPIException::WebAPIException( std::string message, std::string tag ) throw() {
+   // memset(this, 0, sizeof(*this));
+   m_message = message;
+   m_tag = tag;
+}
+
+std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse )
+ { pse && (os << pse->tag() << pse->message()) ; return os; }
+
 // parseurl(url)
 //   parse a url into 
 //   * type/protocol, 
@@ -20,7 +36,7 @@ int WebAPI::_debug(0);
 //   so that it can be fetched directly
 
 WebAPI::parsed_url 
-WebAPI::parseurl(std::string url) {
+WebAPI::parseurl(std::string url) throw(WebAPIException) {
      int i, j;                // string indexes
      WebAPI::parsed_url res;  // resulting pieces
      std::string part;        // partial url
@@ -29,12 +45,10 @@ WebAPI::parseurl(std::string url) {
      if (url[i+1] == '/' and url[i+2] == '/') {
         res.type  = url.substr(0,i);
      } else {
-        // throw(badurl("has no slashes, must be full URL"));
-        ;
+        throw(WebAPIException(url,"BadURL: has no slashes, must be full URL"));
      }
      if (res.type != "http") {
-        //throw(badurl("only http supported"));
-        ;
+        throw(WebAPIException(url,"BadURL: only http: supported"));
      }
      part = url.substr(i+3);
      i = part.find_first_of(':');
@@ -63,7 +77,7 @@ WebAPI::parseurl(std::string url) {
 // the network connection, rather than saving he data
 // in a file and returning that.
 
-WebAPI::WebAPI(std::string url) {
+WebAPI::WebAPI(std::string url) throw(WebAPIException) {
      int s;			// unix socket file descriptor
      WebAPI::parsed_url pu;     // parsed url.
      struct sockaddr_in server; // connection address struct
@@ -75,6 +89,8 @@ WebAPI::WebAPI(std::string url) {
      int hcount;
 
      _debug && std::cout << "fetchurl: " << url << std::endl;
+     _debug && std::cout.flush();
+     retries = 0;
 
      while( redirectflag ) {
          hcount = 0;
@@ -89,9 +105,10 @@ WebAPI::WebAPI(std::string url) {
          if (!hostp) {
 	     retries++;
 	     if (retries > 14) {
-		 return;
+                 throw(WebAPIException(url,"FetchError: Retry count exceeded, gethostbyname failed"));
 	     }
-             _debug && std::cout << "gethostname failed , waiting ...";
+             _debug && std::cout << "gethostname failed , waiting ..." << retries << std::endl;
+             _debug && std::cout.flush();
 	     sleep(1);
              continue;
          }
@@ -105,20 +122,25 @@ WebAPI::WebAPI(std::string url) {
 	 while (connect(s,(struct sockaddr *)&server,sizeof(server)) < 0) {
 	     retries++;
 	     if (retries > 14) {
-		 return;
+                 throw(WebAPIException(url,"FetchError: Retry count exceeded, connect failed"));
 	     }
              _debug && std::cout << "connect failed , waiting ...";
 	     sleep(5 << retries);
              _debug && std::cout << "retrying ...\n";
 	 }
 
-         
 	 // start of black magic -- use stdio_filebuf class to 
          // attach to socket...
          _buf_in = new  __gnu_cxx::stdio_filebuf<char> (dup(s), std::fstream::in|std::fstream::binary); // this leaked, but not anymore?
+         if (!_buf_in) {
+	    throw(WebAPIException(url,"MemoryError: new failed"));
+         }
          _fromsite.std::ios::rdbuf(_buf_in);
 
          __gnu_cxx::stdio_filebuf<char> *buf_out = new  __gnu_cxx::stdio_filebuf<char>(dup(s), std::fstream::out|std::fstream::binary); // this leaked, but not anymore?
+         if (!buf_out) {
+	    throw(WebAPIException(url,"MemoryError: new failed"));
+         }
          _tosite.std::ios::rdbuf(buf_out);
 
 
@@ -147,7 +169,7 @@ WebAPI::WebAPI(std::string url) {
 		if (buf[strlen(buf)-1] == '\r') {
 		    buf[strlen(buf)-1] = 0;
 		}
-		url = buf + 11;
+		url = buf + 10;
 	    }
 
 	 } while (_fromsite.gcount() > 2 || hcount < 3); // end of headers is a blank line
@@ -196,6 +218,17 @@ test_WebAPI_fetchurl() {
         std::cout << "got line: " << line << std::endl;;
    }
    std::cout << "ds.data().eof() is " << ds2.data().eof() << std::endl;
+
+   try {
+      WebAPI ds3("http://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
+   } catch (WebAPIException we) {
+      std::cout << &we << std::endl;
+   }
+   try {
+      WebAPI ds4("borked://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
+   } catch (WebAPIException we) {
+      std::cout << &we << std::endl;
+   }
 }
 
 #ifdef UNITTEST

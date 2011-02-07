@@ -12,8 +12,10 @@
 int pad;
 int Folder::_debug(0);
 
+static char ebuf[64];
+
 // initialize folder with folder name, server url
-Folder::Folder( std::string name, std::string url ) {
+Folder::Folder( std::string name, std::string url ) throw(WebAPIException) {
    _foldername = name;
    _url = url;
    _cache_key = -1;
@@ -23,7 +25,7 @@ Folder::Folder( std::string name, std::string url ) {
 
 // get key for given time
 long int
-Folder::getKey(double when) {
+Folder::getKey(double when)  throw(WebAPIException){
     std::string st;
     std::stringstream fullurl;
 
@@ -40,7 +42,7 @@ Folder::getKey(double when) {
 
 // get list of boundaries near given time from server
 std::vector<Folder::tk>
-Folder::getTimes(double when) {
+Folder::getTimes(double when)  throw(WebAPIException){
     const int seconds_in_week = 7 * 24 * 60 * 60;
     double weekstart;
     std::vector<tk> res;
@@ -69,9 +71,9 @@ Folder::getTimes(double when) {
          }
     }
 
-    if (res.size() > 0 && (res.front().when > when || res.back().when <= when)) {
-         // throw(assert_error("timelist doesn't contain requested time");
-         ;
+    if (res.size() > 0 && res.front().when > when ) {
+         sprintf(ebuf, "Time %f:", when);
+         throw(WebAPIException(ebuf, "not in returned timelist -- Assertion error"));
     }
 
     return res;
@@ -94,7 +96,7 @@ split(std::string s, char c ){
 
 // get all channels for time nearest when into cache
 void
-Folder::fetchData(long key) {
+Folder::fetchData(long key) throw(WebAPIException) {
     std::string columnstr;
     if (key == _cache_key) {
         return;
@@ -140,7 +142,7 @@ Folder::fetchData(long key) {
 
 // get all channels for time nearest when into cache
 void
-Folder::fetchData(double when) {
+Folder::fetchData(double when)  throw(WebAPIException){
     std::string columnstr;
     long int key;
 
@@ -158,7 +160,8 @@ Folder::fetchData(double when) {
        _cache_start = 0;
        _cache_end = 0;
        _n_datarows = 0;
-       return;
+       sprintf(ebuf, "Time %f: ", when);
+       throw(WebAPIException(ebuf, "not found in database."));
     }
 
     // search list of times for nearest one to us
@@ -182,7 +185,7 @@ Folder::fetchData(double when) {
 // finally unpack data with vsprintf
 
 int
-Folder::getChannelData(double t, int chan, ...) {
+Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
     va_list al;
     int l, m, r;
     int val;
@@ -196,8 +199,8 @@ Folder::getChannelData(double t, int chan, ...) {
     m = (l + r + 1)/2;
 
     if (r < l) {
-       // throw something -- no data to pull from
-       return 0;
+       sprintf(ebuf, "time %f: ", t);
+       throw(WebAPIException(ebuf, "Data not found in database."));
     }
 
     // binary search for channel...
@@ -228,8 +231,8 @@ Folder::getChannelData(double t, int chan, ...) {
      if (val == chan) {
          return vsscanf(_cache_data[m].c_str() + comma + 1, format_string(), al);
      } else {
-         // throw something -- channel not found
-         return 0;
+         sprintf(ebuf, "Channel %d: ", chan);
+         throw(WebAPIException(ebuf , "not found in data."));
      }
 }
 
@@ -279,21 +282,37 @@ test_gettimes(Folder &d) {
    std::cout << "}\n";
 }
 
+static int channellist[] =  {
+      1052672, 41330656,6715360,1052704,1052736,1052768,1052800,1052832,1052864,1052896,1052928,1052960,
+   };
+
 void
 test_getchanneldata_window(Folder &f) {
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
    int i1, i2, i3, i4, i5;
 
    std::cout << "looking for first time:" << "\n";
-   f.getChannelData(1283590373.9924,1000110,
+   f.getChannelData(1283590373.9924,1052704,
 	         &i1, &i2, &i3, &i4, &i5,
                  &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
    std::cout << "looking for second time:" << "\n";
-   f.getChannelData(1283592173.9924,1000110,
+   f.getChannelData(1283592173.9924,1052704,
 	         &i1, &i2, &i3, &i4, &i5,
                  &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
 
+   try {
+   std::cout << "looking for nonexistant channel:" << "\n";
+   f.getChannelData(1283592173.9924,1052703,
+	         &i1, &i2, &i3, &i4, &i5,
+                 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
+       std::cout << "Failed to get exception!";
+       abort();
+   } catch (WebAPIException we) {
+       std::cout << "got exception:" << &we << "\n";
+   }
 }
+  
+
 
 void
 test_getchanneldata(Folder &f) {
@@ -302,13 +321,14 @@ test_getchanneldata(Folder &f) {
    int i;
 
 
-   for (i = 10; i < 70; i+=10) {
-	   f.getChannelData((double)time(0), 1000100 + i, 
+
+   for (i = 0; i < 10; i++) {
+	   f.getChannelData((double)time(0), channellist[i], 
                  &i1, &i2, &i3, &i4, &i5, 
 		 &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9);
 
            std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
-	   std::cout << "got for channel " << 1000100+ i << ": " <<
+	   std::cout << "got for channel " << channellist[i] << ": " <<
 	    std::setw(9)<<d1 << std::setw(9)<<d2 << std::setw(9)<<d3 << std::setw(9)<<d4 << std::setw(9)<<d5 << std::setw(9)<<d6 << std::setw(9)<<d7 << std::setw(9)<<d8 << std::setw(9)<<d9 << std::endl;
    }
    f.getChannelData((double)time(0), 8820704, 
@@ -336,9 +356,15 @@ main() {
    //std::cout << "Now the real test...\n";
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
-   Folder d2("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
-   test_gettimes(d2);
-   test_getchanneldata(d2);
-   test_getchanneldata_window(d2);
+   try {
+	   Folder d2("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
+	   test_gettimes(d2);
+	   test_getchanneldata(d2);
+	   test_getchanneldata_window(d2);
+   } catch (WebAPIException we) {
+      std::cout << "Exception:" << &we << std::endl;
+   }
+
+         
 }
 #endif

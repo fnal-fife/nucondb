@@ -3,7 +3,7 @@
 #include <list>
 #include <sstream>
 #include <fstream>
-
+#include "WebAPI.h"
 
 class Folder {
 public:
@@ -20,20 +20,18 @@ private:
      std::string _url;
      std::string _foldername;
 
-
 public:
      static int _debug;
      // internal in back of getChannelData1
      std::vector<tk> 
-	getTimes(double when);  // gets list of times in week surrounding when
+	getTimes(double when) throw(WebAPIException);    // gets list of times in week surrounding when
 
-     void fetchData(double when);        // gets data for a time in cache
-     void fetchData(long key);        // gets data for a time in cache
+     void fetchData(double when) throw(WebAPIException); // gets data for a time in cache
+     void fetchData(long key) throw(WebAPIException);    // gets data for a time in cache
 
-     Folder( std::string name, std::string url );    // bookkeeping...
-				    // rounds when down to nearest 604800 sec bound
-     int getChannelData(double t, int chan, ...); // fetches data via 
+     Folder( std::string name, std::string url ) throw(WebAPIException); // bookkeeping...
+     int getChannelData(double t, int chan, ...) throw(WebAPIException); // fetches data 
      char *format_string();
-     long int getKey(double);
+     long int getKey(double) throw(WebAPIException);
 };
 
