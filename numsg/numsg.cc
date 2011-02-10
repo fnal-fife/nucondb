@@ -9,7 +9,7 @@ numsg::numsg(const char *jobname, char *host, int port, int parentflag) :
 	_sa(host, port, parentflag), 
 	_cur_state("boot"), 
 	_old_states(), 
-	_jobname(jobname),
+	_jobname(jobname?jobname:getenv("NU_LOG_TAG")),
         _facility(17),
         _severity(5)
 {;}
@@ -37,6 +37,9 @@ numsg::init(const char *jobname, int parentflag) {
     } else {
         strcpy(hostbuf, "localhost");
         port = 514;
+    }
+    if (jobname == 0 && getenv("NU_MSG_TAG"))  {
+        jobname = getenv("NU_MSG_TAG");
     }
     numsg::_singleton = new numsg(jobname, hostbuf, port, parentflag);
     return numsg::_singleton;
@@ -87,7 +90,8 @@ main() {
     numsg *nm;
 
     putenv("NU_LOG_HOST=localhost:514");
-    nm = numsg::init("testjob");
+    //nm = numsg::init("testjob");
+    nm = numsg::init(0);
     numsg::getMsg()->new_state("foo");
     numsg::getMsg()->new_state("bar");
     numsg::getMsg()->start("laundry");
