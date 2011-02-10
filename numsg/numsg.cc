@@ -90,6 +90,7 @@ main() {
     numsg *nm;
 
     putenv("NU_LOG_HOST=localhost:514");
+    putenv("NU_LOG_TAG=testjob");
     //nm = numsg::init("testjob");
     nm = numsg::init(0);
     numsg::getMsg()->new_state("foo");
