@@ -87,7 +87,7 @@ split(std::string s, char c ){
    pos = 0;
    std::vector<std::string> res;
    while( std::string::npos != (p2 = s.find(c,pos)) ) {
-	res.push_back(s.substr(pos, p2 - pos - 1));
+	res.push_back(s.substr(pos, p2 - pos));
         pos = p2 + 1;
    }
    res.push_back(s.substr(pos));
@@ -240,14 +240,15 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
 char *
 Folder::format_string() {
     std::vector<std::string>::iterator it;
-    static char buf[1024];
+    static char buf[2048];
     char *sep = (char *)"";
 
     buf[0] = 0;
     
     _debug && std::cout << "format_string: ";
     for( it = _types.begin(), it++; it != _types.end(); it++ ) {
-        _debug && std::cout << "type: " << *it;
+        _debug && std::cout << "type: " << *it << "\n";
+        _debug && std::cout.flush();
         strcat(buf, sep);
         switch((*it)[0]) {
         case 'd': strcat(buf, "%lf"); break; // double precision
@@ -260,8 +261,9 @@ Folder::format_string() {
         }
         sep = (char *)",";
     }
-    strcat(buf,"\n");
-    _debug && std::cout << "\n got: " << buf;
+    strcat(buf,"\\n");
+    _debug && std::cout << "\n got: " << buf << "\n";
+    _debug && std::cout.flush();
 
     return buf; 
 }
@@ -340,6 +342,27 @@ test_getchanneldata(Folder &f) {
     std::setw(9)<<d1 << std::setw(9)<<d2 << std::setw(9)<<d3 << std::setw(9)<<d4 << std::setw(9)<<d5 << std::setw(9)<<d6 << std::setw(9)<<d7 << std::setw(9)<<d8 << std::setw(9)<<d9 << std::endl;
 }
 
+static char pos[512],atten_factor[512],strip_condition[512], stuff[512];
+void
+test3() {
+   int channel,detector,subdet,module,plain,stripn0;
+   double atten,atten_error,amp,amp_error,reflect,reflect_error,chi2,uniformity;
+   int pos_num;
+
+   Folder d3("atten", "http://dbweb1.fnal.gov:8080/wsgi/IOVServer");
+   d3.getChannelData(
+	 1300969766.0,
+	 1313343488,
+	 &detector,&subdet,&module,&plain,&stripn0,
+	 &atten,&atten_error,&amp,&amp_error,&reflect,&reflect_error,&chi2,&uniformity,
+	 &pos_num,
+	 pos,atten_factor,strip_condition, stuff, stuff);
+
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got:"
+	  << std::setw(9) << detector << std::setw(9) << subdet << std::setw(9) << module << std::setw(9) << plain << std::setw(9) << stripn0 << std::setw(9) << atten << std::setw(9) << atten_error << std::setw(9) << amp << std::setw(9) << amp_error << std::setw(9) << reflect << std::setw(9) << reflect_error << std::setw(9) << chi2 << std::setw(9) << uniformity << std::setw(9) << pos_num << std::setw(9) << pos << std::setw(9) << atten_factor << std::setw(9) << strip_condition << std::setw(9) << "\n";
+}
+
 #ifdef UNITTEST
 int
 main() {
@@ -357,6 +380,7 @@ main() {
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
    try {
+           test3();
 	   Folder d2("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
@@ -364,7 +388,9 @@ main() {
    } catch (WebAPIException we) {
       std::cout << "Exception:" << &we << std::endl;
    }
-
+ 
+   std::cout << "Done!";
+   std::cout.flush();
          
 }
 #endif
