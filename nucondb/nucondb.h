@@ -20,6 +20,8 @@ private:
      std::string _url;
      std::string _foldername;
 
+     int parse_fields(const char *, va_list);
+
 public:
      static int _debug;
      // internal in back of getChannelData1

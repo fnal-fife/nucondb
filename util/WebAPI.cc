@@ -240,6 +240,9 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
              delete _buf_in;
          }
      }
+     if (status != 200) {
+        throw(WebAPIException(url,"Status code not 200."));
+     }    
 }
 
 WebAPI::~WebAPI() {

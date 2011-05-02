@@ -144,7 +144,7 @@ Folder::fetchData(long key) throw(WebAPIException) {
 void
 Folder::fetchData(double when)  throw(WebAPIException){
     std::string columnstr;
-    long int key;
+    long int key = 1;
 
     if (_cache_start <= when  && when < _cache_end) {
         // its in the cache already...
@@ -179,6 +179,17 @@ Folder::fetchData(double when)  throw(WebAPIException){
     this->fetchData(key);
 }
 
+
+int
+Folder::parse_fields(const char *pc, va_list al) {
+     void *vp;
+     int res;
+     std::vector<std::string>::iterator it;
+     res = vsscanf(pc, format_string(), al);
+
+     return res;
+}
+
 // getChannelData --
 // first frob the cache for data for requested time
 // then lookup channel data in cache
@@ -190,6 +201,7 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
     int l, m, r;
     int val;
     int comma;
+    int res;
 
     va_start(al, chan);
 
@@ -220,6 +232,11 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
         m = (l + r + 1)/2;
      }
 
+     if (m >= _n_datarows) {
+         sprintf(ebuf, "Channel %d: ", chan);
+         throw(WebAPIException(ebuf , "not found in data."));
+     }
+
      _debug && std::cout << "found slot " << m ;
      _debug && std::cout.flush();
      _debug && std::cout << ": " << _cache_data[m] << std::endl;
@@ -229,7 +246,7 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
      comma = _cache_data[m].find_first_of(',');
      val = atol(_cache_data[m].c_str());
      if (val == chan) {
-         return vsscanf(_cache_data[m].c_str() + comma + 1, format_string(), al);
+         return this->parse_fields(_cache_data[m].c_str() + comma + 1, al);
      } else {
          sprintf(ebuf, "Channel %d: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
@@ -254,7 +271,8 @@ Folder::format_string() {
         case 'd': strcat(buf, "%lf"); break; // double precision
         case 's': strcat(buf, "%f");  break; // single precision
         case 'f': strcat(buf, "%f");  break; // float
-        case 't': strcat(buf, "%s");  break; // text
+        // case 't': strcat(buf, "\"%a[^\"]\"");  break; // text
+        case 't': strcat(buf, "%a[^,]");  break; // text
         case 'i': strcat(buf, "%d");  break; // integer
         case 'l': strcat(buf, "%ld"); break; // long integer
         default:  strcat(buf, "%ld"); break; // unknowns are long(?)
@@ -285,7 +303,7 @@ test_gettimes(Folder &d) {
 }
 
 static int channellist[] =  {
-      1052672, 41330656,6715360,1052704,1052736,1052768,1052800,1052832,1052864,1052896,1052928,1052960,
+      1052672, 6715360,1052704,1052736,1052768,1052800,1052832,1052864,1052896,1052928,1052960,
    };
 
 void
@@ -343,32 +361,41 @@ test_getchanneldata(Folder &f) {
 }
 
 static char pos[512],atten_factor[512],strip_condition[512], stuff[512];
+
 void
 test3() {
-   int channel,detector,subdet,module,plain,stripn0;
-   double atten,atten_error,amp,amp_error,reflect,reflect_error,chi2,uniformity;
    int pos_num;
+static int chbits[5];
+static double d[8];
+static char *text1;
+static char *text2;
+static char *text3;
 
    Folder d3("atten", "http://dbweb1.fnal.gov:8080/wsgi/IOVServer");
    d3.getChannelData(
 	 1300969766.0,
-	 1313343488,
-	 &detector,&subdet,&module,&plain,&stripn0,
-	 &atten,&atten_error,&amp,&amp_error,&reflect,&reflect_error,&chi2,&uniformity,
-	 &pos_num,
-	 pos,atten_factor,strip_condition, stuff, stuff);
+         1210377216,
+         &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &pos_num, &text1, &text2, &text3
+        );
 
      std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
      std::cout << "got:"
-	  << std::setw(9) << detector << std::setw(9) << subdet << std::setw(9) << module << std::setw(9) << plain << std::setw(9) << stripn0 << std::setw(9) << atten << std::setw(9) << atten_error << std::setw(9) << amp << std::setw(9) << amp_error << std::setw(9) << reflect << std::setw(9) << reflect_error << std::setw(9) << chi2 << std::setw(9) << uniformity << std::setw(9) << pos_num << std::setw(9) << pos << std::setw(9) << atten_factor << std::setw(9) << strip_condition << std::setw(9) << "\n";
+	  << std::setw(9) << chbits[0] << std::setw(9) << chbits[1] << std::setw(9) << chbits[2] << std::setw(9) << chbits[3] << std::setw(9) << chbits[4] << std::setw(9) << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] << std::setw(9) << d[3] << std::setw(9) << d[4] << std::setw(9) << d[5] << std::setw(9) << d[6] << std::setw(9) << d[7] << std::setw(9) << pos_num << "\n===\n" << std::setw(9) << text1 << "\n===\n" << std::setw(9) << text2 << "\n==\n" << std::setw(9) << text3 << std::setw(9) << "\n";
+
+  free(text1);
+  free(text2);
+  free(text3);
 }
 
 #ifdef UNITTEST
+
+char decode_test[] = "test%20this%23stuff";
 int
 main() {
 
    WebAPI::_debug = 1;
    Folder::_debug = 1;
+
 
    std::cout << std::setiosflags(std::ios::fixed);
 
@@ -380,11 +407,13 @@ main() {
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
    try {
-           test3();
-	   Folder d2("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
+           if (1) test3();
+           if (1) {
+	   Folder d2("pedcal", "http://dbweb1.fnal.gov:8080/wsgi/IOVServer");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
 	   test_getchanneldata_window(d2);
+           }
    } catch (WebAPIException we) {
       std::cout << "Exception:" << &we << std::endl;
    }
