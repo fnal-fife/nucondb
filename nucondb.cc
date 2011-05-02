@@ -371,7 +371,7 @@ static char *text1;
 static char *text2;
 static char *text3;
 
-   Folder d3("atten", "http://dbweb1.fnal.gov:8080/wsgi/IOVServer");
+   Folder d3("atten", "http://dbweb0.fnal.gov/IOVServer");
    d3.getChannelData(
 	 1300969766.0,
          1210377216,
@@ -409,7 +409,7 @@ main() {
    try {
            if (1) test3();
            if (1) {
-	   Folder d2("pedcal", "http://dbweb1.fnal.gov:8080/wsgi/IOVServer");
+	   Folder d2("pedcal", "http://dbweb0.fnal.gov/IOVServer");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
 	   test_getchanneldata_window(d2);
