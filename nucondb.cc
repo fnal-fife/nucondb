@@ -179,6 +179,25 @@ Folder::fetchData(double when)  throw(WebAPIException){
     this->fetchData(key);
 }
 
+void
+fixquotes(char *s) {
+   char *p1 = s, *p2 = s;
+
+   if (*p1 == '"') {
+      p1++;
+      while(*p1) {
+         if (*p1 == '"') {
+            if (*(p1+1) == '"') {
+               p1++;
+            } else {
+               *p2++ = 0;
+               return;
+            }
+         }
+         *p2++ = *p1++;
+      }
+   }
+}
 
 int
 Folder::parse_fields(const char *pc, va_list al) {
@@ -187,6 +206,13 @@ Folder::parse_fields(const char *pc, va_list al) {
      std::vector<std::string>::iterator it;
      res = vsscanf(pc, format_string(), al);
 
+
+     for( it = _types.begin(), it++; it != _types.end(); it++ ) {
+        vp = va_arg(al,void*);
+        switch((*it)[0]) {
+        case 't': fixquotes(*(char**)vp);  break; 
+        }
+     }
      return res;
 }
 
@@ -398,6 +424,12 @@ main() {
 
 
    std::cout << std::setiosflags(std::ios::fixed);
+
+   char tfq[] = "\"string with \"\" quotes\"";
+
+   std::cout << "before: " << tfq << "\n";
+   fixquotes(tfq);
+   std::cout << "after: " << tfq << "\n";
 
    //Folder d("myfolder", "http://www-oss.fnal.gov/~mengel/testcool");
    //test_gettimes(d);
