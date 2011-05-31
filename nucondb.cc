@@ -115,7 +115,11 @@ Folder::fetchData(long key) throw(WebAPIException) {
 
     getline(s.data(), columnstr);
     _debug && std::cout << "got: " << columnstr << std::endl;;
-    _cache_end = atof(columnstr.c_str());
+    if (columnstr[0] == '-') {
+        _cache_end = 9999999999.90;  // a really long time from now
+    } else {
+        _cache_end = atof(columnstr.c_str());
+    }
     
     // get column names
     getline(s.data(), columnstr);
@@ -180,9 +184,12 @@ Folder::fetchData(double when)  throw(WebAPIException){
 }
 
 void
-fixquotes(char *s) {
+fixquotes(char *s, int debug) {
    char *p1 = s, *p2 = s;
 
+   if (debug) {
+       std::cout << "before: " << s << "\n";
+   }
    if (*p1 == '"') {
       p1++;
       while(*p1) {
@@ -191,11 +198,15 @@ fixquotes(char *s) {
                p1++;
             } else {
                *p2++ = 0;
-               return;
+               break;
             }
          }
          *p2++ = *p1++;
       }
+   }
+   if (debug) {
+      std::cout << "after: " << s << "\n";
+      std::cout.flush();
    }
 }
 
@@ -206,11 +217,10 @@ Folder::parse_fields(const char *pc, va_list al) {
      std::vector<std::string>::iterator it;
      res = vsscanf(pc, format_string(), al);
 
-
      for( it = _types.begin(), it++; it != _types.end(); it++ ) {
         vp = va_arg(al,void*);
         switch((*it)[0]) {
-        case 't': fixquotes(*(char**)vp);  break; 
+        case 't': fixquotes(*(char**)vp, _debug);  break; 
         }
      }
      return res;
@@ -333,6 +343,27 @@ static int channellist[] =  {
    };
 
 void
+test_getchannel_feb() {
+    float g_time = 1303853231.0;
+
+     static int chbits[5];
+     static double d[39];
+     int hit_id = 2364544;
+    try {
+     Folder f("feb","http://dbweb0.fnal.gov:8080/IOVServer");
+   
+
+     f.getChannelData(g_time , hit_id, &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2],\
+                        &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10], &d[11], &d[12], &d[13], &d[14], &d[15],\
+                        &d[16], &d[17], &d[18], &d[19], &d[20], &d[21], &d[22], &d[23], &d[24], &d[25], &d[26], &d[27],\
+                        &d[28], &d[29], &d[30], &d[31], &d[32], &d[33], &d[34], &d[35], &d[36], &d[37], &d[38]);
+   
+   } catch (WebAPIException we) {
+       std::cout << "got exception:" << &we << "\n";
+   }
+}
+
+void
 test_getchanneldata_window(Folder &f) {
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
    int i1, i2, i3, i4, i5;
@@ -427,9 +458,7 @@ main() {
 
    char tfq[] = "\"string with \"\" quotes\"";
 
-   std::cout << "before: " << tfq << "\n";
-   fixquotes(tfq);
-   std::cout << "after: " << tfq << "\n";
+   fixquotes(tfq,1);
 
    //Folder d("myfolder", "http://www-oss.fnal.gov/~mengel/testcool");
    //test_gettimes(d);
@@ -438,6 +467,8 @@ main() {
    //std::cout << "Now the real test...\n";
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
+
+   test_getchannel_feb();
    try {
            if (1) test3();
            if (1) {
