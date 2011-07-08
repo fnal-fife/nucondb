@@ -20,7 +20,7 @@ private:
      std::string _url;
      std::string _foldername;
 
-     int parse_fields(const char *, va_list);
+     int parse_fields(std::vector<std::string> names,const char *, va_list);
 
 public:
      static int _debug;
@@ -32,8 +32,9 @@ public:
      void fetchData(long key) throw(WebAPIException);    // gets data for a time in cache
 
      Folder( std::string name, std::string url ) throw(WebAPIException); // bookkeeping...
+     int getNamedChannelData_va(double t, int chan, std::vector<std::string> names,va_list al) throw(WebAPIException); // fetches data 
+     int getNamedChannelData(double t, int chan, std::string names,...) throw(WebAPIException); // fetches data 
      int getChannelData(double t, int chan, ...) throw(WebAPIException); // fetches data 
-     char *format_string();
      long int getKey(double) throw(WebAPIException);
 };
 
