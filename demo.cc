@@ -27,29 +27,35 @@ doit() {
    char buf[512];
    static double d[9];
    static int chbits[6];
-   int i, n, chan;
+   int n, chan;
+   std::string fields("hg_mean,hg_rms,hg_entries,mg_mean,mg_rms,mg_entries,lg_mean,lg_rms,lg_entries");
    //double lookuptime = 1290651324.1;
    double lookuptime = 1283848809.799920;
    double halfhour = 30 * 60;
+  static int channellist[] =  {
+      34739968,34740000,34740032,34740064,34740096,34740128,34740160,34740192,34742272,34742304
+   };
+
+
 
    //WebAPI::_debug = 1;
    //Folder::_debug = 1;
 
 
-   Folder f("pedcal", "http://rexdb01.fnal.gov:8088/wsgi/IOVServer");
+   Folder f("pedcal", "http://dbweb0.fnal.gov/IOVServer");
    
    cout << setiosflags(ios::fixed) << setfill(' ') << setprecision(4) ;
 
    timestamp();
    cout << "starting...\n";
 
-   for(i = 1; i < 10; i++ ) {
-       for (chan = 1000110; chan < 1000170; chan+=20) {
+   for(int i = 0; i < 10; i++ ) {
+       for (int j = 0; j< 10; j++) {
 
-	   f.getChannelData(
+	   f.getNamedChannelData(
 		  lookuptime + halfhour * i, 
-		  chan, 
-                  &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &chbits[5],
+		  channellist[j],
+                  fields,
   	          &d[0], &d[1], &d[2], &d[3], &d[4], 
 		  &d[5], &d[6], &d[7], &d[8] 
               );
