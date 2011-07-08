@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <iomanip>
+#include <string.h>
+#include <stdlib.h>
 #include <ext/stdio_filebuf.h>
 
 // debug flag

@@ -3,7 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <iostream>
 #include <iomanip>
@@ -210,20 +212,55 @@ fixquotes(char *s, int debug) {
    }
 }
 
+//XXX still  needs to use names...
+//
 int
-Folder::parse_fields(const char *pc, va_list al) {
-     void *vp;
-     int res;
-     std::vector<std::string>::iterator it;
-     res = vsscanf(pc, format_string(), al);
+Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al) {
+    void *vp;
+    int i;
+    int res;
+    std::vector<std::string>::iterator it, nit, cit;
+    std::vector<std::string> fields;
 
-     for( it = _types.begin(), it++; it != _types.end(); it++ ) {
-        vp = va_arg(al,void*);
-        switch((*it)[0]) {
-        case 't': fixquotes(*(char**)vp, _debug);  break; 
+    fields = split(pc,',');
+    for( nit = names.begin(); nit != names.end(); nit++ ) {
+	vp = va_arg(al, void*);
+        if (!vp) {
+            break;
         }
-     }
-     return res;
+	for( i = 0; i < _columns.size(); i++ ) {
+	    if ( *nit == _columns[i] ) {
+                _debug && std::cout << "found " << *nit << " matching " << _columns[i] <<"\n";
+		switch(_types[i][0]) {
+		case 'd': //double precision
+		    *(double *)vp = atof(fields[i-1].c_str());
+		    break;
+		case 'f': //single precision
+		    *(float *)vp = atof(fields[i-1].c_str());
+		    break;
+		case 't': //text
+		    *(char**)vp = strdup(fields[i-1].c_str());
+		    fixquotes(*(char**)vp, _debug);
+		    break;
+		case 'i': //integer
+		    *(int*)vp = atoi(fields[i-1].c_str());
+		    break;
+		case 'l': //long int
+		    *(long*)vp = atol(fields[i-1].c_str());
+		    break;
+		}
+	    }
+	}
+    }
+}
+
+// get all but the first item of a vector..
+std::vector<std::string> 
+vector_cdr(std::vector<std::string> &vec) {
+    std::vector<std::string>::iterator it = vec.begin();
+    it++;
+    std::vector<std::string> res(it, vec.end());
+    return res;
 }
 
 // getChannelData --
@@ -234,12 +271,25 @@ Folder::parse_fields(const char *pc, va_list al) {
 int
 Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
     va_list al;
+    va_start(al, chan);
+    fetchData(t);
+    return getNamedChannelData_va(t, chan, vector_cdr(_columns), al);
+}
+
+int
+Folder::getNamedChannelData(double t, int chan, std::string names, ...) throw(WebAPIException) {
+    va_list al;
+    va_start(al, names);
+    std::vector<std::string> namev = split(names,',');
+    return getNamedChannelData_va(t, chan, namev, al);
+}
+
+int
+Folder::getNamedChannelData_va(double t, int chan, std::vector<std::string> namev, va_list al) throw(WebAPIException) {
     int l, m, r;
     int val;
     int comma;
     int res;
-
-    va_start(al, chan);
 
     fetchData(t);
 
@@ -282,44 +332,11 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
      comma = _cache_data[m].find_first_of(',');
      val = atol(_cache_data[m].c_str());
      if (val == chan) {
-         return this->parse_fields(_cache_data[m].c_str() + comma + 1, al);
+         return this->parse_fields(namev, _cache_data[m].c_str() + comma + 1, al);
      } else {
          sprintf(ebuf, "Channel %d: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
      }
-}
-
-// give a scanf format string for the current data types
-char *
-Folder::format_string() {
-    std::vector<std::string>::iterator it;
-    static char buf[2048];
-    char *sep = (char *)"";
-
-    buf[0] = 0;
-    
-    _debug && std::cout << "format_string: ";
-    for( it = _types.begin(), it++; it != _types.end(); it++ ) {
-        _debug && std::cout << "type: " << *it << "\n";
-        _debug && std::cout.flush();
-        strcat(buf, sep);
-        switch((*it)[0]) {
-        case 'd': strcat(buf, "%lf"); break; // double precision
-        case 's': strcat(buf, "%f");  break; // single precision
-        case 'f': strcat(buf, "%f");  break; // float
-        // case 't': strcat(buf, "\"%a[^\"]\"");  break; // text
-        case 't': strcat(buf, "%a[^,]");  break; // text
-        case 'i': strcat(buf, "%d");  break; // integer
-        case 'l': strcat(buf, "%ld"); break; // long integer
-        default:  strcat(buf, "%ld"); break; // unknowns are long(?)
-        }
-        sep = (char *)",";
-    }
-    strcat(buf,"\\n");
-    _debug && std::cout << "\n got: " << buf << "\n";
-    _debug && std::cout.flush();
-
-    return buf; 
 }
 
 void
@@ -417,7 +434,6 @@ test_getchanneldata(Folder &f) {
     std::setw(9)<<d1 << std::setw(9)<<d2 << std::setw(9)<<d3 << std::setw(9)<<d4 << std::setw(9)<<d5 << std::setw(9)<<d6 << std::setw(9)<<d7 << std::setw(9)<<d8 << std::setw(9)<<d9 << std::endl;
 }
 
-static char pos[512],atten_factor[512],strip_condition[512], stuff[512];
 
 void
 test3() {
@@ -429,19 +445,53 @@ static char *text2;
 static char *text3;
 
    Folder d3("atten", "http://dbweb0.fnal.gov/IOVServer");
-   d3.getChannelData(
+   d3.getNamedChannelData(
 	 1300969766.0,
          1210377216,
-         &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &pos_num, &text1, &text2, &text3
+         "atten,atten_error,amp,amp_error,reflect,reflect_error",
+         
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
         );
 
      std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
-     std::cout << "got:"
-	  << std::setw(9) << chbits[0] << std::setw(9) << chbits[1] << std::setw(9) << chbits[2] << std::setw(9) << chbits[3] << std::setw(9) << chbits[4] << std::setw(9) << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] << std::setw(9) << d[3] << std::setw(9) << d[4] << std::setw(9) << d[5] << std::setw(9) << d[6] << std::setw(9) << d[7] << std::setw(9) << pos_num << "\n===\n" << std::setw(9) << text1 << "\n===\n" << std::setw(9) << text2 << "\n==\n" << std::setw(9) << text3 << std::setw(9) << "\n";
+     std::cout << "got by name: "
+               << "atten,atten_error,amp,amp_error,reflect,reflect_error"
+               << "\n"
+               << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] 
+               << std::setw(9) << d[3] << std::setw(9) << d[4] 
+               << std::setw(9) << d[5] 
+               << "\n";
 
-  free(text1);
-  free(text2);
-  free(text3);
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1210377216,
+         "atten",
+         
+         &d[0]
+        );
+
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "atten"
+               << "\n"
+               << d[0] 
+               << "\n";
+
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1210377216,
+         "reflect",
+         
+         &d[0]
+        );
+
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "reflect"
+               << "\n"
+               << d[0] 
+               << "\n";
+
 }
 
 #ifdef UNITTEST
@@ -471,7 +521,7 @@ main() {
    test_getchannel_feb();
    try {
            if (1) test3();
-           if (1) {
+           if (0) {
 	   Folder d2("pedcal", "http://dbweb0.fnal.gov/IOVServer");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
