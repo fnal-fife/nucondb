@@ -83,18 +83,43 @@ Folder::getTimes(double when)  throw(WebAPIException){
 
 // utility, split a string into a list -- like perl/python split()
 
+int
+find_end(std::string s, char c, int pos, bool quotes = false) {
+    int possible_end;
+    
+    possible_end = pos - 1;
+    // handle quoted strings -- as long as  we're at a quote, look for the
+    // next one... on the n'th pass throug the loop, possible end should
+    // be at the following string indexes
+    // string:  ?"xxxx""xxxx""xxxx",
+    // pass:    0     1     2     3
+    // If there's no quotes, we just pick up and find the 
+    // separator (i.e. the comma)
+    while (quotes && possible_end != std::string::npos &&  s[possible_end + 1] == '"') {
+        possible_end = s.find('"', possible_end+1);
+    }
+    
+    // we could have mismatched quotes... so ignore them and start over
+    if (possible_end == std::string::npos) {
+        possible_end = pos - 1;
+    }
+    
+    return s.find(c, possible_end+1);
+}
+
 std::vector<std::string>
-split(std::string s, char c ){
+split(std::string s, char c, bool quotes = false ){
    size_t pos, p2;
    pos = 0;
    std::vector<std::string> res;
-   while( std::string::npos != (p2 = s.find(c,pos)) ) {
+   while( std::string::npos != (p2 = find_end(s,c,pos,quotes)) ) {
 	res.push_back(s.substr(pos, p2 - pos));
         pos = p2 + 1;
    }
    res.push_back(s.substr(pos));
    return res;
 }
+
 
 // get all channels for time nearest when into cache
 void
@@ -211,7 +236,6 @@ fixquotes(char *s, int debug) {
       std::cout.flush();
    }
 }
-
 //XXX still  needs to use names...
 //
 int
@@ -222,7 +246,7 @@ Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al)
     std::vector<std::string>::iterator it, nit, cit;
     std::vector<std::string> fields;
 
-    fields = split(pc,',');
+    fields = split(pc,',',true);
     for( nit = names.begin(); nit != names.end(); nit++ ) {
 	vp = va_arg(al, void*);
         if (!vp) {
@@ -507,8 +531,15 @@ main() {
    std::cout << std::setiosflags(std::ios::fixed);
 
    char tfq[] = "\"string with \"\" quotes\"";
-
    fixquotes(tfq,1);
+   
+   std::string tsplit("\"string\"\"to\",100,\"split\"\"\"\"here\"\"");
+   std::vector<std::string> splitres = split(tsplit,',',true);
+   std::cout << "split of " << tsplit << " yeilds: {" << std::endl;
+   for( int i = 0; i < splitres.size(); i++ ) {
+       std::cout << splitres[i] << "," << std::endl;
+   }
+   std::cout << "}" << std::endl;
 
    //Folder d("myfolder", "http://www-oss.fnal.gov/~mengel/testcool");
    //test_gettimes(d);
