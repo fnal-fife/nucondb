@@ -19,6 +19,7 @@ private:
      std::vector<tk> _times;
      std::string _url;
      std::string _foldername;
+     std::string _tag;
 
      int parse_fields(std::vector<std::string> names,const char *, va_list);
 
@@ -31,7 +32,7 @@ public:
      void fetchData(double when) throw(WebAPIException); // gets data for a time in cache
      void fetchData(long key) throw(WebAPIException);    // gets data for a time in cache
 
-     Folder( std::string name, std::string url ) throw(WebAPIException); // bookkeeping...
+     Folder( std::string name, std::string url, std::string tag = "") throw(WebAPIException); // bookkeeping...
      int getNamedChannelData_va(double t, int chan, std::vector<std::string> names,va_list al) throw(WebAPIException); // fetches data 
      int getNamedChannelData(double t, int chan, std::string names,...) throw(WebAPIException); // fetches data 
      int getChannelData(double t, int chan, ...) throw(WebAPIException); // fetches data 
