@@ -17,12 +17,13 @@ int Folder::_debug(0);
 static char ebuf[64];
 
 // initialize folder with folder name, server url
-Folder::Folder( std::string name, std::string url ) throw(WebAPIException) {
+Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPIException) {
    _foldername = name;
    _url = url;
    _cache_key = -1;
    _cache_start = 0;
    _cache_end = 0;
+   _tag = tag;
 }
 
 // get key for given time
@@ -33,6 +34,9 @@ Folder::getKey(double when)  throw(WebAPIException){
 
     fullurl << std::setiosflags(std::ios::fixed);
     fullurl << _url << "/key?f=" << _foldername << "&t=" << when ;
+    if (_tag.length() > 0) {
+         fullurl << "&tag=" << _tag;
+    }
 
     WebAPI s( fullurl.str() );
 
@@ -58,6 +62,9 @@ Folder::getTimes(double when)  throw(WebAPIException){
     fullurl << std::setiosflags(std::ios::fixed);
     fullurl << _url << "/times?f=" << _foldername << "&t=" << weekstart 
                     << "&d=" << seconds_in_week ;
+    if (_tag.length() > 0) {
+         fullurl << "&tag=" << _tag;
+    }
 
     WebAPI s( fullurl.str() );
 
@@ -131,6 +138,9 @@ Folder::fetchData(long key) throw(WebAPIException) {
     std::stringstream fullurl;
     fullurl << std::setiosflags(std::ios::fixed);
     fullurl << _url << "/data?f=" << _foldername << "&i=" << key ;
+    if (_tag.length() > 0) {
+         fullurl << "&tag=" << _tag;
+    }
     WebAPI s( fullurl.str() );
 
     _cache_key = key;
