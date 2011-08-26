@@ -389,6 +389,10 @@ test_gettimes(Folder &d) {
    std::cout << "}\n";
 }
 
+//
+// ------------------------- Tests ----------------------------
+// 
+
 static int channellist[] =  {
       1052672, 6715360,1052704,1052736,1052768,1052800,1052832,1052864,1052896,1052928,1052960,
    };
@@ -528,6 +532,37 @@ static char *text3;
 
 }
 
+void
+test_tagged_folder() {
+   int pos_num;
+static int chbits[5];
+static double d[8];
+static char *text1;
+static char *text2;
+static char *text3;
+
+   // open folder with a tag name...
+   Folder d3("atten", "http://dbweb0.fnal.gov/IOVServer","old");
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1210377216,
+         "atten,atten_error,amp,amp_error,reflect,reflect_error",
+         
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
+        );
+
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "atten,atten_error,amp,amp_error,reflect,reflect_error"
+               << "\n"
+               << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] 
+               << std::setw(9) << d[3] << std::setw(9) << d[4] 
+               << std::setw(9) << d[5] 
+               << "\n";
+
+
+}
+
 #ifdef UNITTEST
 
 char decode_test[] = "test%20this%23stuff";
@@ -558,6 +593,8 @@ main() {
    //std::cout << "Now the real test...\n";
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
+   //
+   test_tagged_folder();
 
    test_getchannel_feb();
    try {
