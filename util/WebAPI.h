@@ -42,7 +42,9 @@ public:
     WebAPI(std::string url) throw(WebAPIException);
     ~WebAPI();
     std::fstream &data() { return _fromsite; }
-    
+
+    static std::string encode(std::string);
+
     struct parsed_url {
 	 std::string type;
 	 std::string host;

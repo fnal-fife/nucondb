@@ -18,12 +18,12 @@ static char ebuf[64];
 
 // initialize folder with folder name, server url
 Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPIException) {
-   _foldername = name;
+   _foldername = WebAPI::encode(name);
    _url = url;
    _cache_key = -1;
    _cache_start = 0;
    _cache_end = 0;
-   _tag = tag;
+   _tag = WebAPI::encode(tag);
 }
 
 // get key for given time
@@ -594,7 +594,11 @@ main() {
 
    //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
    //
+   try {
    test_tagged_folder();
+   } catch (WebAPIException we) {
+      std::cout << "Exception:" << &we << std::endl;
+   }
 
    test_getchannel_feb();
    try {

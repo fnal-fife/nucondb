@@ -29,6 +29,32 @@ WebAPIException::WebAPIException( std::string message, std::string tag ) throw()
 std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse )
  { pse && (os << pse->tag() << pse->message()) ; return os; }
 
+
+std::string
+WebAPI::encode(std::string s) {
+    std::string res("");
+    static char digits[] = "0123456789abcdef";
+    
+    for(int i = 0; i < s.length(); i++) {
+        if (
+              (s[i] >= 'a' && s[i] <= 'z') ||
+              (s[i] >= 'A' && s[i] <= 'Z') ||
+              (s[i] >= '0' && s[i] <= '9') ) {
+            res.append(1, s[i]);
+         } else {
+            res.append(1, '%');
+            res.append(1, digits[(s[i]>>4)&0xf]);
+            res.append(1, digits[s[i]&0xf]);
+         }
+    }
+    return res;
+}	
+
+void
+test_encode() {
+    std::string s="testing(again'for'me)";
+    std::cout << "converting: " << s << " to: " << WebAPI::encode(s);
+}
 // parseurl(url)
 //   parse a url into 
 //   * type/protocol, 
@@ -305,6 +331,7 @@ test_WebAPI_fetchurl() {
 int
 main() {
    WebAPI::_debug = 1;
+   test_encode();
    test_WebAPI_fetchurl();
 }
 #endif
