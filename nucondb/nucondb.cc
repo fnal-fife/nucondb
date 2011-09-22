@@ -168,6 +168,7 @@ Folder::fetchData(long key) throw(WebAPIException) {
     _types = split(columnstr,',');
 
     _n_datarows = 0;
+    _cache_data.clear();
     while (!s.data().eof()) {
 
        getline(s.data(), columnstr);
