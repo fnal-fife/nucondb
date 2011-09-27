@@ -191,7 +191,10 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 
                 hostport << pu.host << ":" << pu.port;
 
-                _debug && std::cout << "openssl"<< ' ' << "s_client"<< ' ' << "-connect"<< ' ' << hostport.str().c_str() << ' ' << "-cert"<< ' ' << proxy << ' ' << "-quiet" ;
+                _debug && std::cout << "openssl"<< ' ' << "s_client"<< ' ' << "-connect"<< ' ' << hostport.str().c_str() << " -quiet" ;
+                if (proxy) {
+		    std::cout << ' ' << "-cert"<< ' ' << proxy ;
+                }
 
                 std::cout.flush();
 
@@ -205,7 +208,11 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
                 close(outp[0]);close(outp[1]);
 
                 // run openssl...
-                execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-cert", proxy, "-quiet", 0);
+                if (proxy) {
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet", "-cert", proxy,  0);
+                } else {
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet", 0);
+                }
                 exit(-1);
             } else {
                 // parent, fix up pipes, make streams
@@ -269,7 +276,14 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
          }
      }
      if (status != 200) {
-        throw(WebAPIException(url,"Status code not 200."));
+        std::stringstream message;
+        message << "Status: " << status << "\n";
+        message << "Error text is:\n";
+        while (_fromsite.getline(buf, 512).gcount() > 0) {
+            message << buf << "\n";
+        }
+        
+        throw(WebAPIException(url,message.str()));
      }    
 }
 
@@ -321,6 +335,11 @@ test_WebAPI_fetchurl() {
    }
    try {
       WebAPI ds5("borked://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
+   } catch (WebAPIException we) {
+      std::cout << &we << std::endl;
+   }
+   try {
+      WebAPI ds6("http://www.fnal.gov/nosuchdir/nosuchfile.html");
    } catch (WebAPIException we) {
       std::cout << &we << std::endl;
    }
