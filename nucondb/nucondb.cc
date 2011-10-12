@@ -304,7 +304,7 @@ vector_cdr(std::vector<std::string> &vec) {
 // finally unpack data with vsprintf
 
 int
-Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
+Folder::getChannelData(double t, unsigned long chan, ...) throw(WebAPIException) {
     va_list al;
     va_start(al, chan);
     fetchData(t);
@@ -312,7 +312,7 @@ Folder::getChannelData(double t, int chan, ...) throw(WebAPIException) {
 }
 
 int
-Folder::getNamedChannelData(double t, int chan, std::string names, ...) throw(WebAPIException) {
+Folder::getNamedChannelData(double t, unsigned long chan, std::string names, ...) throw(WebAPIException) {
     va_list al;
     va_start(al, names);
     std::vector<std::string> namev = split(names,',');
@@ -320,9 +320,9 @@ Folder::getNamedChannelData(double t, int chan, std::string names, ...) throw(We
 }
 
 int
-Folder::getNamedChannelData_va(double t, int chan, std::vector<std::string> namev, va_list al) throw(WebAPIException) {
+Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::string> namev, va_list al) throw(WebAPIException) {
     int l, m, r;
-    int val;
+    unsigned long val;
     int comma;
     int res;
 
@@ -343,7 +343,7 @@ Folder::getNamedChannelData_va(double t, int chan, std::vector<std::string> name
                            << " r: " << r;
         _debug && std::cout.flush();
 
-        val = atol(_cache_data[m].c_str());
+        val = strtoul(_cache_data[m].c_str(),NULL,0);
         _debug && std::cout << " val: " << val 
                   << std::endl;
         if( val  > chan )  r = m - 1;
@@ -354,7 +354,7 @@ Folder::getNamedChannelData_va(double t, int chan, std::vector<std::string> name
      }
 
      if (m >= _n_datarows) {
-         sprintf(ebuf, "Channel %d: ", chan);
+         sprintf(ebuf, "Channel %u: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
      }
 
@@ -365,11 +365,11 @@ Folder::getNamedChannelData_va(double t, int chan, std::vector<std::string> name
      _debug && std::cout.flush();
 
      comma = _cache_data[m].find_first_of(',');
-     val = atol(_cache_data[m].c_str());
+     val = strtoul(_cache_data[m].c_str(),NULL,0);
      if (val == chan) {
          return this->parse_fields(namev, _cache_data[m].c_str() + comma + 1, al);
      } else {
-         sprintf(ebuf, "Channel %d: ", chan);
+         sprintf(ebuf, "Channel %u: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
      }
 }
