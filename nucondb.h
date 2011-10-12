@@ -33,9 +33,9 @@ public:
      void fetchData(long key) throw(WebAPIException);    // gets data for a time in cache
 
      Folder( std::string name, std::string url, std::string tag = "") throw(WebAPIException); // bookkeeping...
-     int getNamedChannelData_va(double t, int chan, std::vector<std::string> names,va_list al) throw(WebAPIException); // fetches data 
-     int getNamedChannelData(double t, int chan, std::string names,...) throw(WebAPIException); // fetches data 
-     int getChannelData(double t, int chan, ...) throw(WebAPIException); // fetches data 
+     int getNamedChannelData_va(double t, unsigned long chan, std::vector<std::string> names,va_list al) throw(WebAPIException); // fetches data 
+     int getNamedChannelData(double t, unsigned long int chan, std::string names,...) throw(WebAPIException); // fetches data 
+     int getChannelData(double t, unsigned long chan, ...) throw(WebAPIException); // fetches data 
      long int getKey(double) throw(WebAPIException);
 };
 
