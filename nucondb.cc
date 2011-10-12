@@ -23,6 +23,8 @@ Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPI
    _cache_key = -1;
    _cache_start = 0;
    _cache_end = 0;
+   _cached_row = -1;
+   _cached_channel = 0;
    _tag = WebAPI::encode(tag);
 }
 
@@ -169,6 +171,9 @@ Folder::fetchData(long key) throw(WebAPIException) {
 
     _n_datarows = 0;
     _cache_data.clear();
+    _cached_channel = 0;
+    _cached_row = -1;
+
     while (!s.data().eof()) {
 
        getline(s.data(), columnstr);
@@ -328,6 +333,7 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
 
     fetchData(t);
 
+
     l=0; r = _n_datarows-1;
     m = (l + r + 1)/2;
 
@@ -335,6 +341,11 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
        sprintf(ebuf, "time %f: ", t);
        throw(WebAPIException(ebuf, "Data not found in database."));
     }
+
+    if (_cached_row != -1 && _cached_channel == chan ) {
+       m = _cached_row;
+       _debug && std::cout << "using _cached_row " << m << "\n";
+    } else {
 
     // binary search for channel...
     while( l < r ) {
@@ -353,9 +364,12 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
         m = (l + r + 1)/2;
      }
 
+
      if (m >= _n_datarows) {
          sprintf(ebuf, "Channel %u: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
+     }
+
      }
 
      _debug && std::cout << "found slot " << m ;
@@ -367,6 +381,9 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
      comma = _cache_data[m].find_first_of(',');
      val = strtoul(_cache_data[m].c_str(),NULL,0);
      if (val == chan) {
+         _cached_channel = chan;
+         _cached_row = m;
+
          return this->parse_fields(namev, _cache_data[m].c_str() + comma + 1, al);
      } else {
          sprintf(ebuf, "Channel %u: ", chan);
@@ -519,6 +536,21 @@ static char *text3;
    d3.getNamedChannelData(
 	 1300969766.0,
          1210377216,
+         "reflect",
+         
+         &d[0]
+        );
+
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "reflect"
+               << "\n"
+               << d[0] 
+               << "\n";
+
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1210381312,
          "reflect",
          
          &d[0]
