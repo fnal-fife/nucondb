@@ -20,6 +20,8 @@ private:
      std::string _url;
      std::string _foldername;
      std::string _tag;
+     int _cached_row;
+     unsigned long _cached_channel;
 
      int parse_fields(std::vector<std::string> names,const char *, va_list);
 
