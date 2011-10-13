@@ -342,33 +342,33 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
        throw(WebAPIException(ebuf, "Data not found in database."));
     }
 
-    if (_cached_row != -1 && _cached_channel == chan ) {
+    if (_cached_row != -1 && _cached_channel == chan &&  strtoul(_cache_data[m].c_str(),NULL,0) == chan ) {
        m = _cached_row;
        _debug && std::cout << "using _cached_row " << m << "\n";
     } else {
 
-    // binary search for channel...
-    while( l < r ) {
-        _debug && std::cout << "searching l: " << l 
-                           << " m: " << m 
-                           << " r: " << r;
-        _debug && std::cout.flush();
+	// binary search for channel...
+	while( l < r ) {
+	    _debug && std::cout << "searching l: " << l 
+			       << " m: " << m 
+			       << " r: " << r;
+	    _debug && std::cout.flush();
 
-        val = strtoul(_cache_data[m].c_str(),NULL,0);
-        _debug && std::cout << " val: " << val 
-                  << std::endl;
-        if( val  > chan )  r = m - 1;
-        if( val == chan )  l = r = m;
-        if( val  < chan )  l = m + 1;
+	    val = strtoul(_cache_data[m].c_str(),NULL,0);
+	    _debug && std::cout << " val: " << val 
+		      << std::endl;
+	    if( val  > chan )  r = m - 1;
+	    if( val == chan )  l = r = m;
+	    if( val  < chan )  l = m + 1;
 
-        m = (l + r + 1)/2;
-     }
+	    m = (l + r + 1)/2;
+	 }
 
 
-     if (m >= _n_datarows) {
-         sprintf(ebuf, "Channel %u: ", chan);
-         throw(WebAPIException(ebuf , "not found in data."));
-     }
+	 if (m >= _n_datarows) {
+	     sprintf(ebuf, "Channel %u: ", chan);
+	     throw(WebAPIException(ebuf , "not found in data."));
+	 }
 
      }
 
