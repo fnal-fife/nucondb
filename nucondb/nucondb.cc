@@ -342,7 +342,7 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
        throw(WebAPIException(ebuf, "Data not found in database."));
     }
 
-    if (_cached_row != -1 && _cached_channel == chan &&  strtoul(_cache_data[m].c_str(),NULL,0) == chan ) {
+    if (_cached_row != -1 && _cached_channel == chan &&  strtoul(_cache_data[_cached_row].c_str(),NULL,0) == chan ) {
        m = _cached_row;
        _debug && std::cout << "using _cached_row " << m << "\n";
     } else {
