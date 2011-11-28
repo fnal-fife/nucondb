@@ -27,6 +27,7 @@ Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPI
    _cached_row = -1;
    _cached_channel = 0;
    _tag = WebAPI::encode(tag);
+   _last_times_url = "";
 }
 
 // get key for given time
@@ -68,6 +69,13 @@ Folder::getTimes(double when)  throw(WebAPIException){
     if (_tag.length() > 0) {
          fullurl << "&tag=" << _tag;
     }
+
+    // don't repeat the same url as last time -- happens
+    // when we're in the last time window
+    if (fullurl.str() == _last_times_url) {
+        return _times;
+    }
+    _last_times_url = fullurl.str();
 
     WebAPI s( fullurl.str() );
 
