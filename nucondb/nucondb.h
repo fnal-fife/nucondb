@@ -17,6 +17,7 @@ private:
      std::vector<std::string> _cache_data;
      int _n_datarows;
      std::vector<tk> _times;
+     std::string _last_times_url;
      std::string _url;
      std::string _foldername;
      std::string _tag;

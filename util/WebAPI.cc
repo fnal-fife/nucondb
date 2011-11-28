@@ -124,6 +124,10 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
      while( redirectflag ) {
          hcount = 0;
          status = 500;
+         retries++;
+	 if (retries > 14) {
+	     throw(WebAPIException(url,"FetchError: Retry count exceeded"));
+	 }
 
          // stuff from ye olde BSD IP Tutorial...
          s = socket(AF_INET, SOCK_STREAM,0);
@@ -134,10 +138,6 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
              // connect directly
 	     hostp = gethostbyname(pu.host.c_str());
 	     if (!hostp) {
-		 retries++;
-		 if (retries > 14) {
-		     throw(WebAPIException(url,"FetchError: Retry count exceeded, gethostbyname failed"));
-		 }
 		 _debug && std::cout << "gethostname failed , waiting ..." << retries << std::endl;
 		 _debug && std::cout.flush();
 		 sleep(1);
@@ -149,15 +149,11 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	     server.sin_port = htons(pu.port);
 	     memcpy( &server.sin_addr, hostp->h_addr, hostp->h_length);
 
-	     retries = 0;
-	     while (connect(s,(struct sockaddr *)&server,sizeof(server)) < 0) {
-		 retries++;
-		 if (retries > 14) {
-		     throw(WebAPIException(url,"FetchError: Retry count exceeded, connect failed"));
-		 }
+	     if (connect(s,(struct sockaddr *)&server,sizeof(server)) < 0) {
 		 _debug && std::cout << "connect failed , waiting ...";
 		 sleep(5 << retries);
 		 _debug && std::cout << "retrying ...\n";
+                continue;
 	     }
 
 	     // start of black magic -- use stdio_filebuf class to 
@@ -267,10 +263,15 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
          if (buf_out) 
              delete buf_out;
 
-	 if (status < 301 || status > 303 ) {
+         if (status == 503) {
+	    _debug && std::cout << "503 error , waiting ...";
+            sleep(5 << retries);
+         }
+
+         if ((status < 301 || status > 303) && status != 503 ) {
             redirectflag = 0;
 	 } else {
-	     // we're going to redirect again, so close the _fromsite side
+	     // we're going to redirect/retry again, so close the _fromsite side
 	     _fromsite.close();
              delete _buf_in;
          }
