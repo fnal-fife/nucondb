@@ -100,6 +100,10 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 #include <arpa/inet.h>
 #include <netdb.h>
 
+char *getexperiment() {
+    return "minerva";
+}
+
 // fetch a URL, opening a filestream to the content
 // we do klugy looking things here to directly return
 // the network connection, rather than saving he data
@@ -233,6 +237,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	 // now some basic http protocol
 	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.11 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
 	 _tosite.flush();
 
