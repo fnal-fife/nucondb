@@ -237,7 +237,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	 // now some basic http protocol
 	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.11 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.12 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
 	 _tosite.flush();
 
@@ -273,12 +273,13 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
             sleep(5 << retries);
          }
 
-         if ((status < 301 || status > 303) && status != 503 ) {
+         if ((status < 301 || status > 309) && status != 503 ) {
             redirectflag = 0;
 	 } else {
 	     // we're going to redirect/retry again, so close the _fromsite side
 	     _fromsite.close();
              delete _buf_in;
+             continue;
          }
      }
      if (status != 200) {
