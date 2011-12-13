@@ -52,20 +52,29 @@ Folder::getKey(double when)  throw(WebAPIException){
 
 // get list of boundaries near given time from server
 std::vector<Folder::tk>
-Folder::getTimes(double when)  throw(WebAPIException){
+Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIException){
     const int seconds_in_week = 7 * 24 * 60 * 60;
-    double weekstart;
+    const double window = lookback + lookforw;
+    const double start = when - lookback;
     std::vector<tk> res;
     std::string st;
     tk cur;
 
-    weekstart = (long)when - (long)when % seconds_in_week;
+
+    // if we aren't given lookback/lookforw bounds, do
+    // surrounding week on a week boundary 
+    if ( start == when && 0 == window ) {
+        start = (long)when - (long)when % seconds_in_week;
+        window = seconds_in_week;
+    }
     
     std::stringstream fullurl;
 
     fullurl << std::setiosflags(std::ios::fixed);
-    fullurl << _url << "/times?f=" << _foldername << "&t=" << weekstart 
-                    << "&d=" << seconds_in_week ;
+    fullurl << _url << "/times?f=" << _foldername 
+                    << "&t=" << start 
+                    << "&d=" << window ;
+
     if (_tag.length() > 0) {
          fullurl << "&tag=" << _tag;
     }
