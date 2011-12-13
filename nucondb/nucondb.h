@@ -40,5 +40,7 @@ public:
      int getNamedChannelData(double t, unsigned long int chan, std::string names,...) throw(WebAPIException); // fetches data 
      int getChannelData(double t, unsigned long chan, ...) throw(WebAPIException); // fetches data 
      long int getKey(double) throw(WebAPIException);
+     double getCacheStartTime(){ return _cache_start; };
+     double getCacheEndTime(){ return _cache_end; };
 };
 
