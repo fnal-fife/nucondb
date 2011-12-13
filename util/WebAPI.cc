@@ -117,7 +117,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
      static char buf[512];      // buffer for header lines
      int status;                // http status
      int retries;
-     int redirectflag = 1;
+     int redirect_or_retry_flag = 1;
      int hcount;
      __gnu_cxx::stdio_filebuf<char> *buf_out = 0;
 
@@ -125,10 +125,12 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
      _debug && std::cout.flush();
      retries = 0;
 
-     while( redirectflag ) {
+     while( redirect_or_retry_flag ) {
          hcount = 0;
          status = 500;
          retries++;
+
+         // note that this retry limit includes 303 redirects, 503 errors, DNS fails, and connect errors...
 	 if (retries > 14) {
 	     throw(WebAPIException(url,"FetchError: Retry count exceeded"));
 	 }
@@ -144,11 +146,12 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	     if (!hostp) {
 		 _debug && std::cout << "gethostname failed , waiting ..." << retries << std::endl;
 		 _debug && std::cout.flush();
-		 sleep(1);
+		 sleep(retries);
 		 continue;
 	     }
 	     _debug && std::cout << "looking up host " << pu.host << " got " << hostp->h_name << "\n";
 
+             // stuff from ye olde BSD IP Tutorial...
 	     server.sin_family = AF_INET;
 	     server.sin_port = htons(pu.port);
 	     memcpy( &server.sin_addr, hostp->h_addr, hostp->h_length);
@@ -237,7 +240,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	 // now some basic http protocol
 	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.12 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.13 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
 	 _tosite.flush();
 
@@ -274,12 +277,11 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
          }
 
          if ((status < 301 || status > 309) && status != 503 ) {
-            redirectflag = 0;
+            redirect_or_retry_flag = 0;
 	 } else {
 	     // we're going to redirect/retry again, so close the _fromsite side
 	     _fromsite.close();
              delete _buf_in;
-             continue;
          }
      }
      if (status != 200) {

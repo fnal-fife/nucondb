@@ -30,7 +30,7 @@ public:
      static int _debug;
      // internal in back of getChannelData1
      std::vector<tk> 
-	getTimes(double when) throw(WebAPIException);    // gets list of times in week surrounding when
+	getTimes(double when,double lookback=0, double lookforw=0) throw(WebAPIException);    // gets list of times in surrounding time, default 1 week
 
      void fetchData(double when) throw(WebAPIException); // gets data for a time in cache
      void fetchData(long key) throw(WebAPIException);    // gets data for a time in cache
