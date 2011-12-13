@@ -54,8 +54,8 @@ Folder::getKey(double when)  throw(WebAPIException){
 std::vector<Folder::tk>
 Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIException){
     const int seconds_in_week = 7 * 24 * 60 * 60;
-    const double window = lookback + lookforw;
-    const double start = when - lookback;
+    double window = lookback + lookforw;
+    double start = when - lookback;
     std::vector<tk> res;
     std::string st;
     tk cur;
