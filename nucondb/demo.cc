@@ -30,19 +30,19 @@ doit() {
    int n, chan;
    std::string fields("hg_mean,hg_rms,hg_entries,mg_mean,mg_rms,mg_entries,lg_mean,lg_rms,lg_entries");
    //double lookuptime = 1290651324.1;
-   double lookuptime = 1283848809.799920;
+   double lookuptime = 1283590373.9924;
    double halfhour = 30 * 60;
-  static int channellist[] =  {
+   static int channellist[] =  {
       34739968,34740000,34740032,34740064,34740096,34740128,34740160,34740192,34742272,34742304
    };
 
 
 
-   //WebAPI::_debug = 1;
-   //Folder::_debug = 1;
+   WebAPI::_debug = 1;
+   Folder::_debug = 1;
 
-
-   Folder f("pedcal", "http://dbweb0.fnal.gov/IOVServer");
+  try {
+   Folder f("pedcal", "http://dbweb0.fnal.gov:8080/IOVServer");
    
    cout << setiosflags(ios::fixed) << setfill(' ') << setprecision(4) ;
 
@@ -69,6 +69,9 @@ doit() {
                 << endl;
        }
    }
+ } catch (WebAPIException we) {
+      std::cout << "Exception:" << &we << std::endl;
+ } 
 }
 
 int

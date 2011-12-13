@@ -141,6 +141,8 @@ Folder::fetchData(long key) throw(WebAPIException) {
 
     _n_datarows = 0;
     _cache_data.clear();
+    // preallocate vector rows -- pedestal tables are bigger...
+    _cache_data.reserve(_foldername[0] == 'p' ? 65000:1000);
     _cached_channel = 0;
     _cached_row = -1;
 
