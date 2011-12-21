@@ -109,22 +109,36 @@ Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIExc
 }
 
 
+#ifdef TIMES_CACHING
 // get all channels for time nearest when into cache
 void
 Folder::fetchData(long key) throw(WebAPIException) {
-    std::string columnstr;
     if (key == _cache_key) {
         return;
     }
+    _cache_key = key;
+#else
+void
+Folder::fetchData(double when)  throw(WebAPIException){
+    if (_cache_start <= when  && when < _cache_end) {
+        // its in the cache already...
+        return;
+    }
+#endif
+    std::string columnstr;
     std::stringstream fullurl;
     fullurl << std::setiosflags(std::ios::fixed);
-    fullurl << _url << "/data?f=" << _foldername << "&i=" << key ;
+    fullurl << _url << "/data?f=" << _foldername 
+#ifdef TIMES_CACHING
+           << "&i=" << key ;
+#else
+           << "&t=" << when ;
+#endif
     if (_tag.length() > 0) {
          fullurl << "&tag=" << _tag;
     }
     WebAPI s( fullurl.str() );
 
-    _cache_key = key;
 
     // get start and end times
     getline(s.data(), columnstr); 
@@ -168,6 +182,7 @@ Folder::fetchData(long key) throw(WebAPIException) {
    s.data().close();
 }
 
+#ifdef TIMES_CACHING
 // get all channels for time nearest when into cache
 void
 Folder::fetchData(double when)  throw(WebAPIException){
@@ -206,6 +221,7 @@ Folder::fetchData(double when)  throw(WebAPIException){
 
     this->fetchData(key);
 }
+#endif
 //XXX still  needs to use names...
 //
 int
@@ -368,7 +384,7 @@ test_getchannel_feb() {
      static double d[39];
      int hit_id = 2364544;
     try {
-     Folder f("feb","http://dbweb0.fnal.gov:8080/IOVServer");
+     Folder f("minerva_febs","http://dbweb4.fnal.gov:8088");
    
 
      f.getChannelData(g_time , hit_id, &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2],\
@@ -445,7 +461,7 @@ static char *text1;
 static char *text2;
 static char *text3;
 
-   Folder d3("atten", "http://dbweb0.fnal.gov/IOVServer");
+   Folder d3("minerva_atten_id", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app");
    d3.getNamedChannelData(
 	 1300969766.0,
          1210377216,
@@ -520,9 +536,10 @@ static char *text2;
 static char *text3;
 
    // open folder with a tag name...
-   Folder d3("atten", "http://dbweb0.fnal.gov/IOVServer","old");
+   Folder d3("minerva_atten_id", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app","old");
+   for (int i = 0; i < 10; i++ ) {
    d3.getNamedChannelData(
-	 1300969766.0,
+	 1300969766.0 - 10000 * i,
          1210377216,
          "atten,atten_error,amp,amp_error,reflect,reflect_error",
          
@@ -538,6 +555,7 @@ static char *text3;
                << std::setw(9) << d[5] 
                << "\n";
 
+    }
 
 }
 
@@ -582,7 +600,7 @@ main() {
    try {
            if (1) test3();
            if (0) {
-	   Folder d2("pedcal", "http://dbweb0.fnal.gov/IOVServer");
+	   Folder d2("pedcal", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
 	   test_getchanneldata_window(d2);
