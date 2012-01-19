@@ -102,7 +102,24 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 
 const
 char *getexperiment() {
-    return "minerva";
+    switch(getgid()){
+    case 9937:
+       return "microboone";
+    case 5314:
+       return "auger";
+    case 9914:
+       return "mu2e";
+    case 9950:
+       return "g-2";
+    case 5111:
+       return "minos";
+    case 9553:
+       return "nova";
+    case 9555:
+       return "minerva";
+    default:
+       return "other";
+    }
 }
 
 // fetch a URL, opening a filestream to the content
@@ -241,7 +258,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	 // now some basic http protocol
 	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.14 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.15 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
 	 _tosite.flush();
 
