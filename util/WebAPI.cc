@@ -100,6 +100,7 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 #include <arpa/inet.h>
 #include <netdb.h>
 
+const
 char *getexperiment() {
     return "minerva";
 }
@@ -240,7 +241,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	 // now some basic http protocol
 	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.13 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.14 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
 	 _tosite.flush();
 
