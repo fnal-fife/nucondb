@@ -2,30 +2,46 @@
 #include <string>
 #include <list>
 #include "../client/WebAPI.h"
-
 use std;
 
 class ifdh {
    public:
-       // file transfer
-       int cp( string src, string dst );
-       int rm( string loc );
-       
-       // logging
-       int ifdh.log( string message );
-       
-       // metadata
-       int get_meta( string filename );
-       int set_meta( string filename, string meta_filename);
-       list<string> find_files( string query_string );
-       list<string> get_autodestination( string filename );
-      
-       // filesets/projects
-       int define_fileset( string setname, string query_string);
-       string join_project( string projectname );
-       string next_file( string projectname, string consumer_proc_id );
-       string done_file( string projectname, string consumer_proc_id, string filename, int status_ok);
-       string done_project( string projectname, string consumer_proc_id, int status_ok);
-       int recovery_fileset( string projectname, string new_filesetname );
-       int jobsub_fileset( string in, string out, time_t time, string filesetname, string executable, ... );
+        // general copy
+        int cp(string src_uri, dest_uri);
+
+	// file input
+	string fetchInput( string src_uri );
+
+	// file output
+	int addOutputFile(string filename);
+	int copyBackOutput(string dest_dir);
+
+	// logging
+	int log( string message );
+	int enter_state( string state );
+	int leave_state( string state );
+
+	//datasets
+	int createDefinition(string baseuri, string name, string dims, string user);
+	int deleteDefinition(string baseuri, string name);
+	string describeDefinition(string baseuri, string name);
+	list<string> translateConstraints(string baseuri, string dims);
+
+	// files
+	string locateFile(string baseuri, string name);
+	string getMetadata(string baseuri, string name);
+
+	//
+	string dumpStation(string baseuri, name, what = "all");
+
+	// projects
+	string startProject(string baseuri, string name, string station,  string defname_or_id,  string user,  string group);
+	string findProject(string baseuri, string name, string station);
+
+	string establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily = "", string description = "", int filelimit = -1);
+	string getNextFile(string processuri);
+	string updateFileStatus(string processuri, string filename, string status)
+        int endProcess(processuri);
+        string dumpProcess(processuri);
+	int setStatus(string processuri, string status);
 };
