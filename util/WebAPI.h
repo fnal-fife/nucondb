@@ -37,10 +37,12 @@ public:
 class WebAPI {
     std::fstream _tosite, _fromsite;
     __gnu_cxx::stdio_filebuf<char> *_buf_in;
+    int _status;
 public:
     static int _debug;
-    WebAPI(std::string url) throw(WebAPIException);
+    WebAPI(std::string url, int postflag = 0, std::string postdata = "") throw(WebAPIException);
     ~WebAPI();
+    int getStatus();
     std::fstream &data() { return _fromsite; }
 
     static std::string encode(std::string);

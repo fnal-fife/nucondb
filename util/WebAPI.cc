@@ -127,17 +127,17 @@ char *getexperiment() {
 // the network connection, rather than saving he data
 // in a file and returning that.
 
-WebAPI::WebAPI(std::string url) throw(WebAPIException) {
+WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPIException) {
      int s;			// unix socket file descriptor
      WebAPI::parsed_url pu;     // parsed url.
      struct sockaddr_in server; // connection address struct
      struct hostent *hostp;     // gethostbyname() result
      static char buf[512];      // buffer for header lines
-     int status;                // http status
      int retries;
      int redirect_or_retry_flag = 1;
      int hcount;
      __gnu_cxx::stdio_filebuf<char> *buf_out = 0;
+     std::string method(postflag?"POST ":"GET ");
 
      _debug && std::cout << "fetchurl: " << url << std::endl;
      _debug && std::cout.flush();
@@ -145,7 +145,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 
      while( redirect_or_retry_flag ) {
          hcount = 0;
-         status = 500;
+         _status = 500;
          retries++;
 
          // note that this retry limit includes 303 redirects, 503 errors, DNS fails, and connect errors...
@@ -256,10 +256,13 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
          }
 
 	 // now some basic http protocol
-	 _tosite << "GET " << pu.path << " HTTP/1.0\r\n";
+	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.15 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.16 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
+         if (postflag) {
+             _tosite << postdata;
+         }
 	 _tosite.flush();
 
          _debug && std::cout << "sent request\n";
@@ -271,7 +274,7 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 	    _debug && std::cout << "got header line " << buf << "\n";
 
 	    if (strncmp(buf,"HTTP/1.", 7) == 0) {
-		status = atol(buf + 8);
+		_status = atol(buf + 8);
 	    }
 
 	    if (strncmp(buf, "Location: ", 10) == 0) {
@@ -283,18 +286,18 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
 
 	 } while (_fromsite.gcount() > 2 || hcount < 3); // end of headers is a blank line
 
-	 _debug && std::cout << "http status: " << status << std::endl;
+	 _debug && std::cout << "http status: " << _status << std::endl;
 
 	 _tosite.close();
          if (buf_out) 
              delete buf_out;
 
-         if (status == 503) {
+         if (_status == 503) {
 	    _debug && std::cout << "503 error , waiting ...";
             sleep(5 << retries);
          }
 
-         if ((status < 301 || status > 309) && status != 503 ) {
+         if ((_status < 301 || _status > 309) && _status != 503 ) {
             redirect_or_retry_flag = 0;
 	 } else {
 	     // we're going to redirect/retry again, so close the _fromsite side
@@ -302,9 +305,9 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
              delete _buf_in;
          }
      }
-     if (status != 200) {
+     if (_status != 200) {
         std::stringstream message;
-        message << "Status: " << status << "\n";
+        message << "Status: " << _status << "\n";
         message << "Error text is:\n";
         while (_fromsite.getline(buf, 512).gcount() > 0) {
             message << buf << "\n";
@@ -312,6 +315,11 @@ WebAPI::WebAPI(std::string url) throw(WebAPIException) {
         
         throw(WebAPIException(url,message.str()));
      }    
+}
+
+int
+WebAPI::getStatus() {
+   return _status;
 }
 
 WebAPI::~WebAPI() {
@@ -343,6 +351,7 @@ test_WebAPI_fetchurl() {
         std::cout << "got line: " << line << std::endl;;
    }
    std::cout << "ds.data().eof() is " << ds2.data().eof() << std::endl;
+   std::cout << "ds.getStatus() is " << ds2.getStatus() << std::endl;
 
    try {
       WebAPI ds3("https://plone4.fnal.gov/P1/Main/");
