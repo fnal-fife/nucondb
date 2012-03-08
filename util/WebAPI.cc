@@ -134,6 +134,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
      struct hostent *hostp;     // gethostbyname() result
      static char buf[512];      // buffer for header lines
      int retries;
+     int retryafter = -1;
      int redirect_or_retry_flag = 1;
      int hcount;
      __gnu_cxx::stdio_filebuf<char> *buf_out = 0;
@@ -258,7 +259,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.16 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.17 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _tosite << "\r\n";
          if (postflag) {
              _tosite << postdata;
@@ -277,6 +278,10 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 		_status = atol(buf + 8);
 	    }
 
+	    if (strncmp(buf, "Retry-After: ", 13) == 0) {
+                retryafter = atol(buf + 13);
+            }
+
 	    if (strncmp(buf, "Location: ", 10) == 0) {
 		if (buf[strlen(buf)-1] == '\r') {
 		    buf[strlen(buf)-1] = 0;
@@ -292,12 +297,17 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
          if (buf_out) 
              delete buf_out;
 
+         if (_status == 202 && retryafter > 0) {
+            sleep(retryafter);
+            retries--;          // it doesnt count if they told us to...
+         }
+
          if (_status == 503) {
 	    _debug && std::cout << "503 error , waiting ...";
             sleep(5 << retries);
          }
 
-         if ((_status < 301 || _status > 309) && _status != 503 ) {
+         if ((_status < 301 || _status > 309) && _status != 503 && _status != 202 ) {
             redirect_or_retry_flag = 0;
 	 } else {
 	     // we're going to redirect/retry again, so close the _fromsite side
