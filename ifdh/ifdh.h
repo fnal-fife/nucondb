@@ -28,7 +28,7 @@ class ifdh {
 	list<string> translateConstraints(string baseuri, string dims);
 
 	// files
-	string locateFile(string baseuri, string name);
+	list<string> locateFile(string baseuri, string name);
 	string getMetadata(string baseuri, string name);
 
 	//
@@ -39,10 +39,11 @@ class ifdh {
 	string findProject(string baseuri, string name, string station);
 
 	string establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily = "", string description = "", int filelimit = -1);
-	string getNextFile(string processuri);
-	string updateFileStatus(string processuri, string filename, string status);
-        int endProcess(string processuri);
-        string dumpProcess(string processuri);
-	int setStatus(string processuri, string status);
+	string getNextFile(string projecturi, string processid);
+	string updateFileStatus(string projecturi, string processid, string filename, string status);
+        int endProcess(string projecturi, string processid);
+        string dumpProcess(string projecturi, string processid);
+	int setStatus(string projecturi, string processid, string status);
+        int endProject(string projecturi);
         void cleanup();
 };

@@ -5,6 +5,8 @@
 #include <numsg.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <stdarg.h>
+#include <string.h>
 
 using namespace std;
 
@@ -82,7 +84,7 @@ int ifdh::copyBackOutput(string dest_dir) {
         // destination is not visible, use srmcp
         cmd << "srmcp";
         while (!outlog.eof()) {
-            getline(outlog, line)
+            getline(outlog, line);
             cmd << " file:///" << line;
         }
         cmd << " " << bestmanuri << dest_dir;
@@ -94,44 +96,43 @@ int ifdh::copyBackOutput(string dest_dir) {
 
 // logging
 int ifdh::log( string message ) {
-  getMsg().printf("ifdh: %s", message);
+  numsg::getMsg()->printf("ifdh: %s", message.c_str());
 }
 
 int ifdh::enter_state( string state ){
-  getMsg().start(state.c_str());
+  numsg::getMsg()->start(state.c_str());
 }
 
 int ifdh::leave_state( string state ){
-  getMsg().finish(state.c_str());
+  numsg::getMsg()->finish(state.c_str());
 }
 
-WebAPI
+WebAPI * 
 do_url_2(int postflag, va_list ap) {
     stringstream url;
     stringstream postdata;
-    char *sep = "";
-    string name;
-    string val;
-    va_list ap;
+    const char *sep = "";
+    char * name;
+    char * val;
 
-    val = va_arg(ap,string);
-    while (val.length()) {
+    val = va_arg(ap,char *);
+    while (strlen(val)) {
         url << sep << val;
-        val = va_arg(ap,string);
+        val = va_arg(ap,char *);
         sep = "/";
     }
 
-    sep = postflag? "?" : "";
+    sep = postflag? "" : "?";
 
-    name = va_arg(ap,string);
-    val = va_arg(ap,string);
-    while (name.length()) {
+    name = va_arg(ap,char *);
+    val = va_arg(ap,char *);
+    while (strlen(name)) {
         (postflag ? postdata : url)  << sep << name << "=" << val;
         sep = "&";
-        name = va_arg(ap,string);
-        val = va_arg(ap,string);
+        name = va_arg(ap,char *);
+        val = va_arg(ap,char *);
     }
-    return WebAPI(url.str(), postflag, postdata.str());
+    return new WebAPI(url.str(), postflag, postdata.str());
 }
 
 int
@@ -139,108 +140,128 @@ do_url_int(int postflag, ...) {
     va_list ap;
     int res;
     va_start(ap, postflag);
-    WebAPI wa = do_url_2(postflag, ap);
-    return wa.getStatus() - 200;
+    WebAPI *wap = do_url_2(postflag, ap);
+    res = wap->getStatus() - 200;
+    delete wap;
+    return res;
 }
 
 
 string
-do_url_str(postflag,...)
+do_url_str(int postflag,...) {
     va_list ap;
     string res("");
+    string line;
     va_start(ap, postflag);
-    WebAPI wa = do_url_2(postflag, ap);
-    while (!wa.data().eof()) {
-      res = res + getline(wa.data());
+    WebAPI *wap = do_url_2(postflag, ap);
+    while (!wap->data().eof()) {
+      getline(wap->data(), line);
+      res = res + line;
     }
+    delete wap;
     return res;
 }
 
 list<string>
-do_url_lis(postflag,...)
+do_url_lst(int postflag,...) {
     va_list ap;
+    string line;
     list<string> res;
     va_start(ap, postflag);
-    WebAPI wa = do_url_2(postflag, ap);
-    while (!wa.data().eof()) {
-        res.append(getline(wa.data()));
+    WebAPI *wap = do_url_2(postflag, ap);
+    while (!wap->data().eof()) {
+        getline(wap->data(), line);
+        res.push_back(line);
     }
+    delete wap;
     return res;
 }
 
 //datasets
 int 
 ifdh::createDefinition(string baseuri, string name, string dims, string user) {
-  return do_url_int(1,baseuri,"createDefinition","","name",name, "dims", dims, "user", user,"","");
+  return do_url_int(1,baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", dims.c_str(), "user", user.c_str(),"","");
 }
 
 int 
 ifdh::deleteDefinition(string baseuri, string name) {
-  return  do_url_int(1,baseuri,"deleteDefinition","","name", name,"","");
+  return  do_url_int(1,baseuri.c_str(),"deleteDefinition","","name", name.c_str(),"","");
 }
 
 string 
 ifdh::describeDefinition(string baseuri, string name) {
-  return do_url_str(0,baseuri,"describeDefinition", "", "name", name, "","");
+  return do_url_str(0,baseuri.c_str(),"describeDefinition", "", "name", name.c_str(), "","");
 }
 
 list<string> 
 ifdh::translateConstraints(string baseuri, string dims) {
-  return do_url_lst(0,baseuri,"translateConstraints", "", "dims", dims, "format","plain", "","" );
+  return do_url_lst(0,baseuri.c_str(),"translateConstraints", "", "dims", dims.c_str(), "format","plain", "","" );
 }
 
 // files
 list<string> 
 ifdh::locateFile(string baseuri, string name) {
-  return do_url_lst(0,baseuri, "locateFile", "", "name", name, "", "" );  
+  return do_url_lst(0,baseuri.c_str(), "locateFile", "", "file", name.c_str(), "", "" );  
 }
 
 string ifdh::getMetadata(string baseuri, string name) {
-  return  do_url_str(0, baseuri,"getMetadata", "", "name", name, "","");
+  return  do_url_str(0, baseuri.c_str(),"getMetadata", "", "name", name.c_str(), "","");
 }
 
 //
 string 
-ifdh::dumpStation(string baseuri, name, what = "all") {
-  return do_url_str(0,baseuri,"dumpStation", "", "station", name, "dump", what, "","");
+ifdh::dumpStation(string baseuri, string name, string what ) {
+  return do_url_str(0,baseuri.c_str(),"dumpStation", "", "station", name.c_str(), "dump", what.c_str(), "","");
 }
 
 // projects
 string ifdh::startProject(string baseuri, string name, string station,  string defname_or_id,  string user,  string group) {
-  return do_url_str(1,baseuri,startProject,"","name",name,"station",station,"defn",defname_or_id,"user",user,"grou",troup,"",""0);
+  return do_url_str(1,baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defn",defname_or_id.c_str(),"user",user.c_str(),"group",group.c_str(),"","");
 }
 
 string 
 ifdh::findProject(string baseuri, string name, string station){
-   return do_url_str(0,baseuri,"findProject","","name",name,"station",station,"","");
+   return do_url_str(0,baseuri.c_str(),"findProject","","name",name.c_str(),"station",station.c_str(),"","");
 }
 
 string 
-ifdh::establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily = "", string description = "", int filelimit = -1) {
-  return do_url_str(1,baseuri,"establishProcess", "", "appname", appname, "appversion", appversion, "location", location, "user", user, "appfamily", appfamily, "description", description, "", "");
+ifdh::establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit) {
+  return do_url_str(1,baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "location", location.c_str(), "user", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
 }
 
 string ifdh::getNextFile(string projecturi, string processid){
-  return do_url_str(1,projecturi,"processes",processid,"getNextFile","","","");
+  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"getNextFile","","","");
 }
 
 string ifdh::updateFileStatus(string projecturi, string processid, string filename, string status){
-  return do_url_str(1,projecturi,"processes",processid,"updateFileStatus","","file", filename,"status", status "","");
+  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"updateFileStatus","","file", filename.c_str(),"status", status.c_str(), "","");
 }
 
-int ifdh::endProcess(projecturi, string processid){
+int 
+ifdh::endProcess(string projecturi, string processid) {
   cleanup();
-  return do_url_str(1,projecturi,"processes",processid,"endProcess","","","");
+  return do_url_int(1,projecturi.c_str(),"processes",processid.c_str(),"endProcess","","","");
 }
 
-string ifdh::dumpProcess(projecturi, string processid){
+string 
+ifdh::dumpProcess(string projecturi, string processid) {
+  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"dumpProcess","","","");
 }
 
 int ifdh::setStatus(string projecturi, string processid, string status){
-  return do_url_str(1,projecturi,"processes",processid,"setStatus","","status",status,"","");
-}
+  return do_url_int(1,projecturi.c_str(),"processes",processid.c_str(),"setStatus","","status",status.c_str(),"","");
 }
 
-int ifdh::endProject(projecturi) {
-  return do_url_str(1,projecturi,"endProject","","","");
+int ifdh::endProject(string projecturi) {
+  return do_url_int(1,projecturi.c_str(),"endProject","","","");
+}
+
+main() {
+  ifdh i;
+  string minerva_base("http://samweb-minerva.fnal.gov:20004/sam/minerva/api");
+  WebAPI::_debug = 1;
+  cout << "found it at:" <<
+  i.locateFile(minerva_base, "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root").front();
+  cout << "definition is:" <<
+  i.describeDefinition(minerva_base, "mwm_test_1");
 }
