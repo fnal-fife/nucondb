@@ -1,12 +1,26 @@
 
-CFLAGS=-I../client -I../../numsg -g
-SHLIB_OBJS=ifdh.o ../client/WebAPI.o ../../numsg/numsg.o ../../numsg/SyslogAPI.o
+CFLAGS=-I../client -I../../numsg -g -I/usr/include/python2.6 
+PLAIN_OBJS=ifdh.o ../client/WebAPI.o ../../numsg/numsg.o ../../numsg/SyslogAPI.o
+PYMOD_OBJS=$(PLAIN_OBJS) ifdh_wrap.o
+
+all: ifdh python/_ifdh.so ifdh.so
 
 ifdh: ifdh.so ifdh_main.o
-	g++ -o $@ ifdh_main.o ifdh.so
+	g++ -o $@ ifdh_main.o $(PLAIN_OBJS)
 
-ifdh.so: $(SHLIB_OBJS)
-	g++ --shared -o $@ $(SHLIB_OBJS)
+python/_ifdh.so: $(PYMOD_OBJS)
+	g++ --shared -o $@ $(PYMOD_OBJS) /usr/lib/libpython*.so
+
+ifdh.so: $(PLAIN_OBJS)
+	g++ --shared -o $@ $(PLAIN_OBJS)
+
+ifdh_wrap.cxx: ifdh.h ifdh.i
+	swig -python -c++ ifdh.i
+	mv ifdh.py python/ifdh.py
+
+ifdh_wrap.o: ifdh_wrap.cxx
+	g++ $(CFLAGS) -c -o $@ ifdh_wrap.cxx
+        
 
 ifdh.o: ifdh.cc ifdh.h
 	g++ $(CFLAGS) -c -o $@ ifdh.cc

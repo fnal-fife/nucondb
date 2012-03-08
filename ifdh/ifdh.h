@@ -1,49 +1,54 @@
 
 #include <string>
-#include <list>
+#include <vector>
 #include "../client/WebAPI.h"
-using namespace std;
+
+namespace ifdh_ns {
 
 class ifdh {
    public:
         // general copy
-        int cp(string src, string dest);
+        int cp(std::string src, std::string dest);
 
 	// file input
-	string fetchInput( string src_uri );
+	std::string fetchInput( std::string src_uri );
 
 	// file output
-	int addOutputFile(string filename);
-	int copyBackOutput(string dest_dir);
+	int addOutputFile(std::string filename);
+	int copyBackOutput(std::string dest_dir);
 
 	// logging
-	int log( string message );
-	int enter_state( string state );
-	int leave_state( string state );
+	int log( std::string message );
+	int enter_state( std::string state );
+	int leave_state( std::string state );
 
 	//datasets
-	int createDefinition(string baseuri, string name, string dims, string user);
-	int deleteDefinition(string baseuri, string name);
-	string describeDefinition(string baseuri, string name);
-	list<string> translateConstraints(string baseuri, string dims);
+	int createDefinition(std::string baseuri, std::string name, std::string dims, std::string user);
+	int deleteDefinition(std::string baseuri, std::string name);
+	std::string describeDefinition(std::string baseuri, std::string name);
+	std::vector<std::string> translateConstraints(std::string baseuri, std::string dims);
 
 	// files
-	list<string> locateFile(string baseuri, string name);
-	string getMetadata(string baseuri, string name);
+	std::vector<std::string> locateFile(std::string baseuri, std::string name);
+	std::string getMetadata(std::string baseuri, std::string name);
 
 	//
-	string dumpStation(string baseuri, string name, string what = "all");
+	std::string dumpStation(std::string baseuri, std::string name, std::string what = "all");
 
 	// projects
-	string startProject(string baseuri, string name, string station,  string defname_or_id,  string user,  string group);
-	string findProject(string baseuri, string name, string station);
+	std::string startProject(std::string baseuri, std::string name, std::string station,  std::string defname_or_id,  std::string user,  std::string group);
+	std::string findProject(std::string baseuri, std::string name, std::string station);
 
-	string establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily = "", string description = "", int filelimit = -1);
-	string getNextFile(string projecturi, string processid);
-	string updateFileStatus(string projecturi, string processid, string filename, string status);
-        int endProcess(string projecturi, string processid);
-        string dumpProcess(string projecturi, string processid);
-	int setStatus(string projecturi, string processid, string status);
-        int endProject(string projecturi);
+	std::string establishProcess(std::string baseuri, std::string appname, std::string appversion, std::string location, std::string user, std::string appfamily = "", std::string description = "", int filelimit = -1);
+	std::string getNextFile(std::string projecturi, std::string processid);
+	std::string updateFileStatus(std::string projecturi, std::string processid, std::string filename, std::string status);
+        int endProcess(std::string projecturi, std::string processid);
+        std::string dumpProcess(std::string projecturi, std::string processid);
+	int setStatus(std::string projecturi, std::string processid, std::string status);
+        int endProject(std::string projecturi);
         void cleanup();
 };
+
+}
+
+using namespace ifdh_ns;

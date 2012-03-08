@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace ifdh_ns {
+
 string cpn_loc  = "/grid/app/minos/scripts/cpn";
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443";
@@ -34,8 +36,43 @@ ifdh::cleanup() {
 }
 
 
-// file input
-string ifdh::fetchInput( string src_uri ) {
+// file io
+
+int 
+ifdh::cp(string src_path, string dest_path) {
+    stringstream cmd;
+    int dest_dir_loc;
+
+    //
+    // pick out the directory component in the destination
+    //   
+    dest_dir_loc = dest_path.rfind("/");
+    //
+    // if we can access source file for read and destination director for write
+    // 
+    if ( 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+        cmd << cpn_loc << " " << src_path << " " << dest_path;
+        // otherwise, use srmpcp
+    } else {
+        cmd << "srmcp";
+
+        if ( 0 == access(src_path.c_str(),R_OK) ) {
+	   cmd << " file:///" << src_path;  
+        } else {
+	   cmd << " " << bestmanuri << src_path;  
+        }
+
+        if (0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+	   cmd << " file:///" << dest_path;  
+        } else {
+	   cmd << " " << bestmanuri  << dest_path;  
+        }
+    }
+    return system(cmd.str().c_str());
+}
+
+string 
+ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
     int p;
     int baseloc = src_uri.rfind("/") + 1;
@@ -60,13 +97,15 @@ string ifdh::fetchInput( string src_uri ) {
 }
 
 // file output
-int ifdh::addOutputFile(string filename) {
+int 
+ifdh::addOutputFile(string filename) {
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
     outlog << filename << "\n";
     outlog.close();
 }
 
-int ifdh::copyBackOutput(string dest_dir) {
+int 
+ifdh::copyBackOutput(string dest_dir) {
     stringstream cmd;
     string line;
     int baseloc = dest_dir.find("/") + 1;
@@ -95,15 +134,18 @@ int ifdh::copyBackOutput(string dest_dir) {
 
 
 // logging
-int ifdh::log( string message ) {
+int 
+ifdh::log( string message ) {
   numsg::getMsg()->printf("ifdh: %s", message.c_str());
 }
 
-int ifdh::enter_state( string state ){
+int 
+ifdh::enter_state( string state ){
   numsg::getMsg()->start(state.c_str());
 }
 
-int ifdh::leave_state( string state ){
+int 
+ifdh::leave_state( string state ){
   numsg::getMsg()->finish(state.c_str());
 }
 
@@ -162,11 +204,11 @@ do_url_str(int postflag,...) {
     return res;
 }
 
-list<string>
+vector<string>
 do_url_lst(int postflag,...) {
     va_list ap;
     string line;
-    list<string> res;
+    vector<string> res;
     va_start(ap, postflag);
     WebAPI *wap = do_url_2(postflag, ap);
     while (!wap->data().eof()) {
@@ -193,13 +235,13 @@ ifdh::describeDefinition(string baseuri, string name) {
   return do_url_str(0,baseuri.c_str(),"describeDefinition", "", "name", name.c_str(), "","");
 }
 
-list<string> 
+vector<string> 
 ifdh::translateConstraints(string baseuri, string dims) {
   return do_url_lst(0,baseuri.c_str(),"translateConstraints", "", "dims", dims.c_str(), "format","plain", "","" );
 }
 
 // files
-list<string> 
+vector<string> 
 ifdh::locateFile(string baseuri, string name) {
   return do_url_lst(0,baseuri.c_str(), "locateFile", "", "file", name.c_str(), "", "" );  
 }
@@ -256,12 +298,4 @@ int ifdh::endProject(string projecturi) {
   return do_url_int(1,projecturi.c_str(),"endProject","","","");
 }
 
-main() {
-  ifdh i;
-  string minerva_base("http://samweb-minerva.fnal.gov:20004/sam/minerva/api");
-  WebAPI::_debug = 1;
-  cout << "found it at:" <<
-  i.locateFile(minerva_base, "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root").front();
-  cout << "definition is:" <<
-  i.describeDefinition(minerva_base, "mwm_test_1");
 }

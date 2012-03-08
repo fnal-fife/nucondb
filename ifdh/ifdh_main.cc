@@ -1,17 +1,22 @@
-
 #include "ifdh.h"
 #include <iostream>
+#include <string.h>
+#include <unistd.h>
 
 using namespace std;
 
-main() {
-  ifdh i;
-  string minerva_base("http://samweb-minerva.fnal.gov:20004/sam/minerva/api");
-  WebAPI::_debug = 1;
-  cout << "found it at:" <<
-  i.locateFile(minerva_base, "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root").front();
-  cout << "definition is:" <<
-  i.describeDefinition(minerva_base, "mwm_test_1");
+main(int argc, char **argv) {
+    ifdh i;
+
+    if (argc >1 && 0 == strcmp(argv[1], "--regression")) {
+	  string minerva_base("http://samweb-minerva.fnal.gov:20004/sam/minerva/api");
+	  WebAPI::_debug = 1;
+	  cout << "found it at:" <<
+	  i.locateFile(minerva_base, "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root").front();
+	  cout << "definition is:" <<
+	  i.describeDefinition(minerva_base, "mwm_test_1");
+          return 0;
+     }
 }
 
 /*
