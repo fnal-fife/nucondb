@@ -28,11 +28,11 @@ string datadir() {
     return dirmaker.str().c_str();
 }
 
-void
+int
 ifdh::cleanup() {
     string cmd("rm -rf ");
     cmd = cmd + datadir();
-    system(cmd.c_str());
+    return system(cmd.c_str());
 }
 
 
@@ -140,12 +140,12 @@ ifdh::log( string message ) {
 }
 
 int 
-ifdh::enter_state( string state ){
+ifdh::enterState( string state ){
   numsg::getMsg()->start(state.c_str());
 }
 
 int 
-ifdh::leave_state( string state ){
+ifdh::leaveState( string state ){
   numsg::getMsg()->finish(state.c_str());
 }
 

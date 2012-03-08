@@ -19,8 +19,8 @@ class ifdh {
 
 	// logging
 	int log( std::string message );
-	int enter_state( std::string state );
-	int leave_state( std::string state );
+	int enterState( std::string state );
+	int leaveState( std::string state );
 
 	//datasets
 	int createDefinition(std::string baseuri, std::string name, std::string dims, std::string user);
@@ -46,7 +46,7 @@ class ifdh {
         std::string dumpProcess(std::string projecturi, std::string processid);
 	int setStatus(std::string projecturi, std::string processid, std::string status);
         int endProject(std::string projecturi);
-        void cleanup();
+        int cleanup();
 };
 
 }
