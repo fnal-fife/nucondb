@@ -22,11 +22,14 @@ string datadir() {
     dirmaker << (getenv("OSG_DATA")?getenv("OSG_DATA"):"/tmp")
              << "/pid_" << getppid();
 
-    if ( 0 == access(dirmaker.str().c_str(), W_OK) ) {
+    if ( 0 != access(dirmaker.str().c_str(), W_OK) ) {
         mkdir(dirmaker.str().c_str(),0700);
     }
     return dirmaker.str().c_str();
 }
+
+int
+ifdh::_debug = 0;
 
 int
 ifdh::cleanup() {
@@ -51,7 +54,7 @@ ifdh::cp(string src_path, string dest_path) {
     // if we can access source file for read and destination director for write
     // 
     if ( 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
-        cmd << cpn_loc << " " << src_path << " " << dest_path;
+        cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
     } else {
         cmd << "srmcp";
@@ -78,9 +81,10 @@ ifdh::fetchInput( string src_uri ) {
     int baseloc = src_uri.rfind("/") + 1;
 
     if (src_uri.substr(0,7) == "file://") {
-	cmd << cpn_loc 
+	cmd << "/bin/sh " << cpn_loc 
             << " " << src_uri.substr(7) 
             << " " << datadir() << "/" << src_uri.substr(baseloc);
+        _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
         return cmd.str().substr(p+1);
@@ -89,6 +93,7 @@ ifdh::fetchInput( string src_uri ) {
         cmd << "srmcp" 
             << " " << src_uri 
             << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc);
+        _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
         return cmd.str().substr(p+8);
@@ -113,7 +118,7 @@ ifdh::copyBackOutput(string dest_dir) {
 
     if (access(dest_dir.c_str(), W_OK)) {
         // destination is visible, so use cpn
-	cmd << cpn_loc;
+	cmd << "/bin/sh " << cpn_loc;
         while (!outlog.eof()) {
             getline(outlog,line);
             cmd << " " << line;
@@ -153,6 +158,8 @@ WebAPI *
 do_url_2(int postflag, va_list ap) {
     stringstream url;
     stringstream postdata;
+    string urls;
+    string postdatas;
     const char *sep = "";
     char * name;
     char * val;
@@ -174,7 +181,13 @@ do_url_2(int postflag, va_list ap) {
         name = va_arg(ap,char *);
         val = va_arg(ap,char *);
     }
-    return new WebAPI(url.str(), postflag, postdata.str());
+    urls = url.str();
+    postdatas= postdata.str();
+
+    if (ifdh::_debug) cout << "calling WebAPI with url: " << urls << " and postdata: " << postdatas;
+    if (ifdh::_debug) cout.flush();
+
+    return new WebAPI(urls, postflag, postdatas);
 }
 
 int
@@ -258,7 +271,7 @@ ifdh::dumpStation(string baseuri, string name, string what ) {
 
 // projects
 string ifdh::startProject(string baseuri, string name, string station,  string defname_or_id,  string user,  string group) {
-  return do_url_str(1,baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defn",defname_or_id.c_str(),"user",user.c_str(),"group",group.c_str(),"","");
+  return do_url_str(1,baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defname",defname_or_id.c_str(),"username",user.c_str(),"group",group.c_str(),"","");
 }
 
 string 
@@ -267,8 +280,8 @@ ifdh::findProject(string baseuri, string name, string station){
 }
 
 string 
-ifdh::establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit) {
-  return do_url_str(1,baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "location", location.c_str(), "user", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
+ifdh::establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
+  return do_url_str(1,baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
 }
 
 string ifdh::getNextFile(string projecturi, string processid){
@@ -276,7 +289,7 @@ string ifdh::getNextFile(string projecturi, string processid){
 }
 
 string ifdh::updateFileStatus(string projecturi, string processid, string filename, string status){
-  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"updateFileStatus","","file", filename.c_str(),"status", status.c_str(), "","");
+  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"updateFileStatus","","filename", filename.c_str(),"status", status.c_str(), "","");
 }
 
 int 

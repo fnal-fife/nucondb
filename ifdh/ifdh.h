@@ -6,7 +6,10 @@
 namespace ifdh_ns {
 
 class ifdh {
+       
    public:
+        static int _debug;
+
         // general copy
         int cp(std::string src, std::string dest);
 

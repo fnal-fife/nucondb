@@ -39,6 +39,7 @@ usage() {
 int
 ck(int i, int j) {
    if(i != j) {
+      cout << "expected " << j << " arguments, but got " << i << "\n";
       usage();
       exit(1);
       return 0;
@@ -50,6 +51,9 @@ ck(int i, int j) {
 main(int argc, char **argv) {
     ifdh i;
 
+    ifdh::_debug = 1;
+    WebAPI::_debug = 1;
+
     if (argc < 2) {
           usage();
           return 1;
@@ -57,6 +61,9 @@ main(int argc, char **argv) {
     //
     // regression test 
     //   
+
+  try {
+
     if (argc >1 && 0 == strcmp(argv[1], "--regression")) {
 	  string minerva_base("http://samweb-minerva.fnal.gov:20004/sam/minerva/api");
 	  WebAPI::_debug = 1;
@@ -94,10 +101,11 @@ main(int argc, char **argv) {
         }
         break;
    case 'e':
-        switch(argv[1][6]) { //note: 7th char.........v.........
+        switch(argv[1][6]) { //note: 7th       char......v.........
         case 'c':		ck(argc,4) && di(i.endProcess(argv[2],argv[3]));				break;
         case 'j':		ck(argc,3) && di(i.endProject(argv[2]));					break;
         case 't':               ck(argc,3) && di(i.enterState(argv[2]));					break;
+        case 'i':               ck(argc,7) && ds(i.establishProcess(argv[2],argv[3],argv[4],argv[5],argv[6]));					break;
         default: 
 	    usage(); 
             return 1;
@@ -148,5 +156,10 @@ main(int argc, char **argv) {
 	return 1;
   
     }
+
+ }  catch (WebAPIException we) {
+    std::cout << &we << std::endl;
+ }
+
 }
 

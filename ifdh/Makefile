@@ -1,5 +1,5 @@
 
-CFLAGS=-I../client -I../../numsg -g -I/usr/include/python2.6 
+CXXFLAGS=-fPIC -I../client -I../../numsg -g -I`echo /usr/include/python*`
 PLAIN_OBJS=ifdh.o ../client/WebAPI.o ../../numsg/numsg.o ../../numsg/SyslogAPI.o
 PYMOD_OBJS=$(PLAIN_OBJS) ifdh_wrap.o
 
@@ -19,11 +19,11 @@ ifdh_wrap.cxx: ifdh.h ifdh.i
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
-	g++ $(CFLAGS) -c -o $@ ifdh_wrap.cxx
+	g++ $(CXXFLAGS) -c -o $@ ifdh_wrap.cxx
         
 
 ifdh.o: ifdh.cc ifdh.h
-	g++ $(CFLAGS) -c -o $@ ifdh.cc
+	g++ $(CXXFLAGS) -c -o $@ ifdh.cc
 
 ifdh_main.o: ifdh_main.cc
-	g++ $(CFLAGS) -c -o $@ ifdh_main.cc
+	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc
