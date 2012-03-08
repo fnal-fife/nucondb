@@ -1,39 +1,48 @@
 #include "ifdh.h"
+#include <string>
 #include <sstream>
 #include <iostream>
+#include <numsg.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
-use std;
+using namespace std;
 
 string cpn_loc  = "/grid/app/minos/scripts/cpn";
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
-string bestmanuri = "srm://fg-bestman1.fnal.gov:10443"
+string bestmanuri = "srm://fg-bestman1.fnal.gov:10443";
 
 string datadir() {
-    strstream dirmaker;
+    stringstream dirmaker;
     
-    dirmaker << getenv("OSG_DATA")?getenv("OSG_DATA"):"/tmp"
+    dirmaker << (getenv("OSG_DATA")?getenv("OSG_DATA"):"/tmp")
              << "/pid_" << getppid();
+
     if ( 0 == access(dirmaker.str().c_str(), W_OK) ) {
-        mkdir(dirmaker.str().c_str());
+        mkdir(dirmaker.str().c_str(),0700);
     }
     return dirmaker.str().c_str();
 }
 
-int ifdh::cleanup() {
-    system("rm -rf " + datadir());
+void
+ifdh::cleanup() {
+    string cmd("rm -rf ");
+    cmd = cmd + datadir();
+    system(cmd.c_str());
 }
 
 
 // file input
 string ifdh::fetchInput( string src_uri ) {
-    strstream cmd;
+    stringstream cmd;
+    int p;
     int baseloc = src_uri.rfind("/") + 1;
 
     if (src_uri.substr(0,7) == "file://") {
 	cmd << cpn_loc 
             << " " << src_uri.substr(7) 
             << " " << datadir() << "/" << src_uri.substr(baseloc);
-        system(cmd.str());
+        system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
         return cmd.str().substr(p+1);
     }
@@ -41,37 +50,40 @@ string ifdh::fetchInput( string src_uri ) {
         cmd << "srmcp" 
             << " " << src_uri 
             << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc);
-        system(cmd.str());
+        system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
         return cmd.str().substr(p+8);
     }
-    raise Exception("Unknown uri type");
+    throw(WebAPIException("Unknown uri type",""));
 }
 
 // file output
 int ifdh::addOutputFile(string filename) {
-    fstream outlog(datadir()+"/output_files", ios_base::append|iosbase::out);
+    fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
     outlog << filename << "\n";
     outlog.close();
 }
 
 int ifdh::copyBackOutput(string dest_dir) {
-    strstream cmd;
-    int baseloc = src_uri.rfind("/") + 1;
-    fstream outlog(datadir()+"/output_files", ios_base::in);
+    stringstream cmd;
+    string line;
+    int baseloc = dest_dir.find("/") + 1;
+    fstream outlog((datadir()+"/output_files").c_str(), ios_base::in);
 
-    if (access(dest_dir, W_OK)) {
+    if (access(dest_dir.c_str(), W_OK)) {
         // destination is visible, so use cpn
 	cmd << cpn_loc;
-        while (!outlog.feof()) {
-            cmd << " " << getline(outlog);
+        while (!outlog.eof()) {
+            getline(outlog,line);
+            cmd << " " << line;
         }
         cmd << " " << dest_dir;
     } else {
         // destination is not visible, use srmcp
-        cmd << "srmcp"
-        while (!outlog.feof()) {
-            cmd << " file:///" << getline(outlog);
+        cmd << "srmcp";
+        while (!outlog.eof()) {
+            getline(outlog, line)
+            cmd << " file:///" << line;
         }
         cmd << " " << bestmanuri << dest_dir;
     }
@@ -81,22 +93,22 @@ int ifdh::copyBackOutput(string dest_dir) {
 
 
 // logging
-int ifdh::log( string message ){
-;
+int ifdh::log( string message ) {
+  getMsg().printf("ifdh: %s", message);
 }
 
 int ifdh::enter_state( string state ){
-;
+  getMsg().start(state.c_str());
 }
 
 int ifdh::leave_state( string state ){
-;
+  getMsg().finish(state.c_str());
 }
 
 WebAPI
 do_url_2(int postflag, va_list ap) {
-    strstream url;
-    strstream postdata;
+    stringstream url;
+    stringstream postdata;
     char *sep = "";
     string name;
     string val;
@@ -138,7 +150,7 @@ do_url_str(postflag,...)
     string res("");
     va_start(ap, postflag);
     WebAPI wa = do_url_2(postflag, ap);
-    while (!wa.data().feof()) {
+    while (!wa.data().eof()) {
       res = res + getline(wa.data());
     }
     return res;
@@ -150,7 +162,7 @@ do_url_lis(postflag,...)
     list<string> res;
     va_start(ap, postflag);
     WebAPI wa = do_url_2(postflag, ap);
-    while (!wa.data().feof()) {
+    while (!wa.data().eof()) {
         res.append(getline(wa.data()));
     }
     return res;
