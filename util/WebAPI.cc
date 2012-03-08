@@ -259,10 +259,16 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.17 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _tosite << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.18 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
+             _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
+
+             _tosite << "Content-Type: application/x-www-form-urlencoded\r\n";
+             _tosite << "Content-Length: " << postdata.length() << "\r\n";
+	     _tosite << "\r\n";
              _tosite << postdata;
+         } else {
+	     _tosite << "\r\n";
          }
 	 _tosite.flush();
 
