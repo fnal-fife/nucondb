@@ -85,9 +85,9 @@ main(int argc, char **argv) {
    case 'd':
         switch(argv[1][6]) { //note: 7th char.........v.........
         case 'D':		ck(argc,4) && di(i.deleteDefinition(argv[2],argv[3]));			break;
-	case 'b':		ck(argc,4) && ds(i.describeDefinition(argc[2],argv[3]));			break;
-	case 'o':		ck(argc,4) && ds(i.dumpProcess(argc[2],argc[3]));				break;
-        case 'a':		ck(argc,4) && ds(i.dumpStation(argc[2],argc[3]));				break;
+	case 'b':		ck(argc,4) && ds(i.describeDefinition(argv[2],argv[3]));			break;
+	case 'o':		ck(argc,4) && ds(i.dumpProcess(argv[2],argv[3]));				break;
+        case 'a':		ck(argc,4) && ds(i.dumpStation(argv[2],argv[3]));				break;
         default: 
 	    usage(); 
             return 1;
@@ -115,16 +115,17 @@ main(int argc, char **argv) {
     case 'g':
         switch(argv[1][3]) {
         case 'M':		ck(argc,4) && ds(i.getMetadata(argv[2],argv[3]));				break;
-	case 'N':		ck(argc,2) && ds(i.getNextFile());						break;
+	case 'N':		ck(argc,4) && ds(i.getNextFile(argv[2],argv[3]));				break;
         default: 
 	    usage(); 
             return 1;
         }
         break;
     case 'l':
-        switch(argv[1][1]) {
-        case 'e':		ck(argc,3) && di(i.leaveState(argv[2]));					break;
-        case 'o':		ck(argc,3) && di(i.log(argv[2]));						break;
+        switch(argv[1][2]) {
+        case 'a':		ck(argc,3) && di(i.leaveState(argv[2]));					break;
+        case 'c':		ck(argc,4) && dv(i.locateFile(argv[2],argv[3]));				break;
+        case 'g':		ck(argc,3) && di(i.log(argv[2]));						break;
         default: 
 	    usage(); 
             return 1;
@@ -133,7 +134,7 @@ main(int argc, char **argv) {
     case 's':
         switch(argv[1][1]) {	
         case 'e':		ck(argc,5) && di(i.setStatus(argv[2],argv[3],argv[4]));				break;
-        case 't':		ck(argc,8) && ds(i.startProject(argv[2],argv[3],argv[4],argv[5],argv[6],argv[7]);
+        case 't':		ck(argc,8) && ds(i.startProject(argv[2],argv[3],argv[4],argv[5],argv[6],argv[7]));
 														break;
         default: 
 	    usage(); 
@@ -141,7 +142,7 @@ main(int argc, char **argv) {
         }
         break;
     case 't':		        ck(argc,4) && dv(i.translateConstraints(argv[2],argv[3]));			break;		
-    case 'u':			ck(argc,6) && ds(i.updateFileStatus(argv[2], argv[3], arvg[4], argv[5]));	break;
+    case 'u':			ck(argc,6) && ds(i.updateFileStatus(argv[2], argv[3], argv[4], argv[5]));	break;
     default: 
 	usage(); 
 	return 1;
