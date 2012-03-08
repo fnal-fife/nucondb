@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 #include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
 
 int SyslogAPI::_debug = 0;
 

@@ -2,6 +2,8 @@
 #include <sstream>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
 
 numsg *numsg::_singleton = 0;
 

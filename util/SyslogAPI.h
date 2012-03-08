@@ -11,9 +11,9 @@ class SyslogAPI {
     struct sockaddr_in _destaddr;	// our destination host/port
     int _parentflag;			// use our parents pid rather than ours
 public:
-    SyslogAPI::SyslogAPI(char *desthost, int destport = 514, int parentflag = 0);
-    SyslogAPI::~SyslogAPI();
-    ssize_t SyslogAPI::send( int facility, int severity, const char *tag, const char *msg);
+    SyslogAPI(char *desthost, int destport = 514, int parentflag = 0);
+    ~SyslogAPI();
+    ssize_t send( int facility, int severity, const char *tag, const char *msg);
 					// actually send a syslog message
 };
 #endif
