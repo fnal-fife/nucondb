@@ -26,7 +26,7 @@ class ifdh {
 	int leaveState( std::string state );
 
 	//datasets
-	int createDefinition(std::string baseuri, std::string name, std::string dims, std::string user);
+	int createDefinition(std::string baseuri, std::string name, std::string dims, std::string user, std::string group);
 	int deleteDefinition(std::string baseuri, std::string name);
 	std::string describeDefinition(std::string baseuri, std::string name);
 	std::vector<std::string> translateConstraints(std::string baseuri, std::string dims);

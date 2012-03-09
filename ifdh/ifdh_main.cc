@@ -83,7 +83,7 @@ main(int argc, char **argv) {
 	case 'l':		ck(argc,2) && i.cleanup();					  	break;
  	case 'o':		ck(argc,3) && di(i.copyBackOutput(argv[2]));			  	break;
         case 'p':		ck(argc,4) && di(i.cp(argv[2],argv[3]));			 	break;
-        case 'r':		ck(argc,5) && di(i.createDefinition(argv[2],argv[3],argv[4],argv[5]));	break;
+        case 'r':		ck(argc,7) && di(i.createDefinition(argv[2],argv[3],argv[4],argv[5],argv[6]));	break;
         default: 
 	    usage(); 
             return 1;

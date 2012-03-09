@@ -4,17 +4,15 @@ ifdh locateFile $base "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.
 
 ifdh describeDefinition $base "mwm_test_2"
 
-cpurl=`ifdh startProject $base mwm_20120308_1 minerva mwm_test_2 mengel minerva`
+cpurl=`ifdh startProject $base mwm_20120308_4 minerva mwm_test_2 mengel minerva | tail -1`
 
-cpurl=`ifdh findProject $base mwm_20120308_1 mengel`
+cpurl=`ifdh findProject $base mwm_20120308_4 mengel | tail -1`
 
-# fix cpurl for missing port number!
+consumer_id=`ifdh establishProcess $cpurl demo 0 bel-kwinith.fnal.gov mengel minerva | tail -1`
 
-consumer_id=`ifdh establishProcess $cpurl mwm_20120308_1 myapp v1 bel-kwinith.fnal.gov mengel`
+furi=`ifdh getNextFile $cpurl $consumer_id | tail -1`
 
-furi=`ifdh getNextFile $cpurl $consumer_id`
-
-fname=`ifdh fetchInput $furi`
+fname=`ifdh fetchInput $furi | tail -1`
 
 # udpateFileStatus is failing, but looks right...
 
@@ -28,6 +26,7 @@ ifdh setStatus $cpurl $consumer_id  bad
 
 ifdh endProject $cpurl 
 
+exit
 
 ToDo
 ----

@@ -234,8 +234,8 @@ do_url_lst(int postflag,...) {
 
 //datasets
 int 
-ifdh::createDefinition(string baseuri, string name, string dims, string user) {
-  return do_url_int(1,baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", dims.c_str(), "user", user.c_str(),"","");
+ifdh::createDefinition(string baseuri, string name, string dims, string user, string group) {
+  return do_url_int(1,baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", WebAPI::encode(dims).c_str(), "user", user.c_str(),"group", group.c_str(), "","");
 }
 
 int 
@@ -250,7 +250,7 @@ ifdh::describeDefinition(string baseuri, string name) {
 
 vector<string> 
 ifdh::translateConstraints(string baseuri, string dims) {
-  return do_url_lst(0,baseuri.c_str(),"translateConstraints", "", "dims", dims.c_str(), "format","plain", "","" );
+  return do_url_lst(0,baseuri.c_str(),"translateConstraints", "", "dims", WebAPI::encode(dims).c_str(), "format","plain", "","" );
 }
 
 // files
