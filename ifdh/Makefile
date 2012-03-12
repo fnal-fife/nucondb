@@ -5,6 +5,9 @@ PYMOD_OBJS=$(PLAIN_OBJS) ifdh_wrap.o
 
 all: ifdh python/_ifdh.so ifdh.so
 
+ifdh_main.cc: ifdh.h h_to_main.sh
+	sh h_to_main.sh ifdh.h > $@
+
 ifdh: ifdh.so ifdh_main.o
 	g++ -o $@ ifdh_main.o $(PLAIN_OBJS)
 
