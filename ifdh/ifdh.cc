@@ -28,6 +28,13 @@ string datadir() {
     return dirmaker.str().c_str();
 }
 
+// ART Service constructor -- currently does nothing.
+//
+//
+ifdh::ifdh( fhicl::ParameterSet const & cfg, art::ActivityRegistry &r) {
+  ;
+}
+
 int
 ifdh::_debug = 0;
 
@@ -234,54 +241,54 @@ do_url_lst(int postflag,...) {
 
 //datasets
 int 
-ifdh::createDefinition(string baseuri, string name, string dims, string user, string group) {
-  return do_url_int(1,baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", WebAPI::encode(dims).c_str(), "user", user.c_str(),"group", group.c_str(), "","");
+ifdh::createDefinition( string name, string dims, string user, string group) {
+  return do_url_int(1,_baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", WebAPI::encode(dims).c_str(), "user", user.c_str(),"group", group.c_str(), "","");
 }
 
 int 
-ifdh::deleteDefinition(string baseuri, string name) {
-  return  do_url_int(1,baseuri.c_str(),"deleteDefinition","","name", name.c_str(),"","");
+ifdh::deleteDefinition( string name) {
+  return  do_url_int(1,_baseuri.c_str(),"deleteDefinition","","name", name.c_str(),"","");
 }
 
 string 
-ifdh::describeDefinition(string baseuri, string name) {
-  return do_url_str(0,baseuri.c_str(),"describeDefinition", "", "name", name.c_str(), "","");
+ifdh::describeDefinition( string name) {
+  return do_url_str(0,_baseuri.c_str(),"describeDefinition", "", "name", name.c_str(), "","");
 }
 
 vector<string> 
-ifdh::translateConstraints(string baseuri, string dims) {
-  return do_url_lst(0,baseuri.c_str(),"translateConstraints", "", "dims", WebAPI::encode(dims).c_str(), "format","plain", "","" );
+ifdh::translateConstraints( string dims) {
+  return do_url_lst(0,_baseuri.c_str(),"translateConstraints", "", "dims", WebAPI::encode(dims).c_str(), "format","plain", "","" );
 }
 
 // files
 vector<string> 
-ifdh::locateFile(string baseuri, string name) {
-  return do_url_lst(0,baseuri.c_str(), "locateFile", "", "file", name.c_str(), "", "" );  
+ifdh::locateFile( string name) {
+  return do_url_lst(0,_baseuri.c_str(), "locateFile", "", "file", name.c_str(), "", "" );  
 }
 
-string ifdh::getMetadata(string baseuri, string name) {
-  return  do_url_str(0, baseuri.c_str(),"getMetadata", "", "name", name.c_str(), "","");
+string ifdh::getMetadata( string name) {
+  return  do_url_str(0, _baseuri.c_str(),"getMetadata", "", "name", name.c_str(), "","");
 }
 
 //
 string 
-ifdh::dumpStation(string baseuri, string name, string what ) {
-  return do_url_str(0,baseuri.c_str(),"dumpStation", "", "station", name.c_str(), "dump", what.c_str(), "","");
+ifdh::dumpStation( string name, string what ) {
+  return do_url_str(0,_baseuri.c_str(),"dumpStation", "", "station", name.c_str(), "dump", what.c_str(), "","");
 }
 
 // projects
-string ifdh::startProject(string baseuri, string name, string station,  string defname_or_id,  string user,  string group) {
-  return do_url_str(1,baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defname",defname_or_id.c_str(),"username",user.c_str(),"group",group.c_str(),"","");
+string ifdh::startProject( string name, string station,  string defname_or_id,  string user,  string group) {
+  return do_url_str(1,_baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defname",defname_or_id.c_str(),"username",user.c_str(),"group",group.c_str(),"","");
 }
 
 string 
-ifdh::findProject(string baseuri, string name, string station){
-   return do_url_str(0,baseuri.c_str(),"findProject","","name",name.c_str(),"station",station.c_str(),"","");
+ifdh::findProject( string name, string station){
+   return do_url_str(0,_baseuri.c_str(),"findProject","","name",name.c_str(),"station",station.c_str(),"","");
 }
 
 string 
-ifdh::establishProcess(string baseuri, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
-  return do_url_str(1,baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
+ifdh::establishProcess( string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
+  return do_url_str(1,_baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
 }
 
 string ifdh::getNextFile(string projecturi, string processid){
@@ -312,3 +319,7 @@ int ifdh::endProject(string projecturi) {
 }
 
 }
+
+#ifdef DEFINE_ART_SERVICE
+DEFINE_ART_SERVICE(ifdh_ns::ifdh);
+#endif

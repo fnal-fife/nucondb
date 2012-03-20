@@ -15,7 +15,8 @@ static int dv(vector<string> v)	{ for(int i = 0; i < v.size(); i++) { cout << v[
 
 int
 main(int argc, char **argv) { 
-	ifdh i;
+	ifdh i(getenv("IFDH_BASE_URI"));
+	try {
 	if (0 == strcmp(argv[1],"cp")) di(i.cp( argv[2], argv[3]));
 	else if (0 == strcmp(argv[1],"fetchInput")) ds(i.fetchInput( argv[2]));
 	else if (0 == strcmp(argv[1],"addOutputFile")) di(i.addOutputFile( argv[2]));
@@ -23,16 +24,16 @@ main(int argc, char **argv) {
 	else if (0 == strcmp(argv[1],"log")) di(i.log( argv[2]));
 	else if (0 == strcmp(argv[1],"enterState")) di(i.enterState( argv[2]));
 	else if (0 == strcmp(argv[1],"leaveState")) di(i.leaveState( argv[2]));
-	else if (0 == strcmp(argv[1],"createDefinition")) di(i.createDefinition( argv[2], argv[3], argv[4], argv[5], argv[6]));
-	else if (0 == strcmp(argv[1],"deleteDefinition")) di(i.deleteDefinition( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"describeDefinition")) ds(i.describeDefinition( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"translateConstraints")) dv(i.translateConstraints( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"locateFile")) dv(i.locateFile( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"getMetadata")) ds(i.getMetadata( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"dumpStation")) ds(i.dumpStation( argv[2], argv[3], argv[4]));
-	else if (0 == strcmp(argv[1],"startProject")) ds(i.startProject( argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]));
-	else if (0 == strcmp(argv[1],"findProject")) ds(i.findProject( argv[2], argv[3], argv[4]));
-	else if (0 == strcmp(argv[1],"establishProcess")) ds(i.establishProcess( argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8], atol(argv[9])));
+	else if (0 == strcmp(argv[1],"createDefinition")) di(i.createDefinition( argv[2], argv[3], argv[4], argv[5]));
+	else if (0 == strcmp(argv[1],"deleteDefinition")) di(i.deleteDefinition( argv[2]));
+	else if (0 == strcmp(argv[1],"describeDefinition")) ds(i.describeDefinition( argv[2]));
+	else if (0 == strcmp(argv[1],"translateConstraints")) dv(i.translateConstraints( argv[2]));
+	else if (0 == strcmp(argv[1],"locateFile")) dv(i.locateFile( argv[2]));
+	else if (0 == strcmp(argv[1],"getMetadata")) ds(i.getMetadata( argv[2]));
+	else if (0 == strcmp(argv[1],"dumpStation")) ds(i.dumpStation( argv[2], argv[3]));
+	else if (0 == strcmp(argv[1],"startProject")) ds(i.startProject( argv[2], argv[3], argv[4], argv[5], argv[6]));
+	else if (0 == strcmp(argv[1],"findProject")) ds(i.findProject( argv[2], argv[3]));
+	else if (0 == strcmp(argv[1],"establishProcess")) ds(i.establishProcess( argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], atol(argv[8])));
 	else if (0 == strcmp(argv[1],"getNextFile")) ds(i.getNextFile( argv[2], argv[3]));
 	else if (0 == strcmp(argv[1],"updateFileStatus")) ds(i.updateFileStatus( argv[2], argv[3], argv[4], argv[5]));
 	else if (0 == strcmp(argv[1],"endProcess")) di(i.endProcess( argv[2], argv[3]));
@@ -49,16 +50,16 @@ main(int argc, char **argv) {
                 cout << "\tlog  message \n\t--logging \n";
                 cout << "\tenterState  state \n\t--logging \n";
                 cout << "\tleaveState  state \n\t--logging \n";
-                cout << "\tcreateDefinition  baseuri  name  dims  user  group \n\t--logging \n";
-                cout << "\tdeleteDefinition  baseuri  name \n\t--logging \n";
-                cout << "\tdescribeDefinition  baseuri  name \n\t--logging \n";
-                cout << "\ttranslateConstraints  baseuri  dims \n\t--logging \n";
-                cout << "\tlocateFile  baseuri  name \n\t--files \n";
-                cout << "\tgetMetadata  baseuri  name \n\t--files \n";
-                cout << "\tdumpStation  baseuri  name  what  \n\t-- \n";
-                cout << "\tstartProject  baseuri  name  station  defname_or_id  user  group \n\t--projects \n";
-                cout << "\tfindProject  baseuri  name  station \n\t--projects \n";
-                cout << "\testablishProcess  baseuri  appname  appversion  location  user  appfamily   description   filelimit  \n\t--projects \n";
+                cout << "\tcreateDefinition  name  dims  user  group \n\t--logging \n";
+                cout << "\tdeleteDefinition  name \n\t--logging \n";
+                cout << "\tdescribeDefinition  name \n\t--logging \n";
+                cout << "\ttranslateConstraints  dims \n\t--logging \n";
+                cout << "\tlocateFile  name \n\t--files \n";
+                cout << "\tgetMetadata  name \n\t--files \n";
+                cout << "\tdumpStation  name  what  \n\t-- \n";
+                cout << "\tstartProject  name  station  defname_or_id  user  group \n\t--projects \n";
+                cout << "\tfindProject  name  station \n\t--projects \n";
+                cout << "\testablishProcess  appname  appversion  location  user  appfamily   description   filelimit  \n\t--projects \n";
                 cout << "\tgetNextFile  projecturi  processid \n\t--projects \n";
                 cout << "\tupdateFileStatus  projecturi  processid  filename  status \n\t--projects \n";
                 cout << "\tendProcess  projecturi  processid \n\t--projects \n";
@@ -68,4 +69,7 @@ main(int argc, char **argv) {
                 cout << "\tcleanup  \n\t--projects \n";
 		exit(1);	
 	}
+} catch (WebAPIException we) {
+      std::cout << "Exception:" << &we << std::endl;
+      exit(1);}
 }

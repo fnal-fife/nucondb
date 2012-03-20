@@ -1,12 +1,12 @@
-base="http://samweb-minerva.fnal.gov:20004/sam/minerva/api"
+export IFDH_BASE_URI="http://samweb-minerva.fnal.gov:20004/sam/minerva/api"
 
-ifdh locateFile $base "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root"
+ifdh locateFile  "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root"
 
-ifdh describeDefinition $base "mwm_test_2"
+ifdh describeDefinition  "mwm_test_2"
 
-cpurl=`ifdh startProject $base mwm_20120308_4 minerva mwm_test_2 mengel minerva | tail -1`
+cpurl=`ifdh startProject  mwm_20120308_4 minerva mwm_test_2 mengel minerva | tail -1`
 
-cpurl=`ifdh findProject $base mwm_20120308_4 mengel | tail -1`
+cpurl=`ifdh findProject  mwm_20120308_4 mengel | tail -1`
 
 consumer_id=`ifdh establishProcess $cpurl demo 0 bel-kwinith.fnal.gov mengel minerva | tail -1`
 

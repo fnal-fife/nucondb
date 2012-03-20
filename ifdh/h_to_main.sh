@@ -33,11 +33,17 @@ do
         printf "\n"
 
         printf "int\nmain(int argc, char **argv) { \n"
-        printf "\tifdh i;\n"
+        printf "\tifdh i(getenv(\"IFDH_BASE_URI\"));\n"
+        printf "\ttry {\n"
 	xlate=true;
 	;;
     \}\;)
+        $xlate || continue
 	printf "\telse {\n$help\n\t\texit(1);\t\n\t}\n"
+        printf "} catch (WebAPIException we) {\n"
+        printf "      std::cout << \"Exception:\" << &we << std::endl;\n"
+        printf "      exit(1);"
+        printf "}\n"
 	printf "}\n"
         ;;
     int)
@@ -54,6 +60,7 @@ do
         ;;
     esac
 
+    $xlate || continue
     if $docall
     then
         cargs=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int ([a-z]*)/atol_$1/g;'`
