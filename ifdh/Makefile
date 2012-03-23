@@ -1,21 +1,25 @@
 
-CXXFLAGS=-fPIC -I../client -I../../numsg -g -I`echo /usr/include/python*`
-PLAIN_OBJS=ifdh.o ../client/WebAPI.o ../../numsg/numsg.o ../../numsg/SyslogAPI.o
-PYMOD_OBJS=$(PLAIN_OBJS) ifdh_wrap.o
+CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*`
+OBJ=ifdh.o
+ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o
+PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 all: ifdh python/_ifdh.so ifdh.so
+
+clean: 
+	rm $(OBJ)
 
 ifdh_main.cc: ifdh.h h_to_main.sh
 	sh h_to_main.sh ifdh.h > $@
 
 ifdh: ifdh.so ifdh_main.o
-	g++ -o $@ ifdh_main.o $(PLAIN_OBJS)
+	g++ -o $@ ifdh_main.o $(ALL_OBJS)
 
 python/_ifdh.so: $(PYMOD_OBJS)
 	g++ --shared -o $@ $(PYMOD_OBJS) /usr/lib/libpython*.so
 
-ifdh.so: $(PLAIN_OBJS)
-	g++ --shared -o $@ $(PLAIN_OBJS)
+ifdh.so: $(ALL_OBJS)
+	g++ --shared -o $@ $(ALL_OBJS)
 
 ifdh_wrap.cxx: ifdh.h ifdh.i
 	swig -python -c++ ifdh.i

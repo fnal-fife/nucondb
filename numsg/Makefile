@@ -1,22 +1,20 @@
-BIN= SyslogAPI-test numsg-test nulogprintf
+BIN=numsg-test nulogprintf
 LIB=LibNuMsg.a
-OBJ=SyslogAPI.o numsg.o
+UTLOBJ=../util/SyslogAPI.o
+OBJ=numsg.o
 LOG_OBJ= nulogprintf.o $(OBJ)
 CXXFLAGS=-fpic -g
 
-all: $(BIN) $(LIB)
+all: $(OBJ) $(BIN) $(LIB)
 
 clean:
 	rm *.o $(BIN) $(LIB)
 
 nulogprintf: $(LOG_OBJ)
-	$(CXX) $(CXXFLAGS) -o nulogprintf $(LOG_OBJ)
+	$(CXX) $(CXXFLAGS) -o nulogprintf $(LOG_OBJ) $(UTLOBJ)
 
-LibNuMsg.a: $(OBJ)
-	ar qv $(LIB) $(OBJ)
+LibNuMsg.a: $(OBJ) $(UTLOBJ)
+	ar qv $(LIB) $(OBJ) $(UTLOBJ)
         
-SyslogAPI-test:
-	$(CXX) $(CXXFLAGS) -o SyslogAPI-test SyslogAPI.cc -DUNITTEST
-
-numsg-test: SyslogAPI.o numsg.cc
-	$(CXX) $(CXXFLAGS) -DUNITTEST numsg.cc -o numsg-test SyslogAPI.o
+numsg-test: $(UTLOBJ) numsg.cc
+	$(CXX) $(CXXFLAGS) -DUNITTEST numsg.cc -o numsg-test $(UTLOBJ)

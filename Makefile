@@ -1,5 +1,9 @@
 
-SUBDIRS= util numsg ifdh nucondb ifbeam 
+SUBDIRS= util numsg nucondb ifbeam ifdh
 
-all clean install: FORCE
-	for d in $(SUBDIRS); do cd $d && make $@
+all clean install: 
+	for d in $(SUBDIRS); do ([ -d $$d ] && cd $$d && make $@); done
+
+distrib:
+	tar czvf nucondb-client.tgz Makefile  [nu]/*.[ch]* [nu]*/Makefile 
+	tar czvf ifdhc.tgz Makefile */*.[ch] */Makefile

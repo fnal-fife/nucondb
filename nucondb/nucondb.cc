@@ -8,8 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include "nucondb.h"
-#include "WebAPI.h"
-#include "utils.h"
+#include "../util/utils.h"
 
 // debug flag
 int pad;

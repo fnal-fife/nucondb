@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+namespace ifdh_util_ns {
+
 numsg *numsg::_singleton = 0;
 
 numsg::numsg(const char *jobname, char *host, int port, int parentflag) : 
@@ -86,8 +88,9 @@ numsg::finish(const char *what) {
     _old_states.pop_front();
 }
 
-
+};
 #ifdef UNITTEST
+int
 main() {
     numsg *nm;
 
@@ -109,3 +112,4 @@ main() {
     numsg::getMsg()->printf("Exiting:");
 }
 #endif
+

@@ -1,6 +1,8 @@
-#include "SyslogAPI.h"
+#include "../util/SyslogAPI.h"
 #include <string>
 #include <list>
+
+namespace ifdh_util_ns {
 
 class numsg {
      SyslogAPI _sa; 		// SyslogAPI object to send with
@@ -27,3 +29,6 @@ public:
      void printf(const char *fmt, ...);		// general printf method
 };
 
+};
+
+using namespace ifdh_util_ns;

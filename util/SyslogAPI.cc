@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+namespace ifdh_util_ns {
+
 int SyslogAPI::_debug = 0;
 
 SyslogAPI::SyslogAPI(char *desthost, int destport, int parentflag): _parentflag(parentflag) {
@@ -64,3 +66,4 @@ main() {
    s.send(17, 1, "SyslogAPI", "Client test message");
 }
 #endif
+};

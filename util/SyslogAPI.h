@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+namespace ifdh_util_ns {
+
 class SyslogAPI {
     static int _debug;			// debugging flag
     int _socket;			// socket we send through
@@ -16,4 +18,8 @@ public:
     ssize_t send( int facility, int severity, const char *tag, const char *msg);
 					// actually send a syslog message
 };
+
+};
+
+using namespace ifdh_util_ns;
 #endif

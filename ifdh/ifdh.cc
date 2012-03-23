@@ -28,13 +28,6 @@ string datadir() {
     return dirmaker.str().c_str();
 }
 
-// ART Service constructor -- currently does nothing.
-//
-//
-ifdh::ifdh( fhicl::ParameterSet const & cfg, art::ActivityRegistry &r) {
-  ;
-}
-
 int
 ifdh::_debug = 0;
 

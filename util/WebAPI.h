@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <ext/stdio_filebuf.h>
 
 #ifdef  HAVE_GAUDI_EXCEPTIONS

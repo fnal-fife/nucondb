@@ -1,18 +1,7 @@
 
 #include <string>
 #include <vector>
-#include "../client/WebAPI.h"
-
-// ART bits...
-namespace art {
-  class ActivityRegistry;   // declaration only
-  class ModuleDescription;  // declaration only
-  class Run;		    // declaration only
-}
-namespace fhicl {
-  class ParameterSet;       // declaration only
-}
-
+#include "../util/WebAPI.h"
 
 namespace ifdh_ns {
 
@@ -22,9 +11,6 @@ class ifdh {
 
    public:
         static int _debug;
-
-        // ART constructor...
-        ifdh( fhicl::ParameterSet const & cfg, art::ActivityRegistry &r);
 
         // generic constructor...
         ifdh() {;}

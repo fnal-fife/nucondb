@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <stdlib.h>
 
 main(int argc, char **argv) {
     int ppid = getppid();
