@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include "../util/WebAPI.h"
+#include <stdlib.h>
+
 
 namespace ifdh_ns {
 
@@ -13,9 +15,9 @@ class ifdh {
         static int _debug;
 
         // generic constructor...
-        ifdh() {;}
+        //ifdh() {;}
 
-        ifdh(std::string baseuri) :  _baseuri(baseuri) {;}
+        ifdh(std::string baseuri = getenv("IFDH_BASE_URI")) :  _baseuri(baseuri) {;}
 
         // general copy
         int cp(std::string src, std::string dest);
@@ -49,7 +51,7 @@ class ifdh {
 	std::string startProject( std::string name, std::string station,  std::string defname_or_id,  std::string user,  std::string group);
 	std::string findProject( std::string name, std::string station);
 
-	std::string establishProcess( std::string appname, std::string appversion, std::string location, std::string user, std::string appfamily = "", std::string description = "", int filelimit = -1);
+	std::string establishProcess(std::string projecturi,  std::string appname, std::string appversion, std::string location, std::string user, std::string appfamily = "", std::string description = "", int filelimit = -1);
 	std::string getNextFile(std::string projecturi, std::string processid);
 	std::string updateFileStatus(std::string projecturi, std::string processid, std::string filename, std::string status);
         int endProcess(std::string projecturi, std::string processid);

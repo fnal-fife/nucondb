@@ -1,10 +1,20 @@
 
+LIB=ifdh.so
+HDR=ifdh.h
 CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*`
 OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
-all: ifdh python/_ifdh.so ifdh.so
+all: ifdh python/_ifdh.so ifdh.so ifdh_art_test
+
+install:
+	test -d ../lib/python || mkdir -p ../lib/python
+	test -d ../bin || mkdir ../bin
+	cp ifdh   ../bin
+	cp $(LIB) ../lib
+	cp $(HDR) ../include
+	cp python/* ../lib/python
 
 clean: 
 	rm $(OBJ)
@@ -34,3 +44,6 @@ ifdh.o: ifdh.cc ifdh.h
 
 ifdh_main.o: ifdh_main.cc
 	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc
+
+ifdh_art_test:  ifdh_art_test.cc ifdh.cc ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o
+	g++ $(CXXFLAGS) -o ifdh_art_test ifdh_art_test.cc ifdh_art.cc ifdh.o ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o ../util/SyslogAPI.o

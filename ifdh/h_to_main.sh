@@ -77,10 +77,10 @@ do
             case $a in
             atol*)
                  echo "saw atol case" >&2
-                 printf "$sep atol(argv[$i])"; 
+                 printf "$sep argv[$i]?atol(argv[$i]):-1"; 
                  ;;
             *)
-                 printf "$sep argv[$i]"; 
+                 printf "$sep argv[$i]?argv[$i]:\"\""; 
                  ;;
             esac
 	    sep="," 

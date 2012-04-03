@@ -17,29 +17,29 @@ int
 main(int argc, char **argv) { 
 	ifdh i(getenv("IFDH_BASE_URI"));
 	try {
-	if (0 == strcmp(argv[1],"cp")) di(i.cp( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"fetchInput")) ds(i.fetchInput( argv[2]));
-	else if (0 == strcmp(argv[1],"addOutputFile")) di(i.addOutputFile( argv[2]));
-	else if (0 == strcmp(argv[1],"copyBackOutput")) di(i.copyBackOutput( argv[2]));
-	else if (0 == strcmp(argv[1],"log")) di(i.log( argv[2]));
-	else if (0 == strcmp(argv[1],"enterState")) di(i.enterState( argv[2]));
-	else if (0 == strcmp(argv[1],"leaveState")) di(i.leaveState( argv[2]));
-	else if (0 == strcmp(argv[1],"createDefinition")) di(i.createDefinition( argv[2], argv[3], argv[4], argv[5]));
-	else if (0 == strcmp(argv[1],"deleteDefinition")) di(i.deleteDefinition( argv[2]));
-	else if (0 == strcmp(argv[1],"describeDefinition")) ds(i.describeDefinition( argv[2]));
-	else if (0 == strcmp(argv[1],"translateConstraints")) dv(i.translateConstraints( argv[2]));
-	else if (0 == strcmp(argv[1],"locateFile")) dv(i.locateFile( argv[2]));
-	else if (0 == strcmp(argv[1],"getMetadata")) ds(i.getMetadata( argv[2]));
-	else if (0 == strcmp(argv[1],"dumpStation")) ds(i.dumpStation( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"startProject")) ds(i.startProject( argv[2], argv[3], argv[4], argv[5], argv[6]));
-	else if (0 == strcmp(argv[1],"findProject")) ds(i.findProject( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"establishProcess")) ds(i.establishProcess( argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], atol(argv[8])));
-	else if (0 == strcmp(argv[1],"getNextFile")) ds(i.getNextFile( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"updateFileStatus")) ds(i.updateFileStatus( argv[2], argv[3], argv[4], argv[5]));
-	else if (0 == strcmp(argv[1],"endProcess")) di(i.endProcess( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"dumpProcess")) ds(i.dumpProcess( argv[2], argv[3]));
-	else if (0 == strcmp(argv[1],"setStatus")) di(i.setStatus( argv[2], argv[3], argv[4]));
-	else if (0 == strcmp(argv[1],"endProject")) di(i.endProject( argv[2]));
+	if (0 == strcmp(argv[1],"cp")) di(i.cp( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"fetchInput")) ds(i.fetchInput( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"addOutputFile")) di(i.addOutputFile( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"copyBackOutput")) di(i.copyBackOutput( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"log")) di(i.log( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"enterState")) di(i.enterState( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"leaveState")) di(i.leaveState( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"createDefinition")) di(i.createDefinition( argv[2]?argv[2]:"", argv[3]?argv[3]:"", argv[4]?argv[4]:"", argv[5]?argv[5]:""));
+	else if (0 == strcmp(argv[1],"deleteDefinition")) di(i.deleteDefinition( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"describeDefinition")) ds(i.describeDefinition( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"translateConstraints")) dv(i.translateConstraints( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"locateFile")) dv(i.locateFile( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"getMetadata")) ds(i.getMetadata( argv[2]?argv[2]:""));
+	else if (0 == strcmp(argv[1],"dumpStation")) ds(i.dumpStation( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"startProject")) ds(i.startProject( argv[2]?argv[2]:"", argv[3]?argv[3]:"", argv[4]?argv[4]:"", argv[5]?argv[5]:"", argv[6]?argv[6]:""));
+	else if (0 == strcmp(argv[1],"findProject")) ds(i.findProject( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"establishProcess")) ds(i.establishProcess( argv[2]?argv[2]:"", argv[3]?argv[3]:"", argv[4]?argv[4]:"", argv[5]?argv[5]:"", argv[6]?argv[6]:"", argv[7]?argv[7]:"", argv[8]?argv[8]:"", argv[9]?atol(argv[9]):-1));
+	else if (0 == strcmp(argv[1],"getNextFile")) ds(i.getNextFile( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"updateFileStatus")) ds(i.updateFileStatus( argv[2]?argv[2]:"", argv[3]?argv[3]:"", argv[4]?argv[4]:"", argv[5]?argv[5]:""));
+	else if (0 == strcmp(argv[1],"endProcess")) di(i.endProcess( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"dumpProcess")) ds(i.dumpProcess( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
+	else if (0 == strcmp(argv[1],"setStatus")) di(i.setStatus( argv[2]?argv[2]:"", argv[3]?argv[3]:"", argv[4]?argv[4]:""));
+	else if (0 == strcmp(argv[1],"endProject")) di(i.endProject( argv[2]?argv[2]:""));
 	else if (0 == strcmp(argv[1],"cleanup")) di(i.cleanup());
 	else {
 
@@ -59,7 +59,7 @@ main(int argc, char **argv) {
                 cout << "\tdumpStation  name  what  \n\t-- \n";
                 cout << "\tstartProject  name  station  defname_or_id  user  group \n\t--projects \n";
                 cout << "\tfindProject  name  station \n\t--projects \n";
-                cout << "\testablishProcess  appname  appversion  location  user  appfamily   description   filelimit  \n\t--projects \n";
+                cout << "\testablishProcess  projecturi  appname  appversion  location  user  appfamily   description   filelimit  \n\t--projects \n";
                 cout << "\tgetNextFile  projecturi  processid \n\t--projects \n";
                 cout << "\tupdateFileStatus  projecturi  processid  filename  status \n\t--projects \n";
                 cout << "\tendProcess  projecturi  processid \n\t--projects \n";

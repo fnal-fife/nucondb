@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <numsg.h>
+#include <../numsg/numsg.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdarg.h>
@@ -280,8 +280,8 @@ ifdh::findProject( string name, string station){
 }
 
 string 
-ifdh::establishProcess( string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
-  return do_url_str(1,_baseuri.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
+ifdh::establishProcess( string projecturi, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
+  return do_url_str(1,projecturi.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "", "");
 }
 
 string ifdh::getNextFile(string projecturi, string processid){
