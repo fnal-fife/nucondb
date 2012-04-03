@@ -24,6 +24,7 @@ ifdh_main.cc: ifdh.h h_to_main.sh
 
 ifdh: ifdh.so ifdh_main.o
 	g++ -o $@ ifdh_main.o $(ALL_OBJS)
+	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
 python/_ifdh.so: $(PYMOD_OBJS)
 	g++ --shared -o $@ $(PYMOD_OBJS) /usr/lib/libpython*.so

@@ -20,11 +20,17 @@ fname=`ifdh fetchInput $furi | tail -1`
 
 # udpateFileStatus is failing, but looks right...
 
-ifdh updateFileStatus $cpurl  $consumer_id $fname skipped
-
 ifdh updateFileStatus $cpurl  $consumer_id $fname transferred
 
+sleep 1
+
 ifdh updateFileStatus $cpurl  $consumer_id $fname consumed
+
+furi=`ifdh getNextFile $cpurl $consumer_id | tail -1`
+
+fname=`ifdh fetchInput $furi | tail -1`
+
+ifdh updateFileStatus $cpurl  $consumer_id $fname skipped
 
 ifdh setStatus $cpurl $consumer_id  bad
 

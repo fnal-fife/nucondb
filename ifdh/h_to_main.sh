@@ -34,7 +34,7 @@ do
         printf "\n"
 
         printf "int\nmain(int argc, char **argv) { \n"
-        printf "\tifdh i(getenv(\"IFDH_BASE_URI\"));\n"
+        printf "\tifdh i;\n"
         printf "\ttry {\n"
 	xlate=true;
 	;;

@@ -258,7 +258,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.19 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.20 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -320,7 +320,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
              delete _buf_in;
          }
      }
-     if (_status != 200) {
+     if (_status != 200 and _status != 204) {
         std::stringstream message;
         message << "Status: " << _status << "\n";
         message << "Error text is:\n";
