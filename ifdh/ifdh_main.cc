@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 using namespace std;
 extern "C" { void exit(int); }
 static int di(int i)	{ exit(i);  return 1; }
@@ -15,7 +16,7 @@ static int dv(vector<string> v)	{ for(int i = 0; i < v.size(); i++) { cout << v[
 
 int
 main(int argc, char **argv) { 
-	ifdh i(getenv("IFDH_BASE_URI"));
+	ifdh i;
 	try {
 	if (0 == strcmp(argv[1],"cp")) di(i.cp( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
 	else if (0 == strcmp(argv[1],"fetchInput")) ds(i.fetchInput( argv[2]?argv[2]:""));
@@ -43,33 +44,36 @@ main(int argc, char **argv) {
 	else if (0 == strcmp(argv[1],"cleanup")) di(i.cleanup());
 	else {
 
-                cout << "\tcp  src  dest \n\t--general copy\n";
-                cout << "\tfetchInput  src_uri \n\t--file input\n";
-                cout << "\taddOutputFile  filename \n\t--file output\n";
-                cout << "\tcopyBackOutput  dest_dir \n\t--file output\n";
-                cout << "\tlog  message \n\t--logging \n";
-                cout << "\tenterState  state \n\t--logging \n";
-                cout << "\tleaveState  state \n\t--logging \n";
-                cout << "\tcreateDefinition  name  dims  user  group \n\t--logging \n";
-                cout << "\tdeleteDefinition  name \n\t--logging \n";
-                cout << "\tdescribeDefinition  name \n\t--logging \n";
-                cout << "\ttranslateConstraints  dims \n\t--logging \n";
-                cout << "\tlocateFile  name \n\t--files \n";
-                cout << "\tgetMetadata  name \n\t--files \n";
-                cout << "\tdumpStation  name  what  \n\t-- \n";
-                cout << "\tstartProject  name  station  defname_or_id  user  group \n\t--projects \n";
-                cout << "\tfindProject  name  station \n\t--projects \n";
-                cout << "\testablishProcess  projecturi  appname  appversion  location  user  appfamily   description   filelimit  \n\t--projects \n";
-                cout << "\tgetNextFile  projecturi  processid \n\t--projects \n";
-                cout << "\tupdateFileStatus  projecturi  processid  filename  status \n\t--projects \n";
-                cout << "\tendProcess  projecturi  processid \n\t--projects \n";
-                cout << "\tdumpProcess  projecturi  processid \n\t--projects \n";
-                cout << "\tsetStatus  projecturi  processid  status \n\t--projects \n";
-                cout << "\tendProject  projecturi \n\t--projects \n";
-                cout << "\tcleanup  \n\t--projects \n";
+                cout << "\tifdh cp  src  dest \n\t--general file copy using cpn or srmcp\n";
+                cout << "\tifdh fetchInput  src_uri \n\t--get input file to local scratch, return scratch location\n";
+                cout << "\tifdh addOutputFile  filename \n\t--add output file to set\n";
+                cout << "\tifdh copyBackOutput  dest_dir \n\t--copy output file set to destination with cpn or srmcp\n";
+                cout << "\tifdh log  message \n\t--logging \n";
+                cout << "\tifdh enterState  state \n\t--log entering/leaving states\n";
+                cout << "\tifdh leaveState  state \n\t--log entering/leaving states\n";
+                cout << "\tifdh createDefinition  name  dims  user  group \n\t--make a named dataset definition from a dimension string\n";
+                cout << "\tifdh deleteDefinition  name \n\t--remove data set definition\n";
+                cout << "\tifdh describeDefinition  name \n\t--describe a named dataset definition\n";
+                cout << "\tifdh translateConstraints  dims \n\t--give file list for dimension string\n";
+                cout << "\tifdh locateFile  name \n\t--locate a file\n";
+                cout << "\tifdh getMetadata  name \n\t--get a files metadata\n";
+                cout << "\tifdh dumpStation  name  what  \n\t--give a dump of a SAM station status\n";
+                cout << "\tifdh startProject  name  station  defname_or_id  user  group \n\t--start a new file delivery project\n";
+                cout << "\tifdh findProject  name  station \n\t--find a started project\n";
+                cout << "\tifdh establishProcess  projecturi  appname  appversion  location  user  appfamily   description   filelimit  \n\t--set yourself up as a file consumer process for a project\n";
+                cout << "\tifdh getNextFile  projecturi  processid \n\t--get the next file location from a project\n";
+                cout << "\tifdh updateFileStatus  projecturi  processid  filename  status \n\t--update the file status (use: transferred, skipped, or consumed)\n";
+                cout << "\tifdh endProcess  projecturi  processid \n\t--end the process\n";
+                cout << "\tifdh dumpProcess  projecturi  processid \n\t--say what the sam station knows about your process\n";
+                cout << "\tifdh setStatus  projecturi  processid  status \n\t--set process status\n";
+                cout << "\tifdh endProject  projecturi \n\t--end the project\n";
+                cout << "\tifdh cleanup  \n\t--clean up any tmp file stuff\n";
 		exit(1);	
 	}
-} catch (WebAPIException we) {
+   } catch (WebAPIException we) {
       std::cout << "Exception:" << &we << std::endl;
-      exit(1);}
+      exit(1);
+   } catch (std::logic_error le ) {
+      std::cout << "Exception:" << &le << std::endl;
+   }
 }

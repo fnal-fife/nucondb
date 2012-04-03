@@ -25,6 +25,7 @@ do
 	printf "#include <iostream>\n"
 	printf "#include <string>\n"
 	printf "#include <vector>\n"
+	printf "#include <stdexcept>\n"
         printf "using namespace std;\n"
         printf "extern \"C\" { void exit(int); }\n"
         printf "static int di(int i)\t{ exit(i);  return 1; }\n"
@@ -40,10 +41,12 @@ do
     \}\;)
         $xlate || continue
 	printf "\telse {\n$help\n\t\texit(1);\t\n\t}\n"
-        printf "} catch (WebAPIException we) {\n"
+        printf "   } catch (WebAPIException we) {\n"
         printf "      std::cout << \"Exception:\" << &we << std::endl;\n"
-        printf "      exit(1);"
-        printf "}\n"
+        printf "      exit(1);\n"
+        printf "   } catch (std::logic_error le ) {\n"
+        printf "      std::cout << \"Exception:\" << &le << std::endl;\n"
+        printf "   }\n"
 	printf "}\n"
         ;;
     int)
@@ -67,7 +70,7 @@ do
         args=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int//g;'`
         echo "cargs are now: $cargs" >&2
         help="$help
-                cout << \"\\\\t$func $args\\\\n\\\\t--$lastcomment\\\n\";"
+                cout << \"\\\\tifdh $func $args\\\\n\\\\t--$lastcomment\\\n\";"
 	printf "\t${else}if (0 == strcmp(argv[1],\"$func\")) $pfunc(i.$func("
         else="else "
         i=2
