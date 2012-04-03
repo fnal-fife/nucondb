@@ -2,10 +2,17 @@ BIN=numsg-test nulogprintf
 LIB=LibNuMsg.a
 UTLOBJ=../util/SyslogAPI.o
 OBJ=numsg.o
+HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
 CXXFLAGS=-fpic -g
 
 all: $(OBJ) $(BIN) $(LIB)
+
+install:
+	test -d ../lib || mkdir -p ../lib
+	test -d ../include || mkdir -p ../include
+	cp $(LIB) ../lib
+	cp $(HDR) ../include
 
 clean:
 	rm *.o $(BIN) $(LIB)

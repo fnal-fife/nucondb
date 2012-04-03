@@ -5,6 +5,8 @@
 #include <fstream>
 #include "../util/WebAPI.h"
 
+namespace nucondb_ns {
+
 class Folder {
 public:
      struct tk { double when; long int key; };
@@ -44,3 +46,6 @@ public:
      double getCacheEndTime(){ return _cache_end; };
 };
 
+}
+
+using namespace nucondb_ns;

@@ -12,6 +12,8 @@
 
 // debug flag
 int pad;
+
+namespace nucondb_ns {
 int Folder::_debug(0);
 
 static char ebuf[64];
@@ -116,6 +118,7 @@ Folder::fetchData(long key) throw(WebAPIException) {
         return;
     }
     _cache_key = key;
+   // }
 #else
 void
 Folder::fetchData(double when)  throw(WebAPIException){
@@ -555,6 +558,8 @@ static char *text3;
                << "\n";
 
     }
+
+}
 
 }
 
