@@ -16,13 +16,9 @@ sleep 2
 cpurl=`ifdh findProject  $projname minerva `
 consumer_id=`ifdh establishProcess $cpurl demo 1 bel-kwinith.fnal.gov mengel "" "" "" `
 flag=true
-while furi=`ifdh getNextFile $cpurl $consumer_id`
+furi=`ifdh getNextFile $cpurl $consumer_id`
+while [ "$furi"  != "" ]
 do
-        echo "status is $?"
-        if [ x$furi = x ]
-        then
-            break
-        fi
 	fname=`ifdh fetchInput $furi `
         if $flag
         then
@@ -34,6 +30,7 @@ do
 	  	ifdh updateFileStatus $cpurl  $consumer_id $fname skipped
                 flag=true
         fi
+        furi=`ifdh getNextFile $cpurl $consumer_id`
 done
 ifdh setStatus $cpurl $consumer_id  bad
 ifdh endProject $cpurl 

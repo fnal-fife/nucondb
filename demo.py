@@ -3,11 +3,13 @@
 import os
 import time
 
-os.environ["IFDH_BASE_URI"]="http://samweb-minerva.fnal.gov:20004/sam/minerva/api"
+if not os.environ.has_key("IFDH_BASE_URI"):
+    os.environ["IFDH_BASE_URI"] = "http://samweb-minerva.fnal.gov:20004/sam/minerva/api"
 
 import ifdh
 
 i = ifdh.ifdh(os.environ["IFDH_BASE_URI"])
+
 # test locate/describe
 print i.locateFile("MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root")
 print i.describeDefinition("mwm_test_2")
