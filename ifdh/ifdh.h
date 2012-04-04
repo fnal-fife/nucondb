@@ -16,7 +16,11 @@ class ifdh {
 
         // generic constructor...
 
+#ifdef SWIG
+        ifdh(std::string baseuri = "") :  _baseuri(baseuri) {;}
+#else
         ifdh(std::string baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):"") :  _baseuri(baseuri) {;}
+#endif
 
         // general file copy using cpn or srmcp
         int cp(std::string src, std::string dest);
