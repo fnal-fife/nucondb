@@ -1,7 +1,7 @@
 
 LIB=ifdh.so
 HDR=ifdh.h
-CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*`
+CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
 OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
@@ -23,14 +23,14 @@ ifdh_main.cc: ifdh.h h_to_main.sh
 	sh h_to_main.sh ifdh.h > $@
 
 ifdh: ifdh.so ifdh_main.o
-	g++ -o $@ ifdh_main.o $(ALL_OBJS)
+	g++ $(ARCH) -o $@ ifdh_main.o $(ALL_OBJS)
 	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
 python/_ifdh.so: $(PYMOD_OBJS)
-	g++ --shared -o $@ $(PYMOD_OBJS) /usr/lib*/libpython*.so
+	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib/python*/config/libpython*.a
 
 ifdh.so: $(ALL_OBJS)
-	g++ --shared -o $@ $(ALL_OBJS)
+	g++ --shared $(ARCH)  -o $@ $(ALL_OBJS)
 
 ifdh_wrap.cxx: ifdh.h ifdh.i
 	swig -python -c++ ifdh.i
@@ -47,4 +47,4 @@ ifdh_main.o: ifdh_main.cc
 	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc
 
 ifdh_art_test:  ifdh_art_test.cc ifdh.cc ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o
-	g++ $(CXXFLAGS) -o ifdh_art_test ifdh_art_test.cc ifdh_art.cc ifdh.o ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o ../util/SyslogAPI.o
+	g++ $(CXXFLAGS) $(ARCH) -o ifdh_art_test ifdh_art_test.cc ifdh_art.cc ifdh.o ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o ../util/SyslogAPI.o
