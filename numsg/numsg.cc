@@ -31,7 +31,7 @@ numsg::init(const char *jobname, int parentflag) {
     
     host = getenv("NU_LOG_HOST");
     if (!host) {
-        host = "ifmongpvm01.fnal.gov"
+        host = "ifmongpvm01.fnal.gov";
     }
     if (host) { 
 	strncpy(hostbuf, host, 512);
