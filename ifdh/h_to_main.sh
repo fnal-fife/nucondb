@@ -71,7 +71,7 @@ do
         echo "cargs are now: $cargs" >&2
         help="$help
                 cout << \"\\\\tifdh $func $args\\\\n\\\\t--$lastcomment\\\n\";"
-	printf "\t${else}if (0 == strcmp(argv[1],\"$func\")) $pfunc(i.$func("
+	printf "\t${else}if (argc > 1 && 0 == strcmp(argv[1],\"$func\")) $pfunc(i.$func("
         else="else "
         i=2
         sep=""
