@@ -30,6 +30,9 @@ numsg::init(const char *jobname, int parentflag) {
     int port;
     
     host = getenv("NU_LOG_HOST");
+    if (!host) {
+        host = "ifmongpvm01.fnal.gov"
+    }
     if (host) { 
 	strncpy(hostbuf, host, 512);
 	if (0 != (pcolon = strchr(hostbuf,':'))) {
