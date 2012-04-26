@@ -83,7 +83,8 @@ ifdh::fetchInput( string src_uri ) {
     if (src_uri.substr(0,7) == "file://") {
 	cmd << "/bin/sh " << cpn_loc 
             << " " << src_uri.substr(7) 
-            << " " << datadir() << "/" << src_uri.substr(baseloc);
+            << " " << datadir() << "/" << src_uri.substr(baseloc)
+            << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
@@ -92,7 +93,8 @@ ifdh::fetchInput( string src_uri ) {
     if (src_uri.substr(0,6) == "srm://") {
         cmd << "srmcp" 
             << " " << src_uri 
-            << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc);
+            << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc)
+            << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
         p = cmd.str().rfind(" ");
