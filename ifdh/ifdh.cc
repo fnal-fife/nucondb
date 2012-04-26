@@ -77,7 +77,7 @@ ifdh::cp(string src_path, string dest_path) {
 string 
 ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
-    int p;
+    int p1, p2;
     int baseloc = src_uri.rfind("/") + 1;
 
     if (src_uri.substr(0,7) == "file://") {
@@ -87,8 +87,9 @@ ifdh::fetchInput( string src_uri ) {
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
-        p = cmd.str().rfind(" ");
-        return cmd.str().substr(p+1);
+        p1 = cmd.str().rfind(" ");
+        p2 = cmd.str().rfind(" ", p1-1);
+        return cmd.str().substr(p2+1, p1 - p2 -1);
     }
     if (src_uri.substr(0,6) == "srm://") {
         cmd << "srmcp" 
@@ -97,8 +98,9 @@ ifdh::fetchInput( string src_uri ) {
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         system(cmd.str().c_str());
-        p = cmd.str().rfind(" ");
-        return cmd.str().substr(p+8);
+        p1 = cmd.str().rfind(" ");
+        p2 = cmd.str().rfind(" ", p1-1);
+        return cmd.str().substr(p2 + 8 , p1 - p2 - 8);
     }
     throw(WebAPIException("Unknown uri type",""));
 }
@@ -317,7 +319,3 @@ int ifdh::endProject(string projecturi) {
 }
 
 }
-
-#ifdef DEFINE_ART_SERVICE
-DEFINE_ART_SERVICE(ifdh_ns::ifdh);
-#endif
