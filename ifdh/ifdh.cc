@@ -167,6 +167,9 @@ do_url_2(int postflag, va_list ap) {
     char * val;
 
     val = va_arg(ap,char *);
+    if (*val == 0) {
+        throw(WebAPIException("Environment variable IFDH_BASE_URI not set!",""));
+    }
     while (strlen(val)) {
         url << sep << val;
         val = va_arg(ap,char *);
