@@ -30,7 +30,9 @@ do
 	  	ifdh updateFileStatus $cpurl  $consumer_id $fname skipped
                 flag=true
         fi
+        rm -f $fname
         furi=`ifdh getNextFile $cpurl $consumer_id`
 done
 ifdh setStatus $cpurl $consumer_id  bad
 ifdh endProject $cpurl 
+ifdh cleanup

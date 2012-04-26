@@ -33,6 +33,11 @@ while furi:
         else:
 		i.updateFileStatus(cpurl, consumer_id, fname, 'skipped')
                 flag=True
+        try:
+            os.unlink(fname)
+        except:
+            pass
         furi=i.getNextFile(cpurl,consumer_id)
 i.setStatus( cpurl, consumer_id, "bad")
 i.endProject( cpurl )
+i.cleanup()
