@@ -99,8 +99,24 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#define MAXEXPBUF 64
+
 const
 char *getexperiment() {
+    static char expbuf[MAXEXPBUF];
+    char *p1, p2;
+    char *penv = getenv("CONDOR_TMP");
+ 
+    if (penv) {
+         /* if CONDOR_TMP looks like one of ours, use it */
+         p1 = strchr(penv+1, '/');
+         if (p1 && 0 == strncmp(p1, "/app/users/condor-tmp",20)) {
+             *p1 = 0;
+             strncpy(expbuf, penv+1, MAXEXPBUF);
+             *p1 = '/';
+             return expbuf;
+         }
+    }
     switch(getgid()){
     case 9937:
        return "microboone";
@@ -258,7 +274,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.20 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.21 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.21 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
