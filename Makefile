@@ -6,7 +6,7 @@ OBJ=nucondb.o $(UTL)
 SRC=nucondb.cc
 TST=nucondb-test nucondb_art_test
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-fPIC -g $(DEFS) 
+CXXFLAGS=-fPIC -g $(DEFS) $(ARCH)
 
 all: $(BIN) $(TST) $(LIB)
 
@@ -29,4 +29,4 @@ $(UTLOBJ):
 
 
 nucondb_art_test: nucondb_art_test.cc nucondb_art.cc nucondb.o ../util/WebAPI.o ../util/utils.o
-	g++ -o nucondb_art_test nucondb_art_test.cc nucondb_art.cc nucondb.o ../util/WebAPI.o ../util/utils.o
+	g++ $(ARCH) -o nucondb_art_test nucondb_art_test.cc nucondb_art.cc nucondb.o ../util/WebAPI.o ../util/utils.o
