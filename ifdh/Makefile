@@ -27,17 +27,17 @@ ifdh: ifdh.so ifdh_main.o
 	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
 python/_ifdh.so: $(PYMOD_OBJS)
-	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib*/python*/config/libpython*.a
+	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib*/python*/config/libpython*.a || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib/python*/config/libpython*.a
 
 ifdh.so: $(ALL_OBJS)
-	g++ --shared $(ARCH)  -o $@ $(ALL_OBJS)
+	g++ --shared $(ARCH) $(CPPFLAGS)  -o $@ $(ALL_OBJS)
 
 ifdh_wrap.cxx: ifdh.h ifdh.i
 	swig -python -c++ ifdh.i
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
-	g++ $(CXXFLAGS) -c -o $@ ifdh_wrap.cxx
+	g++ $(CXXFLAGS) $(ARCH) -c -o $@ ifdh_wrap.cxx
         
 
 ifdh.o: ifdh.cc ifdh.h

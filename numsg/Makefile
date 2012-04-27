@@ -4,7 +4,7 @@ UTLOBJ=../util/SyslogAPI.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
-CXXFLAGS=-fpic -g
+CXXFLAGS=-fpic -g $(ARCH)
 
 all: $(OBJ) $(BIN) $(LIB)
 

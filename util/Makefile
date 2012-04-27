@@ -4,7 +4,7 @@ OBJ=$(addsuffix .o,$(basename $(SRC)))
 TST=$(addsuffix -test,$(basename($SRC)))
 DEFS=
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-fPIC -g $(DEFS) 
+CXXFLAGS=-fPIC -g $(DEFS) $(ARCH)
 
 
 all: $(OBJ) $(TST)
