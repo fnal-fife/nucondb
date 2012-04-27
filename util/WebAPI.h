@@ -58,4 +58,6 @@ public:
 
 };
 
+const char *getexperiment();
+
 #endif

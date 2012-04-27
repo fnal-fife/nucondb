@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <stdarg.h>
 #include <string.h>
+#include <netdb.h>
 
 using namespace std;
 
@@ -128,19 +129,37 @@ ifdh::copyBackOutput(string dest_dir) {
             cmd << " " << line;
         }
         cmd << " " << dest_dir;
+
     } else {
-        // destination is not visible, use srmcp
-        cmd << "srmcp";
-        while (!outlog.eof()) {
-            getline(outlog, line);
-            cmd << " file:///" << line;
-        }
-        cmd << " " << bestmanuri << dest_dir;
+
+        struct hostent *hostp;
+        std::string gftpHost("if-gridftp-");
+        gftpHost.append(getexperiment());
+
+        if (hostp = gethostbyname(gftpHost.c_str())) {
+            //  if experiment specific gridftp host exists, use it...
+            
+            cmd << "globus_url_copy";
+	    while (!outlog.eof()) {
+		getline(outlog, line);
+		cmd << " file:///" << line;
+	    }
+            cmd << " ftp://" << gftpHost << dest_dir;
+
+        } else {
+            // destination is not visible, use srmcp
+            
+	    cmd << "srmcp";
+	    while (!outlog.eof()) {
+		getline(outlog, line);
+		cmd << " file:///" << line;
+	    }
+	    cmd << " " << bestmanuri << dest_dir;
+       }
     }
     system(cmd.str().c_str());
     cleanup();
 }
-
 
 // logging
 int 
