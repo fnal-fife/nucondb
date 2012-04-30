@@ -30,9 +30,6 @@ numsg::init(const char *jobname, int parentflag) {
     int port;
     
     host = getenv("NU_LOG_HOST");
-    if (!host) {
-        host = "ifmongpvm01.fnal.gov";
-    }
     if (host) { 
 	strncpy(hostbuf, host, 512);
 	if (0 != (pcolon = strchr(hostbuf,':'))) {
@@ -42,8 +39,8 @@ numsg::init(const char *jobname, int parentflag) {
 	    port = 514;
 	}
     } else {
-        strcpy(hostbuf, "localhost");
-        port = 514;
+        strcpy(hostbuf, "gpsn01.fnal.gov");
+        port = 5140;
     }
     if (jobname == 0 && getenv("NU_MSG_TAG"))  {
         jobname = getenv("NU_MSG_TAG");
