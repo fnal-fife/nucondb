@@ -1,4 +1,5 @@
 #include "numsg.h"
+#include "WebAPI.h"
 #include <sstream>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -16,7 +17,10 @@ numsg::numsg(const char *jobname, char *host, int port, int parentflag) :
 	_jobname(jobname?jobname:getenv("NU_LOG_TAG")),
         _facility(17),
         _severity(5)
-{;}
+{
+    _jobname.append("/");
+    _jobname.append(getexperiment());
+}
 
 numsg::~numsg() {
     new_state("exiting");
@@ -94,7 +98,7 @@ int
 main() {
     numsg *nm;
 
-    putenv("NU_LOG_HOST=localhost:514");
+    /*  putenv("NU_LOG_HOST=localhost:514"); */
     putenv("NU_LOG_TAG=testjob");
     //nm = numsg::init("testjob");
     nm = numsg::init(0);

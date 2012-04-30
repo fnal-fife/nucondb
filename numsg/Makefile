@@ -1,10 +1,10 @@
 BIN=numsg-test nulogprintf
 LIB=LibNuMsg.a
-UTLOBJ=../util/SyslogAPI.o
+UTLOBJ=../util/SyslogAPI.o ../util/WebAPI.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
-CXXFLAGS=-fpic -g $(ARCH)
+CXXFLAGS=-fpic -g $(ARCH) -I../util
 
 all: $(OBJ) $(BIN) $(LIB)
 
