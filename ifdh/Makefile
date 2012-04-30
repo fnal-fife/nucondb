@@ -3,7 +3,7 @@ LIB=ifdh.so
 HDR=ifdh.h
 CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
 OBJ=ifdh.o
-ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o
+ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 all: ifdh python/_ifdh.so ifdh.so ifdh_art_test

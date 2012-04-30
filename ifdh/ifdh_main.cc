@@ -9,6 +9,7 @@
 #include <vector>
 #include <stdexcept>
 using namespace std;
+using namespace ifdh_util_ns;
 extern "C" { void exit(int); }
 static int di(int i)	{ exit(i);  return 1; }
 static int ds(string s)	 { cout << s << "\n"; return 1; }

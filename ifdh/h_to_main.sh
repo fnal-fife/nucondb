@@ -27,6 +27,7 @@ do
 	printf "#include <vector>\n"
 	printf "#include <stdexcept>\n"
         printf "using namespace std;\n"
+        printf "using namespace ifdh_util_ns;\n"
         printf "extern \"C\" { void exit(int); }\n"
         printf "static int di(int i)\t{ exit(i);  return 1; }\n"
         printf "static int ds(string s)\t { cout << s << \"\\\\n\"; return 1; }\n"
