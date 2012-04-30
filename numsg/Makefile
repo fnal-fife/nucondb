@@ -1,6 +1,6 @@
 BIN=numsg-test nulogprintf
 LIB=LibNuMsg.a
-UTLOBJ=../util/SyslogAPI.o ../util/WebAPI.o
+UTLOBJ=../util/SyslogAPI.o ../util/utils.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)

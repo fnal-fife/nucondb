@@ -1,5 +1,49 @@
 #include "utils.h"
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
+namespace ifdh_util_ns {
+//
+// get experiment name, either from CONDOR_TMP setting, or
+// from group-id...
+//
+#define MAXEXPBUF 64
+const
+char *getexperiment() {
+    static char expbuf[MAXEXPBUF];
+    char *p1, p2;
+    char *penv = getenv("CONDOR_TMP");
+ 
+    if (penv) {
+         /* if CONDOR_TMP looks like one of ours, use it */
+         p1 = strchr(penv+1, '/');
+         if (p1 && 0 == strncmp(p1, "/app/users/condor-tmp",20)) {
+             *p1 = 0;
+             strncpy(expbuf, penv+1, MAXEXPBUF);
+             *p1 = '/';
+             return expbuf;
+         }
+    }
+    switch(getgid()){
+    case 9937:
+       return "microboone";
+    case 5314:
+       return "auger";
+    case 9914:
+       return "mu2e";
+    case 9950:
+       return "g-2";
+    case 5111:
+       return "minos";
+    case 9553:
+       return "nova";
+    case 9555:
+       return "minerva";
+    default:
+       return "other";
+    }
+}
 //
 // utility, split a string into a list -- like perl/python split()
 
@@ -76,6 +120,8 @@ vector_cdr(std::vector<std::string> &vec) {
     return res;
 }
 
+};
+
 #ifdef UNITTEST
 main() {
     std::string data1("This,is,a,\"Test,with,a\",quoted,string");
@@ -89,3 +135,4 @@ main() {
     }
 }
 #endif
+

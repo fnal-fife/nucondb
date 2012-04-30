@@ -6,6 +6,7 @@
 #include <sstream>
 #include <ext/stdio_filebuf.h>
 
+namespace ifdh_util_ns {
 #ifdef  HAVE_GAUDI_EXCEPTIONS
 
 #include "GaudiKernel/GaudiException.h"
@@ -23,13 +24,14 @@ public:
      std::string tag() const { return m_tag; }
 };
 
-extern std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse );
  
 #define ExceptionSuper SimpleExceptionSuper
 
 #endif
 
+extern std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse );
 class WebAPIException : public ExceptionSuper {
+
 public:
    WebAPIException( std::string message, std::string tag) throw();
    virtual ~WebAPIException() throw() {;};
@@ -58,6 +60,6 @@ public:
 
 };
 
-const char *getexperiment();
-
+};
+using namespace ifdh_util_ns;
 #endif

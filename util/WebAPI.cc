@@ -8,7 +8,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ext/stdio_filebuf.h>
+#include "utils.h"
 
+
+namespace ifdh_util_ns {
 // debug flag
 int WebAPI::_debug(0);
 
@@ -27,7 +30,6 @@ WebAPIException::WebAPIException( std::string message, std::string tag ) throw()
 
 std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse )
  { pse && (os << pse->tag() << pse->message()) ; return os; }
-
 
 std::string
 WebAPI::encode(std::string s) {
@@ -99,43 +101,7 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define MAXEXPBUF 64
 
-const
-char *getexperiment() {
-    static char expbuf[MAXEXPBUF];
-    char *p1, p2;
-    char *penv = getenv("CONDOR_TMP");
- 
-    if (penv) {
-         /* if CONDOR_TMP looks like one of ours, use it */
-         p1 = strchr(penv+1, '/');
-         if (p1 && 0 == strncmp(p1, "/app/users/condor-tmp",20)) {
-             *p1 = 0;
-             strncpy(expbuf, penv+1, MAXEXPBUF);
-             *p1 = '/';
-             return expbuf;
-         }
-    }
-    switch(getgid()){
-    case 9937:
-       return "microboone";
-    case 5314:
-       return "auger";
-    case 9914:
-       return "mu2e";
-    case 9950:
-       return "g-2";
-    case 5111:
-       return "minos";
-    case 9553:
-       return "nova";
-    case 9555:
-       return "minerva";
-    default:
-       return "other";
-    }
-}
 
 // fetch a URL, opening a filestream to the content
 // we do klugy looking things here to directly return
@@ -274,8 +240,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.21 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.21 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.22 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.22 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -413,6 +379,7 @@ test_WebAPI_fetchurl() {
    }
 }
 
+};
 #ifdef UNITTEST
 
 int

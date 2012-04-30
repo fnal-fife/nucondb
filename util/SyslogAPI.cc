@@ -59,6 +59,7 @@ SyslogAPI::send( int facility, int severity, const char *tag, const char *msg) {
 		sizeof(_destaddr));
 }
 
+};
 #ifdef UNITTEST
 main() {
 
@@ -66,4 +67,3 @@ main() {
    s.send(17, 1, "SyslogAPI", "Client test message");
 }
 #endif
-};

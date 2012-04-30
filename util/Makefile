@@ -13,5 +13,5 @@ clean:
 	rm -f $(OBJ)
 
 %-test: %.cc
-	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $<
+	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $< utils.o
 
