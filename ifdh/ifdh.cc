@@ -165,6 +165,9 @@ ifdh::copyBackOutput(string dest_dir) {
 // logging
 int 
 ifdh::log( string message ) {
+  if (!numsg::getMsg()) {
+      numsg::init(getexperiment(),1);
+  }
   numsg::getMsg()->printf("ifdh: %s", message.c_str());
 }
 
