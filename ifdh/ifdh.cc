@@ -169,6 +169,7 @@ ifdh::log( string message ) {
       numsg::init(getexperiment(),1);
   }
   numsg::getMsg()->printf("ifdh: %s", message.c_str());
+  return 0;
 }
 
 int 

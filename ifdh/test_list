@@ -1,4 +1,5 @@
 export IFDH_BASE_URI="http://samweb-minerva.fnal.gov:20004/sam/minerva/api"
+export IFDH_BASE_URI="https://fermicloud083.fnal.gov:4430/sam/minerva/dev/api"
 
 ifdh locateFile  "MV_00003142_0014_numil_v09_1105080215_RawDigits_v1_linjc.root"
 

@@ -194,8 +194,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
                 hostport << pu.host << ":" << pu.port;
 
-                _debug && std::cout << "openssl"<< ' ' << "s_client"<< ' ' << "-connect"<< ' ' << hostport.str().c_str() << " -quiet" ;
-                if (proxy) {
+                _debug && std::cout << "openssl"<< ' ' << "s_client"<< ' ' << "-connect"<< ' ' << hostport.str().c_str() << " -quiet" << " -verify off";
+                if (proxy && _debug) {
 		    std::cout << ' ' << "-cert"<< ' ' << proxy ;
                 }
 
@@ -212,9 +212,9 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
                 // run openssl...
                 if (proxy) {
-                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet", "-cert", proxy,  0);
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  "-cert", proxy,  0);
                 } else {
-                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet", 0);
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  0);
                 }
                 exit(-1);
             } else {
@@ -240,8 +240,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.22 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.22 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.23 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.23 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
