@@ -342,4 +342,6 @@ int ifdh::endProject(string projecturi) {
   return do_url_int(1,projecturi.c_str(),"endProject","","","");
 }
 
+ifdh::ifdh(std::string baseuri) : _baseuri(baseuri) { ; }
+
 }

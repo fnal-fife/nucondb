@@ -6,7 +6,7 @@ OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
-all: ifdh python/_ifdh.so ifdh.so ifdh_art_test
+all: ifdh python/_ifdh.so ifdh.so ifdh.a
 
 install:
 	test -d ../lib/python || mkdir -p ../lib/python
@@ -32,6 +32,11 @@ python/_ifdh.so: $(PYMOD_OBJS)
 ifdh.so: $(ALL_OBJS)
 	g++ --shared $(ARCH) $(CPPFLAGS)  -o $@ $(ALL_OBJS)
 
+ifdh.a: $(ALL_OBJS)
+	rm -f $@
+	ar qv $@ $(ALL_OBJS)
+	ranlib $@ 
+
 ifdh_wrap.cxx: ifdh.h ifdh.i
 	swig -python -c++ ifdh.i
 	mv ifdh.py python/ifdh.py
@@ -45,6 +50,3 @@ ifdh.o: ifdh.cc ifdh.h
 
 ifdh_main.o: ifdh_main.cc
 	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc
-
-ifdh_art_test:  ifdh_art_test.cc ifdh.cc ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o
-	g++ $(CXXFLAGS) $(ARCH) -o ifdh_art_test ifdh_art_test.cc ifdh_art.cc ifdh.o ../util/WebAPI.o ../util/utils.o ../numsg/numsg.o ../util/SyslogAPI.o
