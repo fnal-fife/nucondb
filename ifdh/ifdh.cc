@@ -344,4 +344,9 @@ int ifdh::endProject(string projecturi) {
 
 ifdh::ifdh(std::string baseuri) : _baseuri(baseuri) { ; }
 
+void
+ifdh::set_base_uri(std::string baseuri) { 
+    _baseuri = baseuri; 
+}
+
 }

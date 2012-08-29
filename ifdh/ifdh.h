@@ -21,6 +21,7 @@ class ifdh {
 #else
         ifdh(std::string baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):"");
 #endif
+        void set_base_uri(std::string baseuri);
 
         // general file copy using cpn or srmcp
         int cp(std::string src, std::string dest);
