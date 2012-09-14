@@ -1,6 +1,5 @@
 #include "nucondb.h"
 #include <memory>
-
 // ART bits...
 namespace art {
   class ActivityRegistry;   // declaration only
