@@ -8,6 +8,8 @@
 #include <string.h>
 #include <errno.h>
 #include "nucondb.h"
+#include <sys/types.h>
+#include <unistd.h>
 #include "../util/utils.h"
 
 // debug flag
