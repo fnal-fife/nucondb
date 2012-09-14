@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 main(int argc, char **argv) {
     int ppid = getppid();

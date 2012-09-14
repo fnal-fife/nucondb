@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace ifdh_util_ns {
 

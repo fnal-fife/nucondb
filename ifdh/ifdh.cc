@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <netdb.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 using namespace std;
 
