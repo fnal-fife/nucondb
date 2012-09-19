@@ -113,13 +113,15 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPIException) {
      int s;			// unix socket file descriptor
      WebAPI::parsed_url pu;     // parsed url.
-     struct sockaddr_in server; // connection address struct
-     struct hostent *hostp;     // gethostbyname() result
+     struct sockaddr_storage server; // connection address struct
+     struct addrinfo *addrp;   // getaddrinfo() result
      static char buf[512];      // buffer for header lines
      int retries;
+     int res;
      int retryafter = -1;
      int redirect_or_retry_flag = 1;
      int hcount;
+     int connected;
      __gnu_cxx::stdio_filebuf<char> *buf_out = 0;
      std::string method(postflag?"POST ":"GET ");
 
@@ -137,29 +139,41 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	     throw(WebAPIException(url,"FetchError: Retry count exceeded"));
 	 }
 
-         // stuff from ye olde BSD IP Tutorial...
-         s = socket(AF_INET, SOCK_STREAM,0);
-
          pu = parseurl(url);
 
          if (pu.type == "http") {
+             struct addrinfo hints; 
+             memset(&hints, 0, sizeof(hints));
+             hints.ai_socktype = SOCK_STREAM;
+             hints.ai_family = AF_UNSPEC;
+             hints.ai_flags = AI_CANONNAME;
              // connect directly
-	     hostp = gethostbyname(pu.host.c_str());
-	     if (!hostp) {
-		 _debug && std::cout << "gethostname failed , waiting ..." << retries << std::endl;
+             res = getaddrinfo(pu.host.c_str(), "http", &hints, &addrp);
+	     if (res != 0) {
+		 _debug && std::cout << "getaddrinfo failed , waiting ..." << retries << std::endl;
 		 _debug && std::cout.flush();
 		 sleep(retries);
 		 continue;
 	     }
-	     _debug && std::cout << "looking up host " << pu.host << " got " << hostp->h_name << "\n";
 
-             // stuff from ye olde BSD IP Tutorial...
-	     server.sin_family = AF_INET;
-	     server.sin_port = htons(pu.port);
-	     memcpy( &server.sin_addr, hostp->h_addr, hostp->h_length);
+             connected = 0;
+	     while ( addrp && !connected) {
 
-	     if (connect(s,(struct sockaddr *)&server,sizeof(server)) < 0) {
-		 _debug && std::cout << "connect failed , waiting ...";
+		 _debug && std::cout << "looking up host " << pu.host << " got " << addrp->ai_canonname <<  " type: " << addrp->ai_family << "\n";
+		 _debug && std::cout.flush();
+
+		 s = socket(addrp->ai_family, addrp->ai_socktype,0);
+
+		 if (connect(s, addrp->ai_addr,addrp->ai_addrlen) < 0) {
+		     addrp = addrp->ai_next;
+		 } else {
+		     connected = 1;
+		 }
+
+	     }
+
+             if (!connected) {
+		 _debug && std::cout << " all connects failed , waiting ...";
 		 sleep(5 << retries);
 		 _debug && std::cout << "retrying ...\n";
                 continue;
@@ -242,8 +256,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.25 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.25 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.26 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.26 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -352,6 +366,18 @@ test_WebAPI_fetchurl() {
    }
    std::cout << "ds.data().eof() is " << ds2.data().eof() << std::endl;
    std::cout << "ds.getStatus() is " << ds2.getStatus() << std::endl;
+
+   WebAPI dsgoog("http://www.google.com/");
+
+    std::cout << "ds.data().eof() is " << dsgoog.data().eof() << std::endl;
+    while(!dsgoog.data().eof()) {
+        getline(dsgoog.data(), line);
+
+        std::cout << "got line: " << line << std::endl;;
+   }
+   std::cout << "ds.data().eof() is " << dsgoog.data().eof() << std::endl;
+   dsgoog.data().close();
+
 
    try {
       WebAPI ds3("https://plone4.fnal.gov/P1/Main/");
