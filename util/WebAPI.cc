@@ -115,6 +115,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
      WebAPI::parsed_url pu;     // parsed url.
      struct sockaddr_storage server; // connection address struct
      struct addrinfo *addrp;   // getaddrinfo() result
+     struct addrinfo *addrf;   // getaddrinfo() result, to free later
      static char buf[512];      // buffer for header lines
      int retries;
      int res;
@@ -149,6 +150,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
              hints.ai_flags = AI_CANONNAME;
              // connect directly
              res = getaddrinfo(pu.host.c_str(), "http", &hints, &addrp);
+             addrf = addrp;
 	     if (res != 0) {
 		 _debug && std::cout << "getaddrinfo failed , waiting ..." << retries << std::endl;
 		 _debug && std::cout.flush();
@@ -171,6 +173,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 		 }
 
 	     }
+             freeaddrinfo(addrf);
 
              if (!connected) {
 		 _debug && std::cout << " all connects failed , waiting ...";
@@ -256,8 +259,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.26 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.26 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.27 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.27 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
