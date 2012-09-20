@@ -16,7 +16,7 @@ using namespace std;
 
 namespace ifdh_ns {
 
-string cpn_loc  = "/grid/app/minos/scripts/cpn";
+string cpn_loc  = "/grid/fermiapp/minos/scripts/cpn";
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443";
 
