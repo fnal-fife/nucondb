@@ -31,6 +31,9 @@ Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPI
    _cached_channel = 0;
    _tag = WebAPI::encode(tag);
    _last_times_url = "";
+   if (_url[_url.length()-1] == '/') {
+      _url = _url.substr(0,_url.length()-1);
+   }
 }
 
 // get key for given time
@@ -388,7 +391,7 @@ test_getchannel_feb() {
      static double d[39];
      int hit_id = 2364544;
     try {
-     Folder f("minerva_febs","http://dbweb4.fnal.gov:8088");
+     Folder f("minerva_febs","http://dbweb0.fnal.gov:8088/mnvcon_int/app/");
    
 
      f.getChannelData(g_time , hit_id, &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2],\
@@ -465,7 +468,7 @@ static char *text1;
 static char *text2;
 static char *text3;
 
-   Folder d3("minerva_atten_id", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app");
+   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
    d3.getNamedChannelData(
 	 1300969766.0,
          1210377216,
@@ -540,7 +543,7 @@ static char *text2;
 static char *text3;
 
    // open folder with a tag name...
-   Folder d3("minerva_atten_id", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app","old");
+   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app/","old");
    for (int i = 0; i < 10; i++ ) {
    d3.getNamedChannelData(
 	 1300969766.0 - 10000 * i,
@@ -606,7 +609,7 @@ main() {
    try {
            if (1) test3();
            if (0) {
-	   Folder d2("pedcal", "http://dbweb4.fnal.gov:8088/mnvcon_prd/app");
+	   Folder d2("pedcal", "http://dbweb0.fnal.gov:8088/mnvcon_int/app/");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
 	   test_getchanneldata_window(d2);
