@@ -42,7 +42,7 @@ WebAPI::encode(std::string s) {
         if (
               (s[i] >= 'a' && s[i] <= 'z') ||
               (s[i] >= 'A' && s[i] <= 'Z') ||
-              (s[i] >= '0' && s[i] <= '9') ) {
+              (s[i] >= '0' && s[i] <= '9') || s[i] == '_' ) {
             res.append(1, s[i]);
          } else {
             res.append(1, '%');
@@ -144,12 +144,15 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
          if (pu.type == "http") {
              struct addrinfo hints; 
+             char portbuf[10];
+
              memset(&hints, 0, sizeof(hints));
              hints.ai_socktype = SOCK_STREAM;
              hints.ai_family = AF_UNSPEC;
              hints.ai_flags = AI_CANONNAME;
+             sprintf( portbuf, "%d", pu.port);
              // connect directly
-             res = getaddrinfo(pu.host.c_str(), "http", &hints, &addrp);
+             res = getaddrinfo(pu.host.c_str(), portbuf, &hints, &addrp);
              addrf = addrp;
 	     if (res != 0) {
 		 _debug && std::cout << "getaddrinfo failed , waiting ..." << retries << std::endl;
@@ -258,9 +261,11 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
+	 _debug && std::cout << "sending: "<< method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.27 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header << " << "User-Agent: " << "WebAPI/" << "$Revision: 1.27 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header: " << "Host: " << pu.host << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.28 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.28 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
