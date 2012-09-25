@@ -6,7 +6,7 @@ OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
-all: ifdh python/_ifdh.so ifdh.so ifdh.a
+all: ifdh python python/_ifdh.so ifdh.so ifdh.a
 
 install:
 	test -d ../lib/python || mkdir -p ../lib/python
@@ -18,6 +18,9 @@ install:
 
 clean: 
 	rm $(OBJ)
+
+python:
+	mkdir python
 
 ifdh_main.cc: ifdh.h h_to_main.sh
 	sh h_to_main.sh ifdh.h > $@
