@@ -10,7 +10,7 @@ namespace ifdh_util_ns {
 class SyslogAPI {
     static int _debug;			// debugging flag
     int _socket;			// socket we send through
-    struct sockaddr_in _destaddr;	// our destination host/port
+    struct sockaddr_storage _destaddr;	// our destination host/port
     int _parentflag;			// use our parents pid rather than ours
 public:
     SyslogAPI(char *desthost, int destport = 514, int parentflag = 0);

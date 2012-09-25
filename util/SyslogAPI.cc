@@ -13,19 +13,29 @@ namespace ifdh_util_ns {
 int SyslogAPI::_debug = 0;
 
 SyslogAPI::SyslogAPI(char *desthost, int destport, int parentflag): _parentflag(parentflag) {
+     int res;
      struct sockaddr_in sa;
      struct hostent *hostp;
+     struct addrinfo hints, *paddrs; 
+     char portbuf[10];
 
+     memset(&hints, 0, sizeof(hints));
+     hints.ai_socktype = SOCK_DGRAM;
+     hints.ai_family = AF_UNSPEC;
+     hints.ai_flags = AI_CANONNAME;
+
+     sprintf(portbuf, "%d", destport);
+
+     res = getaddrinfo(desthost, portbuf, &hints, &paddrs);
+   
      memset((char *)&sa, 0, sizeof(sa));
-     sa.sin_family = AF_INET;
+     sa.sin_family = paddrs->ai_family;
 
-     _socket = socket(AF_INET, SOCK_DGRAM, 0);
+     _socket = socket(paddrs->ai_family, paddrs->ai_socktype, 0);
      bind(_socket, (struct sockaddr *)&sa, sizeof(sa));
 
-     hostp = gethostbyname(desthost);
-     _destaddr.sin_family = AF_INET;
-     _destaddr.sin_port = htons(destport);
-     memcpy((char *)&_destaddr.sin_addr, hostp->h_addr, hostp->h_length);
+     memcpy((char *)&_destaddr, paddrs->ai_addr, paddrs->ai_addrlen);
+     freeaddrinfo(paddrs);
 }
 
 SyslogAPI::~SyslogAPI() {
@@ -66,6 +76,6 @@ SyslogAPI::send( int facility, int severity, const char *tag, const char *msg) {
 main() {
 
    SyslogAPI s("localhost");
-   s.send(17, 1, "SyslogAPI", "Client test message");
+   s.send(17, 2, "SyslogAPI", "Client test message");
 }
 #endif
