@@ -15,7 +15,11 @@ install: all
 	test -d $(DESTDIR)inc || mkdir -p $(DESTDIR)inc && cp */*.h */*/*.h $(DESTDIR)inc
 
 32bit:
-	ARCH="-m32 $(ARCH)" make all 
+	ARCH="-m32 $(ARCH)" make all  install
+
+withart:
+	test x$$ART_DIR != x
+	ARCH="-std=c++11 -g -O0" make all install
 
 distrib:
 	tar czvf nucondb-client.tgz Makefile  [nu]*/*.[ch]* [nu]*/Makefile 
