@@ -1,3 +1,5 @@
+#ifndef IFDH_UTIL_H
+#define IFDH_UTIL_H
 #include <string>
 #include <vector>
 #include <iostream>
@@ -16,3 +18,4 @@ const char *getexperiment();
 
 };
 using namespace ifdh_util_ns;
+#endif IFDH_UTIL_H

@@ -16,7 +16,7 @@ class nucondb_art  {
        
 public:
         
-        std::auto_ptr<Folder> getFolder(std::string name, std::string url, std::string tag = "");
+        std::unique_ptr<Folder> getFolder(std::string name, std::string url, std::string tag = "");
 
         // ART constructor...
         nucondb_art( fhicl::ParameterSet const & cfg, art::ActivityRegistry &r);

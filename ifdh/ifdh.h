@@ -1,4 +1,6 @@
 
+#ifndef IFDH_H
+#define IFDH_H
 #include <string>
 #include <vector>
 #include "../util/WebAPI.h"
@@ -85,3 +87,4 @@ class ifdh {
 }
 
 using namespace ifdh_ns;
+#endif // IFDH_H
