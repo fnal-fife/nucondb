@@ -1,12 +1,12 @@
 
-LIB=ifdh.so
+LIB=libifdh.so
 HDR=ifdh.h
 CXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
 OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
-all: ifdh python python/_ifdh.so ifdh.so ifdh.a
+all: ifdh python python/_ifdh.so libifdh.so libifdh.a
 
 install:
 	test -d ../lib/python || mkdir -p ../lib/python
@@ -25,17 +25,17 @@ python:
 ifdh_main.cc: ifdh.h h_to_main.sh
 	sh h_to_main.sh ifdh.h > $@
 
-ifdh: ifdh.so ifdh_main.o
+ifdh: libifdh.so ifdh_main.o
 	g++ $(ARCH) -o $@ ifdh_main.o $(ALL_OBJS)
 	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
 python/_ifdh.so: $(PYMOD_OBJS)
 	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib*/python*/config/libpython*.[as]* || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) /usr/lib/python*/config/libpython*.[as]*
 
-ifdh.so: $(ALL_OBJS)
+libifdh.so: $(ALL_OBJS)
 	g++ --shared $(ARCH) $(CPPFLAGS)  -o $@ $(ALL_OBJS)
 
-ifdh.a: $(ALL_OBJS)
+libifdh.a: $(ALL_OBJS)
 	rm -f $@
 	ar qv $@ $(ALL_OBJS)
 	ranlib $@ 
