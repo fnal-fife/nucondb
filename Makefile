@@ -11,7 +11,7 @@ clean:
 
 install: all
 	rm -rf $(DESTDIR)lib $(DESTDIR)inc
-	test -d $(DESTDIR)lib || mkdir -p  $(DESTDIR)lib && mv */*.so */*.a */lib/*.so $(DESTDIR)lib
+	test -d $(DESTDIR)lib || mkdir -p  $(DESTDIR)lib && cp */*.so */*.a */lib/*.so $(DESTDIR)lib
 	test -d $(DESTDIR)inc || mkdir -p $(DESTDIR)inc && cp */*.h */*/*.h $(DESTDIR)inc
 
 32bit:

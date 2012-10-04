@@ -18,4 +18,4 @@ const char *getexperiment();
 
 };
 using namespace ifdh_util_ns;
-#endif IFDH_UTIL_H
+#endif  // IFDH_UTIL_H

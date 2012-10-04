@@ -22,4 +22,4 @@ public:
 };
 
 using namespace ifdh_util_ns;
-#endif
+#endif //SYSLOG_API_H
