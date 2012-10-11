@@ -3,7 +3,6 @@ SUBDIRS= util numsg nucondb ifbeam ifdh
 
 all: 
 	for d in $(SUBDIRS); do ([ -d $$d ] && cd $$d && make $@); done
-	test x$$ART_DIR != x && (test -d build_art || mkdir build_art && cd build_art && cmake ../ifdh_art && make VERBOSE=1) || true
 
 clean:
 	for d in $(SUBDIRS); do ([ -d $$d ] && cd $$d && make $@); done
