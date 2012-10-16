@@ -1,8 +1,18 @@
 File=table
 Product=ifdhc
 
+Group:
+
 Qualifiers=""
 Flavor=ANY
+
+Qualifiers=e2
+Flavor=ANY
+
+Qualifiers=a2
+Flavor=ANY
+
+Common:
 
 Action=setup
      SetupEnv()
@@ -10,3 +20,5 @@ Action=setup
      PathPrepend(PATH,${UPS_PROD_DIR}/bin)
      PathPrepend(PYTHONPATH, ${UPS_PROD_DIR}/lib/python)
      PathPrepend(LD_LIBRARY_PATH, ${UPS_PROD_DIR}/lib)
+
+End:
