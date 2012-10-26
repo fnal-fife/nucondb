@@ -11,7 +11,9 @@ clean:
 install: all
 	rm -rf $(DESTDIR)lib $(DESTDIR)inc
 	test -d $(DESTDIR)lib || mkdir -p  $(DESTDIR)lib && cp */*.so */*.a  $(DESTDIR)lib
+	test -d $(DESTDIR)lib/python || mkdir -p  $(DESTDIR)lib/python && cp ifdh/python/*  $(DESTDIR)lib/python
 	test -d $(DESTDIR)inc || mkdir -p $(DESTDIR)inc && cp */*.h $(DESTDIR)inc
+	test -d $(DESTDIR)bin || mkdir -p $(DESTDIR)bin && cp ifdh/ifdh $(DESTDIR)bin
 
 32bit:
 	ARCH="-m32 $(ARCH)" make all  install

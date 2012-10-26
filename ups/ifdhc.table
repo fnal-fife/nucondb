@@ -6,10 +6,10 @@ Group:
 Qualifiers=""
 Flavor=ANY
 
-Qualifiers=e2
+Qualifiers=e2:debug
 Flavor=ANY
 
-Qualifiers=a2
+Qualifiers=e2:prof
 Flavor=ANY
 
 Common:
