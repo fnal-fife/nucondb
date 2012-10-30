@@ -20,7 +20,7 @@ install: all
 
 withart:
 	test x$$ART_DIR != x
-	ARCH="-std=c++11 -g -O0" make all install
+	ARCH="-std=c++11 -g -O0 " make all install
 	# later this will be ARCH="$(ART_CXXFLAGS)"
 
 distrib:
