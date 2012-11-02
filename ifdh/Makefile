@@ -53,3 +53,6 @@ ifdh.o: ifdh.cc ifdh.h
 
 ifdh_main.o: ifdh_main.cc
 	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc
+
+%.o: %.cc
+	g++ -c -o $@  $(CXXFLAGS) $< 

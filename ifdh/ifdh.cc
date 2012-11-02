@@ -81,6 +81,9 @@ ifdh::cp(string src_path, string dest_path) {
 string 
 ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
+    stringstream err;
+    string path;
+    int res;
     int p1, p2;
     int baseloc = src_uri.rfind("/") + 1;
 
@@ -90,10 +93,17 @@ ifdh::fetchInput( string src_uri ) {
             << " " << datadir() << "/" << src_uri.substr(baseloc)
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
-        system(cmd.str().c_str());
+        res = system(cmd.str().c_str());
+        _debug && cout << "res is: " << res << "\n";
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
-        return cmd.str().substr(p2+1, p1 - p2 -1);
+        path = cmd.str().substr(p2+1, p1 - p2 -1);
+        if (res != 0 || !access(path.c_str(), R_OK)) {
+            cleanup();
+            err << "exit code: " << res;
+            throw(WebAPIException("cpn falied:", err.str().c_str() ));
+        }
+        return path;
     }
     if (src_uri.substr(0,6) == "srm://") {
         cmd << "srmcp" 
@@ -101,12 +111,18 @@ ifdh::fetchInput( string src_uri ) {
             << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc)
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
-        system(cmd.str().c_str());
+        res = system(cmd.str().c_str());
+        _debug && cout << "res is: " << res << "\n";
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
-        return cmd.str().substr(p2 + 8 , p1 - p2 - 8);
+        path = cmd.str().substr(p2 + 8 , p1 - p2 - 8);
+        if (res != 0 || !access(path.c_str(), R_OK)) {
+            cleanup();
+            err << "exit code: " << res;
+            throw(WebAPIException("srmcp falied:", err.str().c_str() ));
+        }
     }
-    throw(WebAPIException("Unknown uri type",""));
+    throw(WebAPIException("Unknown uri type",src_uri.substr(0,8)));
 }
 
 // file output
@@ -121,6 +137,8 @@ int
 ifdh::copyBackOutput(string dest_dir) {
     stringstream cmd;
     string line;
+    stringstream err;
+    int res;
     int baseloc = dest_dir.find("/") + 1;
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::in);
 
@@ -160,7 +178,11 @@ ifdh::copyBackOutput(string dest_dir) {
 	    cmd << " " << bestmanuri << dest_dir;
        }
     }
-    system(cmd.str().c_str());
+    res = system(cmd.str().c_str());
+    if (res != 0) {
+        err << "exit code: " << res;
+        throw(WebAPIException("srmcp falied:", err.str().c_str() ));
+    }
     cleanup();
 }
 

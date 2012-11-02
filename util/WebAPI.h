@@ -22,6 +22,7 @@ public:
      virtual ~SimpleExceptionSuper() throw() {;};
      std::string message() const { return m_message; }
      std::string tag() const { return m_tag; }
+   virtual const char *what() throw() = 0;
 };
 
  
@@ -29,12 +30,13 @@ public:
 
 #endif
 
-extern std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse );
+extern std::ostream& operator<< ( std::ostream& os , SimpleExceptionSuper  *pse );
 class WebAPIException : public ExceptionSuper {
 
 public:
    WebAPIException( std::string message, std::string tag) throw();
    virtual ~WebAPIException() throw() {;};
+   virtual const char *what() throw();
 };
 
 class WebAPI {

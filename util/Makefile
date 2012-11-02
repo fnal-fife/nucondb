@@ -15,3 +15,5 @@ clean:
 %-test: %.cc
 	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $< utils.o
 
+%.o: %.cc
+	g++ -c -o $@  $(CXXFLAGS) $< 

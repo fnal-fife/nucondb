@@ -72,9 +72,9 @@ main(int argc, char **argv) {
 		exit(1);	
 	}
    } catch (WebAPIException we) {
-      std::cout << "Exception:" << &we << std::endl;
+      std::cout << "Exception:" << we.what() << std::endl;
       exit(1);
    } catch (std::logic_error le ) {
-      std::cout << "Exception:" << &le << std::endl;
+      std::cout << "Exception:" << le.what() << std::endl;
    }
 }

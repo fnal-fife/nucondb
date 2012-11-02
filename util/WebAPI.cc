@@ -30,8 +30,16 @@ WebAPIException::WebAPIException( std::string message, std::string tag ) throw()
    m_tag = tag;
 }
 
-std::ostream& operator<< ( std::ostream& os , const SimpleExceptionSuper  *pse )
- { pse && (os << pse->tag() << pse->message()) ; return os; }
+
+const char *
+WebAPIException::what() throw() 
+{
+   static std::string s("Exception: ");
+   return (s + m_message + m_tag).c_str();
+}
+
+std::ostream& operator<< ( std::ostream& os , SimpleExceptionSuper  *pse )
+ { pse && (os << pse->what()); return os; }
 
 std::string
 WebAPI::encode(std::string s) {
@@ -264,8 +272,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 _debug && std::cout << "sending: "<< method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << ":" << pu.port <<"\r\n";
 	 _debug && std::cout << "sending header: " << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.29 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.29 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.30 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.30 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 

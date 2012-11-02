@@ -25,3 +25,6 @@ LibNuMsg.a: $(OBJ) $(UTLOBJ)
         
 numsg-test: $(UTLOBJ) numsg.cc
 	$(CXX) $(CXXFLAGS) -DUNITTEST numsg.cc -o numsg-test $(UTLOBJ)
+
+%.o: %.cc
+	g++ -c -o $@  $(CXXFLAGS) $< 
