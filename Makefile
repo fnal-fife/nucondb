@@ -32,3 +32,5 @@ $(UTLOBJ):
 %-test: %.cc
 	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(UTLOBJ) $<
 
+%.o: %.cc
+	g++ -c -o $@  $(CXXFLAGS) $< 
