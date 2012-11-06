@@ -29,6 +29,6 @@ public:
      void printf(const char *fmt, ...);		// general printf method
 };
 
-};
+}
 
 using namespace ifdh_util_ns;

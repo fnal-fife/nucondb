@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+int
 main(int argc, char **argv) {
     int ppid = getppid();
     char *job_base;

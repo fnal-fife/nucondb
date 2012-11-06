@@ -79,18 +79,23 @@ ifdh::cp(string src_path, string dest_path) {
 }
 
 string 
+ifdh::localPath( string src_uri ) {
+    int baseloc = src_uri.rfind("/") + 1;
+    return datadir() + "/" + src_uri.substr(baseloc);
+}
+
+string 
 ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
     stringstream err;
     string path;
     int res;
     int p1, p2;
-    int baseloc = src_uri.rfind("/") + 1;
 
     if (src_uri.substr(0,7) == "file://") {
 	cmd << "/bin/sh " << cpn_loc 
             << " " << src_uri.substr(7) 
-            << " " << datadir() << "/" << src_uri.substr(baseloc)
+            << " " << localPath( src_uri )
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         res = system(cmd.str().c_str());
@@ -108,7 +113,7 @@ ifdh::fetchInput( string src_uri ) {
     if (src_uri.substr(0,6) == "srm://") {
         cmd << "srmcp" 
             << " " << src_uri 
-            << " " << "file:///" << datadir() << "/" << src_uri.substr(baseloc)
+            << " " << "file:///" << localPath( src_uri )
             << " >&2" ;
         _debug && cout << "running: " << cmd.str() << "\n";
         res = system(cmd.str().c_str());
@@ -131,6 +136,7 @@ ifdh::addOutputFile(string filename) {
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
     outlog << filename << "\n";
     outlog.close();
+    return 1;
 }
 
 int 
@@ -139,7 +145,7 @@ ifdh::copyBackOutput(string dest_dir) {
     string line;
     stringstream err;
     int res;
-    int baseloc = dest_dir.find("/") + 1;
+    // int baseloc = dest_dir.find("/") + 1;
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::in);
 
     if (access(dest_dir.c_str(), W_OK)) {
@@ -157,7 +163,7 @@ ifdh::copyBackOutput(string dest_dir) {
         std::string gftpHost("if-gridftp-");
         gftpHost.append(getexperiment());
 
-        if (hostp = gethostbyname(gftpHost.c_str())) {
+        if (0 != (hostp = gethostbyname(gftpHost.c_str()))) {
             //  if experiment specific gridftp host exists, use it...
             
             cmd << "globus_url_copy";
@@ -184,6 +190,7 @@ ifdh::copyBackOutput(string dest_dir) {
         throw(WebAPIException("srmcp falied:", err.str().c_str() ));
     }
     cleanup();
+    return 1;
 }
 
 // logging
@@ -199,11 +206,13 @@ ifdh::log( string message ) {
 int 
 ifdh::enterState( string state ){
   numsg::getMsg()->start(state.c_str());
+  return 1;
 }
 
 int 
 ifdh::leaveState( string state ){
   numsg::getMsg()->finish(state.c_str());
+  return 1;
 }
 
 WebAPI * 

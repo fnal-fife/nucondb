@@ -19,7 +19,7 @@ public:
 					// actually send a syslog message
 };
 
-};
+}
 
 using namespace ifdh_util_ns;
 #endif //SYSLOG_API_H

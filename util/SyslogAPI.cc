@@ -15,7 +15,6 @@ int SyslogAPI::_debug = 0;
 SyslogAPI::SyslogAPI(char *desthost, int destport, int parentflag): _parentflag(parentflag) {
      int res;
      struct sockaddr_in sa;
-     struct hostent *hostp;
      struct addrinfo hints, *paddrs; 
      char portbuf[10];
 
@@ -27,11 +26,15 @@ SyslogAPI::SyslogAPI(char *desthost, int destport, int parentflag): _parentflag(
      sprintf(portbuf, "%d", destport);
 
      res = getaddrinfo(desthost, portbuf, &hints, &paddrs);
+     if (res != 0) 
+         return;
    
      memset((char *)&sa, 0, sizeof(sa));
      sa.sin_family = paddrs->ai_family;
 
      _socket = socket(paddrs->ai_family, paddrs->ai_socktype, 0);
+     if (_socket < 0) 
+         return;
      bind(_socket, (struct sockaddr *)&sa, sizeof(sa));
 
      memcpy((char *)&_destaddr, paddrs->ai_addr, paddrs->ai_addrlen);
@@ -50,7 +53,6 @@ SyslogAPI::send( int facility, int severity, const char *tag, const char *msg) {
      std::stringstream st;
      int pri = facility * 8 + severity;
      time_t t = time(0);
-     ssize_t r;
      char *date = ctime(&t)+4;
      date[15] = 0;
 
@@ -71,7 +73,7 @@ SyslogAPI::send( int facility, int severity, const char *tag, const char *msg) {
 		sizeof(_destaddr));
 }
 
-};
+}
 #ifdef UNITTEST
 main() {
 

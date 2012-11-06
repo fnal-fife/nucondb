@@ -21,6 +21,7 @@ main(int argc, char **argv) {
 	try {
 	if (argc > 1 && 0 == strcmp(argv[1],"cp")) di(i.cp( argv[2]?argv[2]:"", argv[3]?argv[3]:""));
 	else if (argc > 1 && 0 == strcmp(argv[1],"fetchInput")) ds(i.fetchInput( argv[2]?argv[2]:""));
+	else if (argc > 1 && 0 == strcmp(argv[1],"localPath")) ds(i.localPath( argv[2]?argv[2]:""));
 	else if (argc > 1 && 0 == strcmp(argv[1],"addOutputFile")) di(i.addOutputFile( argv[2]?argv[2]:""));
 	else if (argc > 1 && 0 == strcmp(argv[1],"copyBackOutput")) di(i.copyBackOutput( argv[2]?argv[2]:""));
 	else if (argc > 1 && 0 == strcmp(argv[1],"log")) di(i.log( argv[2]?argv[2]:""));
@@ -47,6 +48,7 @@ main(int argc, char **argv) {
 
                 cout << "\tifdh cp  src  dest \n\t--general file copy using cpn or srmcp\n";
                 cout << "\tifdh fetchInput  src_uri \n\t--get input file to local scratch, return scratch location\n";
+                cout << "\tifdh localPath  src_uri \n\t--return scratch location fetchInput would give, without copying\n";
                 cout << "\tifdh addOutputFile  filename \n\t--add output file to set\n";
                 cout << "\tifdh copyBackOutput  dest_dir \n\t--copy output file set to destination with cpn or srmcp\n";
                 cout << "\tifdh log  message \n\t--logging \n";
@@ -72,9 +74,9 @@ main(int argc, char **argv) {
 		exit(1);	
 	}
    } catch (WebAPIException we) {
-      std::cout << "Exception:" << we.what() << std::endl;
+      std::cout << "Exception:" << &we << std::endl;
       exit(1);
    } catch (std::logic_error le ) {
-      std::cout << "Exception:" << le.what() << std::endl;
+      std::cout << "Exception:" << &le << std::endl;
    }
 }

@@ -62,6 +62,6 @@ public:
 
 };
 
-};
+}
 using namespace ifdh_util_ns;
 #endif //WEB_API_H

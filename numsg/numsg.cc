@@ -14,9 +14,9 @@ numsg *numsg::_singleton = 0;
 
 numsg::numsg(const char *jobname, char *host, int port, int parentflag) : 
 	_sa(host, port, parentflag), 
+	_jobname(jobname?jobname:getenv("NU_LOG_TAG")),
 	_cur_state("boot"), 
 	_old_states(), 
-	_jobname(jobname?jobname:getenv("NU_LOG_TAG")),
         _facility(17),
         _severity(5)
 {
@@ -94,16 +94,14 @@ numsg::finish(const char *what) {
     _old_states.pop_front();
 }
 
-};
+}
 #ifdef UNITTEST
 int
 main() {
-    numsg *nm;
-
     /*  putenv("NU_LOG_HOST=localhost:514"); */
-    putenv("NU_LOG_TAG=testjob");
+    putenv((char *)"NU_LOG_TAG=testjob");
     //nm = numsg::init("testjob");
-    nm = numsg::init(0);
+    (void)numsg::init(0);
     numsg::getMsg()->new_state("foo");
     numsg::getMsg()->new_state("bar");
     numsg::getMsg()->start("laundry");

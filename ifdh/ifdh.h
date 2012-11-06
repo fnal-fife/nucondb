@@ -31,6 +31,9 @@ class ifdh {
 	// get input file to local scratch, return scratch location
 	std::string fetchInput( std::string src_uri );
 
+	// return scratch location fetchInput would give, without copying
+	std::string localPath( std::string src_uri );
+
 	// add output file to set
 	int addOutputFile(std::string filename);
 

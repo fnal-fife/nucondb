@@ -46,7 +46,7 @@ WebAPI::encode(std::string s) {
     std::string res("");
     static char digits[] = "0123456789abcdef";
     
-    for(int i = 0; i < s.length(); i++) {
+    for(size_t i = 0; i < s.length(); i++) {
         if (
               (s[i] >= 'a' && s[i] <= 'z') ||
               (s[i] >= 'A' && s[i] <= 'Z') ||
@@ -121,7 +121,7 @@ WebAPI::parseurl(std::string url) throw(WebAPIException) {
 WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPIException) {
      int s;			// unix socket file descriptor
      WebAPI::parsed_url pu;     // parsed url.
-     struct sockaddr_storage server; // connection address struct
+     // struct sockaddr_storage server; // connection address struct
      struct addrinfo *addrp;   // getaddrinfo() result
      struct addrinfo *addrf;   // getaddrinfo() result, to free later
      static char buf[512];      // buffer for header lines
@@ -242,9 +242,9 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
                 // run openssl...
                 if (proxy) {
-                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  "-cert", proxy, "-CAfile", proxy,  0);
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  "-cert", proxy, "-CAfile", proxy,  (char *)0);
                 } else {
-                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  0);
+                    execlp("openssl", "s_client", "-connect", hostport.str().c_str(), "-quiet",  (char *)0);
                 }
                 exit(-1);
             } else {
@@ -272,8 +272,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 _debug && std::cout << "sending: "<< method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << ":" << pu.port <<"\r\n";
 	 _debug && std::cout << "sending header: " << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.30 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.30 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.31 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.31 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -423,7 +423,7 @@ test_WebAPI_fetchurl() {
    }
 }
 
-};
+}
 #ifdef UNITTEST
 
 int

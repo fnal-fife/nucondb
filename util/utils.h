@@ -16,6 +16,6 @@ std::vector<std::string> vector_cdr(std::vector<std::string> &vec);
 
 const char *getexperiment();
 
-};
+}
 using namespace ifdh_util_ns;
 #endif  // IFDH_UTIL_H

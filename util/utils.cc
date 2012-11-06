@@ -14,7 +14,7 @@ namespace ifdh_util_ns {
 const
 char *getexperiment() {
     static char expbuf[MAXEXPBUF];
-    char *p1, p2;
+    char *p1;
     char *penv = getenv("CONDOR_TMP");
  
     if (penv) {
@@ -27,7 +27,7 @@ char *getexperiment() {
              return expbuf;
          }
     }
-    switch(getgid()){
+    switch((int)getgid()){
     case 9937:
        return "microboone";
     case 5314:
@@ -51,7 +51,7 @@ char *getexperiment() {
 
 int
 find_end(std::string s, char c, int pos, bool quotes ) {
-    int possible_end;
+    size_t possible_end;
     
     possible_end = pos - 1;
     // handle quoted strings -- as long as  we're at a quote, look for the
@@ -122,7 +122,7 @@ vector_cdr(std::vector<std::string> &vec) {
     return res;
 }
 
-};
+}
 
 #ifdef UNITTEST
 main() {

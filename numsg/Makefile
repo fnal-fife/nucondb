@@ -4,7 +4,7 @@ UTLOBJ=../util/SyslogAPI.o ../util/utils.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
-CXXFLAGS=-fpic -g $(ARCH) -I../util
+CXXFLAGS=-pedantic-errors -Wall -Werror -fpic -g $(ARCH) -I../util
 
 all: $(OBJ) $(BIN) $(LIB)
 
