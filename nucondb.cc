@@ -234,8 +234,6 @@ Folder::fetchData(double when)  throw(WebAPIException){
 int
 Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al) {
     void *vp;
-    int i;
-    int res;
     std::vector<std::string>::iterator it, nit, cit;
     std::vector<std::string> fields;
 
@@ -245,7 +243,7 @@ Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al)
         if (!vp) {
             break;
         }
-	for( i = 0; i < _columns.size(); i++ ) {
+	for( size_t i = 0; i < _columns.size(); i++ ) {
 	    if ( *nit == _columns[i] ) {
                 _debug && std::cout << "found " << *nit << " matching " << _columns[i] <<"\n";
 		switch(_types[i][0]) {
@@ -269,6 +267,7 @@ Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al)
 	    }
 	}
     }
+    return 0;
 }
 
 // getChannelData --
@@ -297,7 +296,6 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
     int l, m, r;
     unsigned long val;
     int comma;
-    int res;
 
     fetchData(t);
 
@@ -334,7 +332,7 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
 
 
 	 if (m >= _n_datarows) {
-	     sprintf(ebuf, "Channel %u: ", chan);
+	     sprintf(ebuf, "Channel %lu: ", chan);
 	     throw(WebAPIException(ebuf , "not found in data."));
 	 }
 
@@ -354,7 +352,7 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
 
          return this->parse_fields(namev, _cache_data[m].c_str() + comma + 1, al);
      } else {
-         sprintf(ebuf, "Channel %u: ", chan);
+         sprintf(ebuf, "Channel %lu: ", chan);
          throw(WebAPIException(ebuf , "not found in data."));
      }
 }
@@ -461,12 +459,7 @@ test_getchanneldata(Folder &f) {
 
 void
 test3() {
-   int pos_num;
-static int chbits[5];
-static double d[8];
-static char *text1;
-static char *text2;
-static char *text3;
+   static double d[8];
 
    Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
    d3.getNamedChannelData(
@@ -535,12 +528,7 @@ static char *text3;
 
 void
 test_tagged_folder() {
-   int pos_num;
-static int chbits[5];
 static double d[8];
-static char *text1;
-static char *text2;
-static char *text3;
 
    // open folder with a tag name...
    Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app/","old");
@@ -586,7 +574,7 @@ main() {
    std::string tsplit("\"string\"\"to\",100,\"split\"\"\"\"here\"\"");
    std::vector<std::string> splitres = split(tsplit,',',true);
    std::cout << "split of " << tsplit << " yeilds: {" << std::endl;
-   for( int i = 0; i < splitres.size(); i++ ) {
+   for( size_t i = 0; i < splitres.size(); i++ ) {
        std::cout << splitres[i] << "," << std::endl;
    }
    std::cout << "}" << std::endl;

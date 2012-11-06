@@ -7,7 +7,7 @@ OBJ=nucondb.o $(UTL)
 SRC=nucondb.cc
 TST=nucondb-test 
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-fPIC -g $(DEFS) $(ARCH)
+CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH)
 
 all: $(BIN) $(TST) $(LIB) $(SHLIB)
 
