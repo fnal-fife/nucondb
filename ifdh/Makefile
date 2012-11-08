@@ -1,6 +1,7 @@
 
 LIB=libifdh.so
 HDR=ifdh.h
+SWIGCXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
 CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
 OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
@@ -45,7 +46,7 @@ ifdh_wrap.cxx: ifdh.h ifdh.i
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
-	g++ $(CXXFLAGS) $(ARCH) -c -o $@ ifdh_wrap.cxx
+	g++ $(SWIGCXXFLAGS) $(ARCH) -c -o $@ ifdh_wrap.cxx
         
 
 ifdh.o: ifdh.cc ifdh.h

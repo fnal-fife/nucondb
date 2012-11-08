@@ -10,10 +10,9 @@
 #include <stdexcept>
 using namespace std;
 using namespace ifdh_util_ns;
-extern "C" { void exit(int); }
 static int di(int i)	{ exit(i);  return 1; }
 static int ds(string s)	 { cout << s << "\n"; return 1; }
-static int dv(vector<string> v)	{ for(int i = 0; i < v.size(); i++) { cout << v[i] << "\n"; } return 1; }
+static int dv(vector<string> v)	{ for(size_t i = 0; i < v.size(); i++) { cout << v[i] << "\n"; } return 1; }
 
 int
 main(int argc, char **argv) { 

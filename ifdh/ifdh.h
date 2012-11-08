@@ -23,6 +23,8 @@ class ifdh {
 #else
         ifdh(std::string baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):"");
 #endif
+        void set_debug(std::string s) { _debug = s[0] - '0';}
+
         void set_base_uri(std::string baseuri);
 
         // general file copy using cpn or srmcp

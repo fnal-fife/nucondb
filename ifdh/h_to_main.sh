@@ -28,10 +28,10 @@ do
 	printf "#include <stdexcept>\n"
         printf "using namespace std;\n"
         printf "using namespace ifdh_util_ns;\n"
-        printf "extern \"C\" { void exit(int); }\n"
+        # printf "extern \"C\" { void exit(int); }\n"
         printf "static int di(int i)\t{ exit(i);  return 1; }\n"
         printf "static int ds(string s)\t { cout << s << \"\\\\n\"; return 1; }\n"
-        printf "static int dv(vector<string> v)\t{ for(int i = 0; i < v.size(); i++) { cout << v[i] << \"\\\\n\"; } return 1; }\n"
+        printf "static int dv(vector<string> v)\t{ for(size_t i = 0; i < v.size(); i++) { cout << v[i] << \"\\\\n\"; } return 1; }\n"
         printf "\n"
 
         printf "int\nmain(int argc, char **argv) { \n"

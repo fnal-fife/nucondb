@@ -11,6 +11,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace std;
 
@@ -23,8 +24,12 @@ string bestmanuri = "srm://fg-bestman1.fnal.gov:10443";
 string datadir() {
     stringstream dirmaker;
     
-    dirmaker << (getenv("OSG_DATA")?getenv("OSG_DATA"):"/tmp")
-             << "/pid_" << getppid();
+    dirmaker << (
+       getenv("_CONDOR_SCRATCH_DIR")?getenv("_CONDOR_SCRATCH_DIR"):
+       getenv("TMPDIR")?getenv("TMPDIR"):
+       "/var/tmp"
+    )
+             << "/ifdh_" << getppid();
 
     if ( 0 != access(dirmaker.str().c_str(), W_OK) ) {
         mkdir(dirmaker.str().c_str(),0700);
@@ -89,7 +94,7 @@ ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
     stringstream err;
     string path;
-    int res;
+    int res, res2;
     int p1, p2;
 
     if (src_uri.substr(0,7) == "file://") {
@@ -103,11 +108,13 @@ ifdh::fetchInput( string src_uri ) {
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
         path = cmd.str().substr(p2+1, p1 - p2 -1);
-        if (res != 0 || !access(path.c_str(), R_OK)) {
-            cleanup();
-            err << "exit code: " << res;
+        res2 = access(path.c_str(), R_OK);
+        _debug && cout << "access res is: " << res2 << "\n";
+        if (res != 0 || res2 != 0 ) {
+            err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
             throw(WebAPIException("cpn falied:", err.str().c_str() ));
         }
+        _debug && cout << "returning:" << path;
         return path;
     }
     if (src_uri.substr(0,6) == "srm://") {
@@ -121,11 +128,14 @@ ifdh::fetchInput( string src_uri ) {
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
         path = cmd.str().substr(p2 + 8 , p1 - p2 - 8);
-        if (res != 0 || !access(path.c_str(), R_OK)) {
-            cleanup();
-            err << "exit code: " << res;
+        res2 = access(path.c_str(), R_OK);
+        _debug && cout << "access res is: " << res2 << "\n";
+        if (res != 0 || res2 != 0) {
+            err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
             throw(WebAPIException("srmcp falied:", err.str().c_str() ));
         }
+        _debug && cout << "returning:" << path;
+        return path;
     }
     throw(WebAPIException("Unknown uri type",src_uri.substr(0,8)));
 }
@@ -189,7 +199,6 @@ ifdh::copyBackOutput(string dest_dir) {
         err << "exit code: " << res;
         throw(WebAPIException("srmcp falied:", err.str().c_str() ));
     }
-    cleanup();
     return 1;
 }
 
