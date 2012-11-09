@@ -7,36 +7,18 @@
 #include <ext/stdio_filebuf.h>
 
 namespace ifdh_util_ns {
-#ifdef  HAVE_GAUDI_EXCEPTIONS
 
-#include "GaudiKernel/GaudiException.h"
-#define ExceptionSuper GaudiException
+class WebAPIException : public std::exception {
 
-#else
-
-class SimpleExceptionSuper : virtual public std::exception {
 protected:
      std::string m_message;
      std::string m_tag;
 public:
-     virtual ~SimpleExceptionSuper() throw() {;};
-     std::string message() const { return m_message; }
-     std::string tag() const { return m_tag; }
-   virtual const char *what() throw() = 0;
-};
-
- 
-#define ExceptionSuper SimpleExceptionSuper
-
-#endif
-
-extern std::ostream& operator<< ( std::ostream& os , SimpleExceptionSuper  *pse );
-class WebAPIException : public ExceptionSuper {
-
-public:
    WebAPIException( std::string message, std::string tag) throw();
    virtual ~WebAPIException() throw() {;};
-   virtual const char *what() throw();
+   std::string message() const { return m_message; }
+   std::string tag() const { return m_tag; }
+   virtual const char *what () const throw ();
 };
 
 class WebAPI {

@@ -32,13 +32,13 @@ WebAPIException::WebAPIException( std::string message, std::string tag ) throw()
 
 
 const char *
-WebAPIException::what() throw() 
+WebAPIException::what() const throw() 
 {
    static std::string s("Exception: ");
    return (s + m_message + m_tag).c_str();
 }
 
-std::ostream& operator<< ( std::ostream& os , SimpleExceptionSuper  *pse )
+std::ostream& operator<< ( std::ostream& os , std::exception *pse )
  { pse && (os << pse->what()); return os; }
 
 std::string
@@ -64,7 +64,7 @@ WebAPI::encode(std::string s) {
 void
 test_encode() {
     std::string s="testing(again'for'me)";
-    std::cout << "converting: " << s << " to: " << WebAPI::encode(s);
+    std::cout << "converting: " << s << " to: " << WebAPI::encode(s) << "\n";
 }
 // parseurl(url)
 //   parse a url into 
@@ -172,14 +172,16 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
              connected = 0;
 	     while ( addrp && !connected) {
 
-		 _debug && std::cout << "looking up host " << pu.host << " got " << addrp->ai_canonname <<  " type: " << addrp->ai_family << "\n";
+		 _debug && std::cout << "looking up host " << pu.host << " got " << (addrp->ai_canonname?addrp->ai_canonname:"(null)") <<  " type: " << addrp->ai_family << "\n";
 		 _debug && std::cout.flush();
 
 		 s = socket(addrp->ai_family, addrp->ai_socktype,0);
 
 		 if (connect(s, addrp->ai_addr,addrp->ai_addrlen) < 0) {
+                     _debug && std::cout << "connect failed: errno = " << errno << "\n";
 		     addrp = addrp->ai_next;
 		 } else {
+                     _debug && std::cout << "connect succeeded\n";
 		     connected = 1;
 		 }
 
@@ -188,6 +190,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
              if (!connected) {
 		 _debug && std::cout << " all connects failed , waiting ...";
+                 _debug && std::cout.flush();
 		 sleep(5 << retries);
 		 _debug && std::cout << "retrying ...\n";
                 continue;
@@ -272,8 +275,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 _debug && std::cout << "sending: "<< method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << ":" << pu.port <<"\r\n";
 	 _debug && std::cout << "sending header: " << "Host: " << pu.host << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.31 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.31 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cout << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cout << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -428,7 +431,7 @@ test_WebAPI_fetchurl() {
 
 int
 main() {
-   WebAPI::_debug = 1;
+   ifdh_util_ns::WebAPI::_debug = 1;
    test_encode();
    test_WebAPI_fetchurl();
 }
