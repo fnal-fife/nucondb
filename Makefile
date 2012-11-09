@@ -20,8 +20,7 @@ install: all
 
 withart:
 	test x$$ART_DIR != x
-	ARCH="-std=c++11 -g -O0 $(ARCH)" make all install
-	# later this will be ARCH="$(ART_CXXFLAGS)"
+	ARCH="$(ART_CXXFLAGS)" make all install
 
 distrib:
 	tar czvf nucondb-client.tgz Makefile  [nu]*/*.[ch]* [nu]*/Makefile
