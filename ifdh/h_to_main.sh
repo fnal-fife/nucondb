@@ -43,10 +43,10 @@ do
         $xlate || continue
 	printf "\telse {\n$help\n\t\texit(1);\t\n\t}\n"
         printf "   } catch (WebAPIException we) {\n"
-        printf "      std::cout << \"Exception:\" << &we << std::endl;\n"
+        printf "      std::cout << \"Exception:\" << we.what() << std::endl;\n"
         printf "      exit(1);\n"
         printf "   } catch (std::logic_error le ) {\n"
-        printf "      std::cout << \"Exception:\" << &le << std::endl;\n"
+        printf "      std::cout << \"Exception:\" << le.what() << std::endl;\n"
         printf "   }\n"
 	printf "}\n"
         ;;
