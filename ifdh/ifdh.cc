@@ -155,13 +155,18 @@ ifdh::copyBackOutput(string dest_dir) {
     string line;
     stringstream err;
     int res;
+    string outfiles_name;
     // int baseloc = dest_dir.find("/") + 1;
-    fstream outlog((datadir()+"/output_files").c_str(), ios_base::in);
+    outfiles_name = datadir()+"/output_files";
+    fstream outlog(outfiles_name.c_str(), ios_base::in);
+    if ( outlog.fail()) {
+       return 0;
+    }
 
-    if (access(dest_dir.c_str(), W_OK)) {
+    if (0 == access(dest_dir.c_str(), W_OK)) {
         // destination is visible, so use cpn
 	cmd << "/bin/sh " << cpn_loc;
-        while (!outlog.eof()) {
+        while (!outlog.eof() && !outlog.fail()) {
             getline(outlog,line);
             cmd << " " << line;
         }
@@ -177,7 +182,7 @@ ifdh::copyBackOutput(string dest_dir) {
             //  if experiment specific gridftp host exists, use it...
             
             cmd << "globus_url_copy";
-	    while (!outlog.eof()) {
+            while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		cmd << " file:///" << line;
 	    }
@@ -187,7 +192,7 @@ ifdh::copyBackOutput(string dest_dir) {
             // destination is not visible, use srmcp
             
 	    cmd << "srmcp";
-	    while (!outlog.eof()) {
+            while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		cmd << " file:///" << line;
 	    }
@@ -196,8 +201,8 @@ ifdh::copyBackOutput(string dest_dir) {
     }
     res = system(cmd.str().c_str());
     if (res != 0) {
-        err << "exit code: " << res;
-        throw(WebAPIException("srmcp falied:", err.str().c_str() ));
+        err << "command: '" << cmd << "'exit code: " << res;
+        throw(WebAPIException("copy  falied:", err.str().c_str() ));
     }
     return 1;
 }
