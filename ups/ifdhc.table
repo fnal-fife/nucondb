@@ -3,26 +3,35 @@ Product=ifdhc
 
 Group:
 
+Flavor=ANY
 Qualifiers=""
-Flavor=ANY
+_qualbits=
 
+Flavor=ANY
 Qualifiers=e2:debug
-Flavor=ANY
+_qualbits=e2-debug
 
-Qualifiers=e2:prof
 Flavor=ANY
+Qualifiers=e2:debug
+_qualbits=e2-debug
+
+Flavor=ANY
+Qualifiers=e2:prof
+_qualbits=e2-prof
 
 Common:
 
 Action=setup
      SetupEnv()
      ProdDir()
-     PathPrepend(PATH,${UPS_PROD_DIR}/bin)
-     PathPrepend(PYTHONPATH, ${UPS_PROD_DIR}/lib/python)
-     PathPrepend(LD_LIBRARY_PATH, ${UPS_PROD_DIR}/lib)
-     If( test -d ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
-        EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
+     Execute(echo qualbits=${_qualbits}, NO_UPS_ENV)
+     If( test -d ${UPS_PROD_DIR}/`ups flavor -4`-${_qualbits} )
+        EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR}/`ups flavor -4`-${_qualbits} )
      Else()
         EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR} )
-     EndIf( test -d ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
+     EndIf( test -d ${UPS_PROD_DIR}/`ups flavor -4`-${_qualbits} )
+
+     PathPrepend(PATH,$IFDHC_FQ_DIR/bin)
+     PathPrepend(PYTHONPATH, $IFDHC_FQ_DIR/lib/python)
+     PathPrepend(LD_LIBRARY_PATH, $IFDHC_FQ_DIR/lib)
 End:
