@@ -24,6 +24,7 @@ Common:
 Action=setup
      SetupEnv()
      ProdDir()
+     envSet (${UPS_PROD_NAME_UC}_VERSION, v0_7 )
      Execute(echo qualbits=${_qualbits}, NO_UPS_ENV)
      If( test -d ${UPS_PROD_DIR}/`ups flavor -4`-${_qualbits} )
         EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR}/`ups flavor -4`-${_qualbits} )
@@ -34,4 +35,6 @@ Action=setup
      PathPrepend(PATH,$IFDHC_FQ_DIR/bin)
      PathPrepend(PYTHONPATH, $IFDHC_FQ_DIR/lib/python)
      PathPrepend(LD_LIBRARY_PATH, $IFDHC_FQ_DIR/lib)
+     setupRequired( gcc v4_7_1 )
+     setupRequired( python v2_7_3 -q gcc47 )
 End:
