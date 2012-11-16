@@ -1,10 +1,15 @@
+SRCDIR=../../numsg
+VPATH=$(SRCDIR)
+
 BIN=numsg-test nulogprintf
 LIB=LibNuMsg.a
 UTLOBJ=../util/SyslogAPI.o ../util/utils.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
-CXXFLAGS=-pedantic-errors -Wall -Werror -fpic -g $(ARCH) -I../util
+CXXFLAGS=-pedantic-errors -Wall -Werror -fpic -g $(ARCH) -I../util -I../../util -I$(SRCDIR)
+
+VPATH=../../numsg
 
 all: $(OBJ) $(BIN) $(LIB)
 
@@ -24,7 +29,7 @@ LibNuMsg.a: $(OBJ) $(UTLOBJ)
 	ar qv $(LIB) $(OBJ) $(UTLOBJ)
         
 numsg-test: $(UTLOBJ) numsg.cc
-	$(CXX) $(CXXFLAGS) -DUNITTEST numsg.cc -o numsg-test $(UTLOBJ)
+	$(CXX) $(CXXFLAGS) -DUNITTEST $^ -o numsg-test
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 

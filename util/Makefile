@@ -1,10 +1,12 @@
-SRC=$(wildcard *.cc)
-HDR=$(wildcard *.h)
+SRCDIR=../../util/
+VPATH=$(SRCDIR)
+SRC=$(notdir $(wildcard $(SRCDIR)*.cc *.cc))
+HDR=$(notdir $(wildcard $(SRCDIR)*.h *.h)
 OBJ=$(addsuffix .o,$(basename $(SRC)))
 TST=$(addsuffix -test,$(basename($SRC)))
 DEFS=
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH)
+CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH) -I../../util
 
 
 all: $(OBJ) $(TST)

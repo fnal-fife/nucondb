@@ -1,11 +1,14 @@
+SRCDIR=../../ifdh/
+VPATH=$(SRCDIR)
 
 LIB=libifdh.so
 HDR=ifdh.h
-SWIGCXXFLAGS=-fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
-CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -I../util -I../numsg -g -I`echo /usr/include/python*` $(ARCH)
+SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo /usr/include/python*` $(ARCH)
+CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g -I`echo /usr/include/python*` $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
+
 
 all: ifdh python python/_ifdh.so libifdh.so libifdh.a
 
@@ -23,8 +26,9 @@ clean:
 python:
 	mkdir python
 
-ifdh_main.cc: ifdh.h h_to_main.sh
-	sh h_to_main.sh ifdh.h > $@
+
+ifdh_main.cc: h_to_main.sh ifdh.h
+	sh $^ > $@
 
 ifdh: libifdh.so ifdh_main.o
 	g++ $(ARCH) -o $@ ifdh_main.o $(ALL_OBJS)
@@ -41,16 +45,20 @@ libifdh.a: $(ALL_OBJS)
 	ar qv $@ $(ALL_OBJS)
 	ranlib $@ 
 
-ifdh_wrap.cxx: ifdh.h ifdh.i
-	swig -python -c++ ifdh.i
+ifdh_wrap.cxx: ifdh.h 
+
+ifdh_wrap.cxx: ifdh.i
+	test -d python || mkdir python
+	swig -python -c++ -o ifdh_wrap.cxx $<
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
-	g++ $(SWIGCXXFLAGS) $(ARCH) -c -o $@ ifdh_wrap.cxx
+	g++ $(SWIGCXXFLAGS) $(ARCH) -c -o $@ $<
         
+ifdh.o: ifdh.h
 
-ifdh.o: ifdh.cc ifdh.h
-	g++ $(CXXFLAGS) -c -o $@ ifdh.cc
+ifdh.o: ifdh.cc 
+	g++ $(CXXFLAGS) -c -o $@ $<
 
 ifdh_main.o: ifdh_main.cc
 	g++ $(CXXFLAGS) -c -o $@ ifdh_main.cc

@@ -1,3 +1,5 @@
+SRCDIR=../../nucondb/
+VPATH=$(SRCDIR)
 LIB=libnucondb.a
 SHLIB=libnucondb.so
 UTLOBJ=../util/*.o
@@ -7,7 +9,9 @@ OBJ=nucondb.o $(UTL)
 SRC=nucondb.cc
 TST=nucondb-test 
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH)
+CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH) -I$(SRCDIR)
+
+VPATH=../../nucondb
 
 all: $(BIN) $(TST) $(LIB) $(SHLIB)
 

@@ -7,11 +7,6 @@ basequal=${2}
 fullqual=${basequal}:${extraqual}
 qualdir=${basequal}-${extraqual}
 
-if [ "x$SETUP_ART" = "x" ]
-then
-   echo "Must have art setup"
-   exit 1
-fi
 if [ "x$basequal" = "x" -o "x$extraqual" = "x" ]
 then
     echo "usage: $0 <debug|prof|opt> e2"
@@ -19,16 +14,22 @@ then
 fi
 
 # use the art externals python, too
-setup python v2_7_3 -q gcc47
-# fix hosey PYTHON_LIB
-export PYTHON_LIB=$PYTHON_ROOT/lib
+. `ups setup python v2_7_3 -q gcc47`
 
 case $basequal in
-debug) ARCH="-g";;
-prof)  ARCH="-g -p -pg";;
-opt)   ARCH="-O2";;
+debug) ARCH="-std=c++11 -O0 -g";;
+prof)  ARCH="-std=c++11 -g -p -pg";;
+opt)   ARCH="-std=c++11 -O2";;
 esac
+export ARCH
 
-make withart
-make DESTDIR="`ups flavor -4`-$qualdir/" install
+fqdir="`ups flavor -4`-$qualdir" 
 
+for d in ifbeam ifdh nucondb numsg ups util
+do
+   mkdir -p $fqdir/$d
+   cp $d/Makefile $fqdir/$d/Makefile
+done
+
+cd $fqdir && make -f ../Makefile all install-libs
+make install-headers
