@@ -20,5 +20,9 @@ Action=setup
      PathPrepend(PATH,${UPS_PROD_DIR}/bin)
      PathPrepend(PYTHONPATH, ${UPS_PROD_DIR}/lib/python)
      PathPrepend(LD_LIBRARY_PATH, ${UPS_PROD_DIR}/lib)
-
+     If( test -d ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
+        EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
+     Else()
+        EnvSet(IFDHC_FQ_DIR, ${UPS_PROD_DIR} )
+     EndIf( test -d ${UPS_PROD_DIR}/${UPS_FLAVOR}-${UPS_DASH_QUALIFIERS} )
 End:
