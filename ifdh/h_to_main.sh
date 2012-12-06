@@ -36,6 +36,9 @@ do
 
         printf "int\nmain(int argc, char **argv) { \n"
         printf "\tifdh i;\n"
+        printf "\tif (0 != getenv(\"IFDH_DEBUG\")) { \n"
+        printf "\t\tifdh::_debug = 1;\n"
+        printf "\t}\n";
         printf "\ttry {\n"
 	xlate=true;
 	;;

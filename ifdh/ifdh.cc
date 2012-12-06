@@ -62,7 +62,7 @@ ifdh::cp(string src_path, string dest_path) {
     //
     // if we can access source file for read and destination director for write
     // 
-    if ( 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+    if ( 0 != getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
         cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
     } else {
@@ -80,6 +80,7 @@ ifdh::cp(string src_path, string dest_path) {
 	   cmd << " " << bestmanuri  << dest_path;  
         }
     }
+    _debug && cout << "running: " << cmd.str() << "\n";
     return system(cmd.str().c_str());
 }
 
@@ -163,7 +164,7 @@ ifdh::copyBackOutput(string dest_dir) {
        return 0;
     }
 
-    if (0 == access(dest_dir.c_str(), W_OK)) {
+    if (0 == access(dest_dir.c_str(), W_OK) && 0 == getenv("IFDH_FORCE_SRM") && 0 == getenv("IFDH_FORCE_IFGRIDFTP")) {
         // destination is visible, so use cpn
 	cmd << "/bin/sh " << cpn_loc;
         while (!outlog.eof() && !outlog.fail()) {
@@ -178,7 +179,7 @@ ifdh::copyBackOutput(string dest_dir) {
         std::string gftpHost("if-gridftp-");
         gftpHost.append(getexperiment());
 
-        if (0 != (hostp = gethostbyname(gftpHost.c_str()))) {
+        if (0 != (hostp = gethostbyname(gftpHost.c_str())) && 0 == getenv("IFDH_FORCE_SRM") ) {
             //  if experiment specific gridftp host exists, use it...
             
             cmd << "globus_url_copy";

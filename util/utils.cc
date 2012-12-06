@@ -35,7 +35,7 @@ char *getexperiment() {
     case 9914:
        return "mu2e";
     case 9950:
-       return "g-2";
+       return "gm2";
     case 5111:
        return "minos";
     case 9553:
