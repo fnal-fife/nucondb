@@ -48,7 +48,7 @@ ifdh::cleanup() {
 }
 
 #include <sys/vfs.h> 
-#include <linux/magic.h>
+#include <linux/nfs_fs.h>
 
 int
 local_access(const char *path, int mode) {
@@ -68,24 +68,34 @@ local_access(const char *path, int mode) {
 
 // file io
 
+extern "C" { const char *get_current_dir_name(); }
+
 int 
 ifdh::cp(string src_path, string dest_path) {
     stringstream cmd;
     string dest_dir;
     int dest_dir_loc;
 
+    if (src_path[0] != '/') {
+	string cwd(get_current_dir_name());
+	src_path = cwd + "/" + src_path;
+    }
+
+    if (dest_path[0] != '/') {
+	string cwd(get_current_dir_name());
+	dest_path = cwd  + "/" + dest_path;
+    }
     //
     // pick out the directory component in the destination
     //   
     dest_dir_loc = dest_path.rfind("/");
-    if ( dest_dir_loc == -1 ) {
-         dest_dir = '.';
-    } else {
-        dest_dir = dest_path.substr(0,dest_dir_loc);
-    }
+    dest_dir = dest_path.substr(0,dest_dir_loc);
     //
     // if we can access source file for read and destination director for write
     // 
+    _debug && cout << "src, dest: " << src_path << "," << dest_path << "\n";
+    _debug && cout << "access(src), access(dest): " << access(src_path.c_str(),R_OK) << "," << access(dest_dir.c_str(), W_OK) << "\n";
+
     if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_dir.c_str(), W_OK) ) {
         cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
