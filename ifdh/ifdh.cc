@@ -62,7 +62,7 @@ ifdh::cp(string src_path, string dest_path) {
     //
     // if we can access source file for read and destination director for write
     // 
-    if ( 0 != getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+    if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
         cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
     } else {
