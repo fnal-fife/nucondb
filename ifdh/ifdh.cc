@@ -19,7 +19,7 @@ namespace ifdh_ns {
 
 string cpn_loc  = "cpn";  // just use the one in the PATH -- its a product now
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
-string bestmanuri = "srm://fg-bestman1.fnal.gov:10443";
+string bestmanuri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
 
 string datadir() {
     stringstream dirmaker;
@@ -94,7 +94,6 @@ ifdh::cp(string src_path, string dest_path) {
     // if we can access source file for read and destination director for write
     // 
     _debug && cout << "src, dest: " << src_path << "," << dest_path << "\n";
-    _debug && cout << "access(src), access(dest): " << access(src_path.c_str(),R_OK) << "," << access(dest_dir.c_str(), W_OK) << "\n";
 
     if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_dir.c_str(), W_OK) ) {
         cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
