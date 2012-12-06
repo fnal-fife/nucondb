@@ -47,34 +47,58 @@ ifdh::cleanup() {
     return system(cmd.c_str());
 }
 
+#include <sys/vfs.h> 
+#include <linux/magic.h>
+
+int
+local_access(const char *path, int mode) {
+    static struct statfs buf;
+    int res;
+
+    res = statfs(path, &buf);
+    if (0 != res ) {
+       return res;
+    }
+    if (buf.f_type == NFS_SUPER_MAGIC) {
+       return -1;
+    } else {
+       return access(path, mode);
+    }
+}
 
 // file io
 
 int 
 ifdh::cp(string src_path, string dest_path) {
     stringstream cmd;
+    string dest_dir;
     int dest_dir_loc;
 
     //
     // pick out the directory component in the destination
     //   
     dest_dir_loc = dest_path.rfind("/");
+    if ( dest_dir_loc == -1 ) {
+         dest_dir = '.';
+    } else {
+        dest_dir = dest_path.substr(0,dest_dir_loc);
+    }
     //
     // if we can access source file for read and destination director for write
     // 
-    if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+    if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_dir.c_str(), W_OK) ) {
         cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
     } else {
         cmd << "srmcp";
 
-        if ( 0 == access(src_path.c_str(),R_OK) ) {
+        if ( 0 == local_access(src_path.c_str(),R_OK)  ) {
 	   cmd << " file:///" << src_path;  
         } else {
 	   cmd << " " << bestmanuri << src_path;  
         }
 
-        if (0 == access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
+        if (0 == local_access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
 	   cmd << " file:///" << dest_path;  
         } else {
 	   cmd << " " << bestmanuri  << dest_path;  
