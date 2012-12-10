@@ -149,6 +149,7 @@ ifdh::fetchInput( string src_uri ) {
             throw(WebAPIException("cpn falied:", err.str().c_str() ));
         }
         _debug && cout << "returning:" << path;
+        _lastinput = path;
         return path;
     }
     if (src_uri.substr(0,6) == "srm://") {
@@ -169,16 +170,21 @@ ifdh::fetchInput( string src_uri ) {
             throw(WebAPIException("srmcp falied:", err.str().c_str() ));
         }
         _debug && cout << "returning:" << path;
+        _lastinput = path;
         return path;
     }
     throw(WebAPIException("Unknown uri type",src_uri.substr(0,8)));
 }
 
 // file output
+//
+// keep track of output filenames and last input file name
+// for renameOutput, and copytBackOutput...
+//
 int 
 ifdh::addOutputFile(string filename) {
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
-    outlog << filename << "\n";
+    outlog << filename << " " << _lastinput << "\n";
     outlog.close();
     return 1;
 }
@@ -188,6 +194,8 @@ ifdh::copyBackOutput(string dest_dir) {
     stringstream cmd;
     string line;
     stringstream err;
+    string file;
+    size_t spos;
     int res;
     string outfiles_name;
     // int baseloc = dest_dir.find("/") + 1;
@@ -202,7 +210,13 @@ ifdh::copyBackOutput(string dest_dir) {
 	cmd << "/bin/sh " << cpn_loc;
         while (!outlog.eof() && !outlog.fail()) {
             getline(outlog,line);
-            cmd << " " << line;
+            spos = line.find(' ');
+            if (spos != string::npos) {
+	        file = line.substr(0,spos);
+            } else {
+                file = line;
+            }
+            cmd << " " << file;
         }
         cmd << " " << dest_dir;
 
@@ -218,7 +232,13 @@ ifdh::copyBackOutput(string dest_dir) {
             cmd << "globus_url_copy";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
-		cmd << " file:///" << line;
+		spos = line.find(' ');
+		if (spos != string::npos) {
+		    file = line.substr(0,spos);
+		} else {
+		    file = line;
+		}
+		cmd << " file:///" << file;
 	    }
             cmd << " ftp://" << gftpHost << dest_dir;
 
@@ -228,7 +248,13 @@ ifdh::copyBackOutput(string dest_dir) {
 	    cmd << "srmcp";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
-		cmd << " file:///" << line;
+		spos = line.find(' ');
+		if (spos != string::npos) {
+		    file = line.substr(0,spos);
+		} else {
+		    file = line;
+		}
+		cmd << " file:///" << file;
 	    }
 	    cmd << " " << bestmanuri << dest_dir;
        }
@@ -428,6 +454,103 @@ ifdh::ifdh(std::string baseuri) : _baseuri(baseuri) { ; }
 void
 ifdh::set_base_uri(std::string baseuri) { 
     _baseuri = baseuri; 
+}
+
+// give output files reported with addOutputFile a unique name
+int 
+ifdh::renameOutput(std::string how) {
+    std::string outfiles_name = datadir()+"/output_files";
+    std::string new_outfiles_name = datadir()+"/output_files.new";
+    std::string line;
+    fstream outlog(outfiles_name.c_str(), ios_base::in);
+    fstream newoutlog(new_outfiles_name.c_str(), ios_base::out);
+    std::string file, infile, froms, tos, outfile;
+    size_t spos;
+   
+
+    if ( outlog.fail()) {
+       return 0;
+    }
+
+    if (how[0] == 's') {
+
+        spos = how.find('/',2);
+        froms = how.substr( 2, spos - 2);
+        tos = how.substr( spos+1, how.size() - (spos + 2));
+
+        _debug && std::cout << "replacing " << froms << " with " << tos << "\n";
+
+        while (!outlog.eof() && !outlog.fail()) {
+            getline(outlog,line);
+            spos = line.find(' ');
+         
+            file = line.substr(0,spos);
+            infile = line.substr(spos+1, line.size() - spos);
+  
+            spos = infile.rfind(froms);
+            if (string::npos != spos) { 
+                outfile = infile;
+                outfile = outfile.replace(spos, froms.size(), tos);
+                _debug && std::cout << "renaming: " << file << " " << outfile << "\n";
+                rename(file.c_str(), outfile.c_str());
+            } else {
+                outfile = file;
+            }
+            newoutlog << outfile << " " << infile << "\n";
+
+        }
+    } else if (how[0] == 'u') {
+        int count = 0;
+        char hbuf[512];
+        gethostname(hbuf, 512);
+        time_t t = time(0);
+        int pid = getpid();
+
+
+        while (!outlog.eof() && !outlog.fail()) {
+            count++;
+
+            getline(outlog,line);
+            spos = line.find(' ');
+         
+            file = line.substr(0,spos-1);
+            infile = line.substr(spos+1, line.size() - spos);
+
+            spos = file.find('.');
+            if (spos == string::npos) {
+               spos = 0;
+            }
+
+            stringstream uniqstr;
+            uniqstr << hbuf << t << "_" << pid;
+
+            outfile = file;
+            outfile = outfile.insert( spos, uniqstr.str() );
+	    rename(file.c_str(), outfile.c_str());
+
+	    _debug && std::cout << "renaming: " << file << " " << outfile << "\n";
+            newoutlog << outfile << " " << infile << "\n";
+        }
+    }
+    outlog.close();
+    newoutlog.close();
+    return rename(new_outfiles_name.c_str(), outfiles_name.c_str());
+}
+
+int
+ifdh::mv( std::string src, std::string dest ) {
+    int res;
+    res = cp(src, dest);
+    if ( res == 0 ) {
+        if (0 == access(src.c_str(), W_OK)) {
+            return unlink(src.c_str());
+        } else {
+            string srmcmd("srmrm ");
+            srmcmd += src;
+            return system(srmcmd.c_str());
+        }
+    }
+    return res;
 }
 
 }

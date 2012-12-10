@@ -12,7 +12,7 @@ namespace ifdh_ns {
 class ifdh {
        
         std::string _baseuri;
-
+        std::string _lastinput;
    public:
         static int _debug;
 
@@ -87,6 +87,10 @@ class ifdh {
         int endProject(std::string projecturi);
         // clean up any tmp file stuff
         int cleanup();
+        // give output files reported with addOutputFile a unique name
+        int renameOutput(std::string how);
+        // general file rename using mvn or srmcp
+        int mv(std::string src, std::string dest);
 };
 
 }
