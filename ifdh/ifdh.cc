@@ -17,12 +17,16 @@ using namespace std;
 
 namespace ifdh_ns {
 
+int
+ifdh::_debug = 0;
+
 string cpn_loc  = "cpn";  // just use the one in the PATH -- its a product now
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
 
 string datadir() {
     stringstream dirmaker;
+    int res;
     
     dirmaker << (
        getenv("_CONDOR_SCRATCH_DIR")?getenv("_CONDOR_SCRATCH_DIR"):
@@ -32,13 +36,12 @@ string datadir() {
              << "/ifdh_" << getppid();
 
     if ( 0 != access(dirmaker.str().c_str(), W_OK) ) {
-        mkdir(dirmaker.str().c_str(),0700);
+        res = mkdir(dirmaker.str().c_str(),0700);
+        cout <<  "mkdir " << dirmaker.str() << " => " << res << "\n";
     }
     return dirmaker.str().c_str();
 }
 
-int
-ifdh::_debug = 0;
 
 int
 ifdh::cleanup() {
@@ -93,10 +96,10 @@ ifdh::cp(string src_path, string dest_path) {
     //
     // if we can access source file for read and destination director for write
     // 
-    _debug && cout << "src, dest: " << src_path << "," << dest_path << "\n";
+    _debug && std::cerr << "src, dest: " << src_path << "," << dest_path << "\n";
 
     if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_dir.c_str(), W_OK) ) {
-        cmd << "/bin/sh " << cpn_loc << " " << src_path << " " << dest_path;
+        cmd <<  cpn_loc << " " << src_path << " " << dest_path;
         // otherwise, use srmpcp
     } else {
         cmd << "srmcp";
@@ -113,7 +116,7 @@ ifdh::cp(string src_path, string dest_path) {
 	   cmd << " " << bestmanuri  << dest_path;  
         }
     }
-    _debug && cout << "running: " << cmd.str() << "\n";
+    _debug && std::cerr << "running: " << cmd.str() << "\n";
     return system(cmd.str().c_str());
 }
 
@@ -132,23 +135,24 @@ ifdh::fetchInput( string src_uri ) {
     int p1, p2;
 
     if (src_uri.substr(0,7) == "file://") {
-	cmd << "/bin/sh " << cpn_loc 
+	cmd << cpn_loc 
             << " " << src_uri.substr(7) 
             << " " << localPath( src_uri )
             << " >&2" ;
-        _debug && cout << "running: " << cmd.str() << "\n";
+        _debug && std::cerr << "running: " << cmd.str() << "\n";
         res = system(cmd.str().c_str());
-        _debug && cout << "res is: " << res << "\n";
+        _debug && std::cerr << "res is: " << res << "\n";
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
         path = cmd.str().substr(p2+1, p1 - p2 -1);
         res2 = access(path.c_str(), R_OK);
-        _debug && cout << "access res is: " << res2 << "\n";
+        _debug && std::cerr << "access res is: " << res2 << "\n";
         if (res != 0 || res2 != 0 ) {
             err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
-            throw(WebAPIException("cpn falied:", err.str().c_str() ));
+            throw(WebAPIException("cpn failed:", err.str().c_str() ));
         }
-        _debug && cout << "returning:" << path;
+        _debug && std::cerr << "returning:" << path << "\n";
+
         _lastinput = path;
         return path;
     }
@@ -157,19 +161,19 @@ ifdh::fetchInput( string src_uri ) {
             << " " << src_uri 
             << " " << "file:///" << localPath( src_uri )
             << " >&2" ;
-        _debug && cout << "running: " << cmd.str() << "\n";
+        _debug && std::cerr << "running: " << cmd.str() << "\n";
         res = system(cmd.str().c_str());
-        _debug && cout << "res is: " << res << "\n";
+        _debug && std::cerr << "res is: " << res << "\n";
         p1 = cmd.str().rfind(" ");
         p2 = cmd.str().rfind(" ", p1-1);
         path = cmd.str().substr(p2 + 8 , p1 - p2 - 8);
         res2 = access(path.c_str(), R_OK);
-        _debug && cout << "access res is: " << res2 << "\n";
+        _debug && std::cerr << "access res is: " << res2 << "\n";
         if (res != 0 || res2 != 0) {
             err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
-            throw(WebAPIException("srmcp falied:", err.str().c_str() ));
+            throw(WebAPIException("srmcp failed:", err.str() ));
         }
-        _debug && cout << "returning:" << path;
+        _debug && std::cerr << "returning:" << path << "\n";
         _lastinput = path;
         return path;
     }
@@ -207,7 +211,7 @@ ifdh::copyBackOutput(string dest_dir) {
 
     if (0 == access(dest_dir.c_str(), W_OK) && 0 == getenv("IFDH_FORCE_SRM") && 0 == getenv("IFDH_FORCE_IFGRIDFTP")) {
         // destination is visible, so use cpn
-	cmd << "/bin/sh " << cpn_loc;
+	cmd  << cpn_loc;
         while (!outlog.eof() && !outlog.fail()) {
             getline(outlog,line);
             spos = line.find(' ');
@@ -215,6 +219,9 @@ ifdh::copyBackOutput(string dest_dir) {
 	        file = line.substr(0,spos);
             } else {
                 file = line;
+            }
+            if ( !file.size() ) {
+               break;
             }
             cmd << " " << file;
         }
@@ -238,6 +245,9 @@ ifdh::copyBackOutput(string dest_dir) {
 		} else {
 		    file = line;
 		}
+                if ( !file.size() ) {
+                   break;
+                }
 		cmd << " file:///" << file;
 	    }
             cmd << " ftp://" << gftpHost << dest_dir;
@@ -254,6 +264,9 @@ ifdh::copyBackOutput(string dest_dir) {
 		} else {
 		    file = line;
 		}
+                if ( !file.size() ) {
+                   break;
+                }
 		cmd << " file:///" << file;
 	    }
 	    cmd << " " << bestmanuri << dest_dir;
@@ -262,7 +275,7 @@ ifdh::copyBackOutput(string dest_dir) {
     res = system(cmd.str().c_str());
     if (res != 0) {
         err << "command: '" << cmd << "'exit code: " << res;
-        throw(WebAPIException("copy  falied:", err.str().c_str() ));
+        throw(WebAPIException("copy  failed:", err.str().c_str() ));
     }
     return 1;
 }
@@ -293,8 +306,8 @@ WebAPI *
 do_url_2(int postflag, va_list ap) {
     stringstream url;
     stringstream postdata;
-    string urls;
-    string postdatas;
+    static string urls;
+    static string postdatas;
     const char *sep = "";
     char * name;
     char * val;
@@ -322,8 +335,7 @@ do_url_2(int postflag, va_list ap) {
     urls = url.str();
     postdatas= postdata.str();
 
-    if (ifdh::_debug) cout << "calling WebAPI with url: " << urls << " and postdata: " << postdatas;
-    if (ifdh::_debug) cout.flush();
+    if (ifdh::_debug) std::cerr << "calling WebAPI with url: " << urls << " and postdata: " << postdatas << "\n";
 
     return new WebAPI(urls, postflag, postdatas);
 }
@@ -335,6 +347,7 @@ do_url_int(int postflag, ...) {
     va_start(ap, postflag);
     WebAPI *wap = do_url_2(postflag, ap);
     res = wap->getStatus() - 200;
+    if (ifdh::_debug) std::cerr << "got back int result: " << res << "\n";
     delete wap;
     return res;
 }
@@ -351,6 +364,7 @@ do_url_str(int postflag,...) {
       getline(wap->data(), line);
       res = res + line;
     }
+    if (ifdh::_debug) std::cerr << "got back string result: " << res << "\n";
     delete wap;
     return res;
 }
@@ -465,6 +479,7 @@ ifdh::renameOutput(std::string how) {
     fstream outlog(outfiles_name.c_str(), ios_base::in);
     fstream newoutlog(new_outfiles_name.c_str(), ios_base::out);
     std::string file, infile, froms, tos, outfile;
+    int res;
     size_t spos;
    
 
@@ -476,23 +491,30 @@ ifdh::renameOutput(std::string how) {
 
         spos = how.find('/',2);
         froms = how.substr( 2, spos - 2);
-        tos = how.substr( spos+1, how.size() - (spos + 2));
+        tos = how.substr( spos+1, how.size() - (spos-1));
 
-        _debug && std::cout << "replacing " << froms << " with " << tos << "\n";
+        _debug && std::cerr << "replacing " << froms << " with " << tos << "\n";
 
         while (!outlog.eof() && !outlog.fail()) {
             getline(outlog,line);
             spos = line.find(' ');
          
             file = line.substr(0,spos);
-            infile = line.substr(spos+1, line.size() - spos);
+            infile = line.substr(spos+1, line.size() - spos - 1);
+
+            if ( ! file.size() ) {
+               break;
+            }
   
             spos = infile.rfind(froms);
             if (string::npos != spos) { 
                 outfile = infile;
                 outfile = outfile.replace(spos, froms.size(), tos);
-                _debug && std::cout << "renaming: " << file << " " << outfile << "\n";
-                rename(file.c_str(), outfile.c_str());
+                _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";
+                res = rename(file.c_str(), outfile.c_str());
+                if ( 0 != res ) {
+                    throw(WebAPIException("rename failed:", file.c_str() ));
+                }
             } else {
                 outfile = file;
             }
@@ -513,22 +535,26 @@ ifdh::renameOutput(std::string how) {
             getline(outlog,line);
             spos = line.find(' ');
          
-            file = line.substr(0,spos-1);
-            infile = line.substr(spos+1, line.size() - spos);
+            file = line.substr(0,spos);
+            infile = line.substr(spos+1, line.size() - spos - 1);
 
+            if ( ! file.size() ) {
+               break;
+            }
+  
             spos = file.find('.');
             if (spos == string::npos) {
                spos = 0;
             }
 
             stringstream uniqstr;
-            uniqstr << hbuf << t << "_" << pid;
+            uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count;
 
             outfile = file;
             outfile = outfile.insert( spos, uniqstr.str() );
 	    rename(file.c_str(), outfile.c_str());
 
-	    _debug && std::cout << "renaming: " << file << " " << outfile << "\n";
+	    _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";
             newoutlog << outfile << " " << infile << "\n";
         }
     }
