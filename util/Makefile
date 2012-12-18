@@ -6,7 +6,7 @@ OBJ=$(addsuffix .o,$(basename $(SRC)))
 TST=$(addsuffix -test,$(basename($SRC)))
 DEFS=
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-pedantic-errors -Wall -Werror -fPIC -g $(DEFS) $(ARCH) -I../../util
+CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I../../util
 
 
 all: $(OBJ) $(TST)

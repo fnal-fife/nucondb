@@ -61,7 +61,7 @@ find_end(std::string s, char c, int pos, bool quotes ) {
     // pass:    0     1     2     3
     // If there's no quotes, we just pick up and find the 
     // separator (i.e. the comma)
-    if (s[pos] == '"') {
+    if (quotes || s[pos] == '"') {
         possible_end = s.find('"', possible_end+2);
     }
     

@@ -7,7 +7,7 @@ UTLOBJ=../util/SyslogAPI.o ../util/utils.o
 OBJ=numsg.o
 HDR=numsg.h
 LOG_OBJ= nulogprintf.o $(OBJ)
-CXXFLAGS=-pedantic-errors -Wall -Werror -fpic -g $(ARCH) -I../util -I../../util -I$(SRCDIR)
+CXXFLAGS=-pedantic-errors -Wall  -Wextra -Werror -fpic -g $(ARCH) -I../util -I../../util -I$(SRCDIR)
 
 VPATH=../../numsg
 
