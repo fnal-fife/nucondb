@@ -491,7 +491,7 @@ ifdh::renameOutput(std::string how) {
 
         spos = how.find('/',2);
         froms = how.substr( 2, spos - 2);
-        tos = how.substr( spos+1, how.size() - (spos-1));
+        tos = how.substr( spos+1, how.size() - spos - 2);
 
         _debug && std::cerr << "replacing " << froms << " with " << tos << "\n";
 
