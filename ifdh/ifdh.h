@@ -28,7 +28,7 @@ class ifdh {
         void set_base_uri(std::string baseuri);
 
         // general file copy using cpn or srmcp
-        int cp(std::string src, std::string dest);
+        int cp(std::vector<std::string> args);
 
 	// get input file to local scratch, return scratch location
 	std::string fetchInput( std::string src_uri );
@@ -90,7 +90,7 @@ class ifdh {
         // give output files reported with addOutputFile a unique name
         int renameOutput(std::string how);
         // general file rename using mvn or srmcp
-        int mv(std::string src, std::string dest);
+        int mv(std::vector<std::string> args);
 };
 
 }

@@ -32,6 +32,8 @@ do
         printf "static int di(int i)\t{ exit(i);  return 1; }\n"
         printf "static int ds(string s)\t { cout << s << \"\\\\n\"; return 1; }\n"
         printf "static int dv(vector<string> v)\t{ for(size_t i = 0; i < v.size(); i++) { cout << v[i] << \"\\\\n\"; } return 1; }\n"
+        printf "static vector<string> argvec(int argc, char **argv) { vector<string> v; for(int i = 0; i < argc; i++ ) { v.push_back(argv[i]); } return v; }\n"
+
         printf "\n"
 
         printf "int\nmain(int argc, char **argv) { \n"
@@ -70,8 +72,18 @@ do
     $xlate || continue
     if $docall
     then
-        cargs=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int ([a-z]*)/atol_$1/g;'`
-        args=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int//g;'`
+        case "$args" in
+        *vector*string*args*)
+          echo "argvec case: $args" >&2 
+          cargs="argvec"
+          args="args";
+          ;;
+        *)
+          echo "usual case: $args" >&2 
+          cargs=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int ([a-z]*)/atol_$1/g;'`
+          args=`echo $args | perl -pe 's/std::string//g; s/= ".*?"//g; s/= -1//g; s/;.*//; s/int//g;'`
+          ;;
+        esac
         echo "cargs are now: $cargs" >&2
         help="$help
                 cout << \"\\\\tifdh $func $args\\\\n\\\\t--$lastcomment\\\n\";"
@@ -79,9 +91,13 @@ do
         else="else "
         i=2
         sep=""
-        for a in $cargs 
+        for a in $cargs
         do 
-            case $a in
+            case "$a" in
+            argvec*)
+                 echo "saw argvec case" >&2
+                 printf "argvec(argc-1,argv+1)"
+                 ;;
             atol*)
                  echo "saw atol case" >&2
                  printf "$sep argv[$i]?atol(argv[$i]):-1"; 

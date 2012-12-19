@@ -74,47 +74,104 @@ local_access(const char *path, int mode) {
 extern "C" { const char *get_current_dir_name(); }
 
 int 
-ifdh::cp(string src_path, string dest_path) {
+ifdh::cp(vector<string> args) {
     stringstream cmd;
     string dest_dir;
-    int dest_dir_loc;
+    string dest_path;
+    string opts;
+    int local;
+    int nfs;
+    int remote;
+    size_t dest_dir_loc;
+    vector<string>::iterator p;
+    string cwd(get_current_dir_name());
 
-    if (src_path[0] != '/') {
-	string cwd(get_current_dir_name());
-	src_path = cwd + "/" + src_path;
+    if ( args[0][0] == '-' ) {
+       opts = args[0];
     }
 
-    if (dest_path[0] != '/') {
-	string cwd(get_current_dir_name());
-	dest_path = cwd  + "/" + dest_path;
-    }
     //
     // pick out the directory component in the destination
     //   
+    dest_path = args.back();
     dest_dir_loc = dest_path.rfind("/");
     dest_dir = dest_path.substr(0,dest_dir_loc);
+
+    local = 0;
+    remote = 0;
+    for (p = args.begin(); p != args.end() ; p++ ) {
+        if ( (*p)[0] == '-' ) {
+            continue;
+        }
+        // make paths absolute
+        if ( (*p)[0] != '/' ) {
+            *p =  cwd + "/" + *p;
+        }
+        // count local/nfs/remote paths
+        if ( 0 == local_access(p->c_str(), R_OK) ) {
+            local++;
+        } else if ( *p == args.back() && 0 == local_access(dest_dir.c_str(),W_OK) ) {
+            local++;
+        } else if ( 0 == access(p->c_str(), R_OK) ) {
+            nfs++;
+        } else if ( *p == args.back() && 0 == access(dest_dir.c_str(),W_OK) ) {
+            nfs++;
+        } else { 
+            remote++;
+        }
+    }
+
     //
     // if we can access source file for read and destination director for write
     // 
-    _debug && std::cerr << "src, dest: " << src_path << "," << dest_path << "\n";
+    if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == getenv("IFDH_FORCE_IFGRIDFTP") && remote == 0) {
+        cmd <<  cpn_loc << " " << opts;
+	for (p = args.begin(); p != args.end() ; p++ ) {
+	    if ( (*p)[0] == '-' ) {
+		continue;
+	    }
+            cmd << " " << *p;
+        }
+	// otherwise, use gridftp or srmcp
+    } else if ( 0 != getenv("IFDH_FORCE_IFGRIDFTP") ) {
 
-    if ( 0 == getenv("IFDH_FORCE_SRM") && 0 == access(src_path.c_str(), R_OK) && 0 == access(dest_dir.c_str(), W_OK) ) {
-        cmd <<  cpn_loc << " " << src_path << " " << dest_path;
-        // otherwise, use srmpcp
+	std::string gftpHost("if-gridftp-");
+	gftpHost.append(getexperiment());
+
+	vector<string> cmdargs;
+	cmd << "globus_url_copy " << opts;
+
+	for (p = args.begin(); p != args.end() ; p++ ) {
+	    if ( (*p)[0] == '-' ) {
+		continue;
+	    }
+	    // count local/nfs/remote paths
+	    if ( 0 == local_access(p->c_str(), R_OK) ) {
+		cmd << " " << "file:///" << *p ;
+	    } else if ( *p == args.back() && 0 == local_access(dest_dir.c_str(),W_OK) ) {
+		cmd << " " << "file:///" << *p ;
+	    } else { 
+		cmd << " ftp:" << gftpHost << *p ;
+	    }
+	}
+        
     } else {
-        cmd << "srmcp";
 
-        if ( 0 == local_access(src_path.c_str(),R_OK)  ) {
-	   cmd << " file:///" << src_path;  
-        } else {
-	   cmd << " " << bestmanuri << src_path;  
-        }
+        cmd << "srmcp " << opts;
 
-        if (0 == local_access(dest_path.substr(0,dest_dir_loc).c_str(), W_OK) ) {
-	   cmd << " file:///" << dest_path;  
-        } else {
-	   cmd << " " << bestmanuri  << dest_path;  
-        }
+	for (p = args.begin(); p != args.end() ; p++ ) {
+	    if ( (*p)[0] == '-' ) {
+		continue;
+	    }
+	    // count local/nfs/remote paths
+	    if ( 0 == local_access(p->c_str(), R_OK) ) {
+		cmd << " " << "file:///" << *p ;
+	    } else if ( *p == args.back() && 0 == local_access(dest_dir.c_str(),W_OK) ) {
+		cmd << " " << "file:///" << *p ;
+	    } else { 
+		cmd << " " << bestmanuri << *p ;
+	    }
+	}
     }
     _debug && std::cerr << "running: " << cmd.str() << "\n";
     return system(cmd.str().c_str());
@@ -567,16 +624,25 @@ ifdh::renameOutput(std::string how) {
 }
 
 int
-ifdh::mv( std::string src, std::string dest ) {
+ifdh::mv(vector<string> args) {
     int res;
-    res = cp(src, dest);
+    vector<string>::iterator p;
+    string srmcmd("srmrm ");
+    int srms = 0;
+
+    res = cp(args);
     if ( res == 0 ) {
-        if (0 == access(src.c_str(), W_OK)) {
-            return unlink(src.c_str());
-        } else {
-            string srmcmd("srmrm ");
-            srmcmd += src;
-            return system(srmcmd.c_str());
+        args.pop_back();
+        for (p = args.begin(); p != args.end() ; p++ ) {
+            if (0 == access(p->c_str(), W_OK)) {
+                unlink((*p).c_str());
+            } else {
+                srmcmd +=  bestmanuri + *p + " ";
+                srms++;
+            }
+        }
+        if (srms) {
+            system(srmcmd.c_str());
         }
     }
     return res;
