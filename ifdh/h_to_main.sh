@@ -96,7 +96,7 @@ do
             case "$a" in
             argvec*)
                  echo "saw argvec case" >&2
-                 printf "argvec(argc-1,argv+1)"
+                 printf "argvec(argc-2,argv+2)"
                  ;;
             atol*)
                  echo "saw atol case" >&2

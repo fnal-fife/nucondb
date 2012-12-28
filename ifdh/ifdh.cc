@@ -245,6 +245,9 @@ ifdh::fetchInput( string src_uri ) {
 int 
 ifdh::addOutputFile(string filename) {
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
+    if (!_lastinput.size() && getenv("IFDH_INPUT_FILE")) {
+        _lastinput = getenv("IFDH_INPUT_FILE");
+    }
     outlog << filename << " " << _lastinput << "\n";
     outlog.close();
     return 1;
