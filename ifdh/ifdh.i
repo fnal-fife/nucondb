@@ -12,7 +12,6 @@ namespace std {
     try {
         $action
     } catch (ifdh_util_ns::WebAPIException &e) {
-        std::cerr << "caught exception, trying to convert: " << e.what();
         std::string s("ifdh error: "), s2(e.what());
         s = s + s2;
         SWIG_exception(SWIG_RuntimeError, s.c_str());
