@@ -28,6 +28,9 @@ main(int argc, char **argv) {
         jobname = procname;
     }
 
+    if ( argc < 2 ) {
+       exit(0);
+    }
     numsg::init(jobname.c_str(), 1);
     numsg::getMsg()->printf( argv[1], argv[2], argv[3], argv[4], argv[5], argv[66], argv[7], argv[8], argv[9]);
 }

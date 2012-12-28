@@ -12,9 +12,8 @@ namespace std {
     try {
         $action
     } catch (ifdh_util_ns::WebAPIException &e) {
-        std::string s("ifdh error: "), s2(e.what());
-        s = s + s2;
-        SWIG_exception(SWIG_RuntimeError, s.c_str());
+        e.what();
+        SWIG_exception(SWIG_RuntimeError, e.what());
     } catch (...) {
         SWIG_exception(SWIG_RuntimeError, "unknown exception");
     }
