@@ -5,7 +5,7 @@ LIB=libifdh.so
 HDR=ifdh.h
 SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo /usr/include/python*` $(ARCH)
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g -I`echo /usr/include/python*` $(ARCH) -I$(SRCDIR)
-OBJ=ifdh.o
+OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
@@ -30,7 +30,7 @@ python:
 ifdh_main.cc: h_to_main.sh ifdh.h
 	sh $^ > $@
 
-ifdh: libifdh.so ifdh_main.o
+ifdh: libifdh.so ifdh_main.o 
 	g++ $(ARCH) -o $@ ifdh_main.o $(ALL_OBJS)
 	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
