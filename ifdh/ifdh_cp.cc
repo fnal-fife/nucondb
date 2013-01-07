@@ -65,6 +65,10 @@ public:
 	FILE *pf;
         int parent_pid;
 
+        if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
+            return;
+        }
+
 	// call lock, skip to last line 
 	pf = popen("$CPN_DIR/bin/lock","r");
 	while (fgets(buf, 512, pf)) {
@@ -99,10 +103,13 @@ public:
 
     void
     free() {
-      kill(_heartbeat_pid, 15);
-      waitpid(_heartbeat_pid, NULL, 0);
-      system("$CPN_DIR/bin/lock free");
-      _heartbeat_pid = -1;
+        if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
+            return;
+        }
+        kill(_heartbeat_pid, 15);
+        waitpid(_heartbeat_pid, NULL, 0);
+        system("$CPN_DIR/bin/lock free");
+        _heartbeat_pid = -1;
     }
 
     cpn_lock() : _heartbeat_pid(-1) { ; }
@@ -136,7 +143,8 @@ std::vector<std::string> expandfile( std::string fname ) {
 
 std::string parent_dir(std::string path) {
    size_t pos = path.rfind('/');
-   return path.substr(0, pos - 1);
+   ifdh::_debug && cout << "parent of " << path << " is " << path.substr(0, pos );
+   return path.substr(0, pos);
 }
 
 int 
@@ -151,8 +159,9 @@ ifdh::cp( std::vector<std::string> args ) {
 
     // handle --force=whatever and -f initially...
 
-    if (args[curarg].substr(0,7) == "--force=") {
-       force = args[0].substr(7,1);
+    if (args[curarg].substr(0,8) == "--force=") {
+       force = args[0].substr(8,1);
+       _debug && cout << "force option is " << args[curarg] << " char is " << force << "\n";
        curarg++;
     }
 
@@ -178,7 +187,7 @@ ifdh::cp( std::vector<std::string> args ) {
 	for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
 	    if( 0 != local_access(args[i].c_str(),R_OK) ) {
 	       
-		if ( i == args.size() || args[i+1] == ";" ) {
+		if ( i == args.size() - 1 || args[i+1] == ";" ) {
 
 		   if (0 != local_access(parent_dir(args[i]).c_str(),R_OK)) {
 		       // if last one (destination)  and parent isn't 
@@ -226,7 +235,7 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_cpn ? "cp "  : use_srm ? "srmcp " : use_exp_gridftp||use_bst_gridftp ? "globus_url_copy " : "false" );
+         cmd << (use_cpn ? "cp "  : use_srm ? "srmcp " : use_exp_gridftp||use_bst_gridftp ? "globus-url-copy " : "false" );
          
          if (recursive) {
             cmd << "-r ";
@@ -238,13 +247,13 @@ ifdh::cp( std::vector<std::string> args ) {
                 // no need to munge arguments, take them as is.
                 cmd << args[curarg] << " ";
             } else if (0 == local_access(args[curarg].c_str(), R_OK)) {
-                cmd << "file://" << args[curarg];
-            } else if (( curarg == args.size() || args[curarg+1] == ";" ) && (0 == local_access(parent_dir(args[curarg]).c_str(), R_OK))) {
-                cmd << "file://" << args[curarg];
+                cmd << "file:///" << args[curarg];
+            } else if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && (0 == local_access(parent_dir(args[curarg]).c_str(), R_OK))) {
+                cmd << "file:///" << args[curarg];
             } else if (use_srm) {
 		cmd << bestman_srm_uri << args[curarg] << " ";
             } else if (use_exp_gridftp) {
-                cmd << "gsiftp:" << gftpHost << args[curarg] << " ";
+                cmd << "gsiftp://" << gftpHost << args[curarg] << " ";
             } else if (use_bst_gridftp) {
                 cmd << bestman_ftp_uri << args[curarg] << " ";
             }
