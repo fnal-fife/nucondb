@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# run this on a host without /$EXPERIMENT mounted to test
+# the automatic remote stuff.
+
+export EXPERIMENT=nova
+
+#currently ifdh actually guesses experiment based on $CONDOR_TMP...
+
+export CONDOR_TMP=/$EXPERIMENT/app/users/condor-tmp/$USER
+
+exp_dir=/$EXPERIMENT/app/users/$USER
+out_dir=/grid/data/$USER
+
+run_with_debug() {
+  IFDH_DEBUG=1 "$@" 2>&1
+  echo exit code $?
+}
+
+run_test() {
+    n=$1
+    shift
+    printf "%3d..." $n
+
+    if [ "x$1" = "x-v" ]
+    then
+        flag=$1
+        shift
+    else
+        flag=""
+    fi
+    expected=$1
+    shift
+    res=`run_with_debug "$@"` 
+    # echo "debug: $res"
+    if echo "$res" | egrep $flag "$expected" > /dev/null && echo "$res" | grep "exit code 0" > /dev/null 
+    then
+        echo "ok"
+    else
+        echo "failed"
+    fi
+}
+
+
+good_bestman_in="running: globus-url-copy gsiftp://fg-bestman1.fnal.gov:2811/.*file:////tmp/" 
+good_bestman_out="running: globus-url-copy file:////tmp/.*gsiftp://fg-bestman1.fnal.gov:2811/" 
+
+good_exp_in="running: globus-url-copy gsiftp://if-gridftp-$EXPERIMENT/.*file:////tmp/"
+good_exp_out="running: globus-url-copy file:////tmp/.*gsiftp://if-gridftp-$EXPERIMENT/"
+
+
+rm -f /tmp/extras.fcl
+run_test 1  "$good_bestman_in" ifdh cp --force=gridftp $exp_dir/extras.fcl /tmp/extras.fcl
+run_test 2  "$good_bestman_out" ifdh cp --force=gridftp /tmp/extras.fcl $out_dir/out1.fcl
+
+rm -f /tmp/extras.fcl
+run_test 3  "good_exp_in" ifdh cp --force=exp  $exp_dir/extras.fcl /tmp/extras.fcl
+run_test 4  "$good_exp_out" ifdh cp --force=exp /tmp/extras.fcl $out_dir/out2.fcl
+
+rm -f /tmp/extras.fcl
+
+if [ -d $exp_dir ]
+then
+  run_test 5  "$good_cpn_in" ifdh cp $exp_dir/extras.fcl /tmp/extras.fcl
+  run_test 6  "$good_cpn_out" ifdh cp /tmp/extras.fcl $out_dir/out2.fcl
+  echo "This test run with $exp_dir mounted, also run without"
+else
+  run_test 5  "$good_bestman_in" ifdh cp $exp_dir/extras.fcl /tmp/extras.fcl
+  run_test 6  "$good_exp_out" ifdh cp /tmp/extras.fcl $out_dir/out2.fcl
+  echo "This test run with $exp_dir not mounted, also run with"
+fi
+
+# XXX need batch mode tests.

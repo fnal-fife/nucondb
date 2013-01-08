@@ -143,7 +143,7 @@ std::vector<std::string> expandfile( std::string fname ) {
 
 std::string parent_dir(std::string path) {
    size_t pos = path.rfind('/');
-   ifdh::_debug && cout << "parent of " << path << " is " << path.substr(0, pos );
+   ifdh::_debug && cout << "parent of " << path << " is " << path.substr(0, pos ) << "\n";
    return path.substr(0, pos);
 }
 
@@ -247,9 +247,9 @@ ifdh::cp( std::vector<std::string> args ) {
                 // no need to munge arguments, take them as is.
                 cmd << args[curarg] << " ";
             } else if (0 == local_access(args[curarg].c_str(), R_OK)) {
-                cmd << "file:///" << args[curarg];
+                cmd << "file:///" << args[curarg] << " ";
             } else if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && (0 == local_access(parent_dir(args[curarg]).c_str(), R_OK))) {
-                cmd << "file:///" << args[curarg];
+                cmd << "file:///" << args[curarg] << " ";
             } else if (use_srm) {
 		cmd << bestman_srm_uri << args[curarg] << " ";
             } else if (use_exp_gridftp) {
