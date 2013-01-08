@@ -185,6 +185,9 @@ ifdh::cp( std::vector<std::string> args ) {
     if (force[0] == ' ') { // not forcing anything, so look
 
 	for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+            if( args[i] == ";" ) {
+                continue;
+            }
 	    if( 0 != local_access(args[i].c_str(),R_OK) ) {
 	       
 		if ( i == args.size() - 1 || args[i+1] == ";" ) {
@@ -195,11 +198,13 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // to get desired ownership. 
 		       use_cpn = 0;
 		       use_exp_gridftp = 1;
+                       _debug && cout << "deciding to use exp gridftp due to: " << args[i] << "\n";
 		   }      
 		} else {
 		   // for non-local sources, default to bestman gridftp
 		   use_cpn = 0;
 		   use_bst_gridftp = 1;
+	           _debug && cout << "deciding to use bestman gridftp due to: " << args[i] << "\n";
 		}
 		break;
 	     }

@@ -32,7 +32,7 @@ run_test() {
     expected=$1
     shift
     res=`run_with_debug "$@"` 
-    # echo "debug: $res"
+    echo "debug: $res"
     if echo "$res" | egrep $flag "$expected" > /dev/null && echo "$res" | grep "exit code 0" > /dev/null 
     then
         echo "ok"
@@ -54,7 +54,7 @@ run_test 1  "$good_bestman_in" ifdh cp --force=gridftp $exp_dir/extras.fcl /tmp/
 run_test 2  "$good_bestman_out" ifdh cp --force=gridftp /tmp/extras.fcl $out_dir/out1.fcl
 
 rm -f /tmp/extras.fcl
-run_test 3  "good_exp_in" ifdh cp --force=exp  $exp_dir/extras.fcl /tmp/extras.fcl
+run_test 3  "$good_exp_in" ifdh cp --force=exp  $exp_dir/extras.fcl /tmp/extras.fcl
 run_test 4  "$good_exp_out" ifdh cp --force=exp /tmp/extras.fcl $out_dir/out2.fcl
 
 rm -f /tmp/extras.fcl
@@ -70,4 +70,31 @@ else
   echo "This test run with $exp_dir not mounted, also run with"
 fi
 
+rm -f /tmp/extras.fcl
 # XXX need batch mode tests.
+
+work=/tmp/work$$
+mkdir $work
+mkdir $work/a
+mkdir $work/a/b
+mkdir $work/a/c
+echo hi1 > $work/a/f1
+echo hi2 > $work/a/f2
+echo hi3 > $work/a/b/f3
+echo hi4 > $work/a/b/f4
+echo hi5 > $work/a/c/f5
+echo hi6 > $work/a/c/f6
+
+mkdir $work/d
+mkdir $work/d/b
+mkdir $work/d/c
+
+run_test 7 ".*" ifdh cp -r $work/a $work/b
+
+ls -R $work/b
+
+run_test 8 ".*"  ifdh cp $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
+
+ls -R $work/d
+
+rm -rf $work
