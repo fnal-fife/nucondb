@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "utils.h"
+#include <pwd.h>
 
 
 namespace ifdh_util_ns {
@@ -270,11 +271,17 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
             throw(WebAPIException(url,"BadURL: only http: and https: supported"));
          }
 
+         struct passwd *ppasswd = getpwuid(getuid());
+         char hostbuf[512];
+         gethostname(hostbuf, 512);
+
 	 // now some basic http protocol
 	 _tosite << method << pu.path << " HTTP/1.0\r\n";
 	 _debug && std::cerr << "sending: "<< method << pu.path << " HTTP/1.0\r\n";
 	 _tosite << "Host: " << pu.host << ":" << pu.port <<"\r\n";
 	 _debug && std::cerr << "sending header: " << "Host: " << pu.host << "\r\n";
+	 _tosite << "From: " << ppasswd->pw_name << "@" << hostbuf  <<"\r\n";
+	 _debug && std::cerr << "sending header: " << "From: " << ppasswd->pw_name << "@" << hostbuf << "\r\n";
 	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
 	 _debug && std::cerr << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
@@ -365,7 +372,7 @@ test_WebAPI_fetchurl() {
    std::string line;
 
 
-   WebAPI ds("http://www-css.fnal.gov/~mengel/Ascii_Chart.html");
+   WebAPI ds("http://www-oss.fnal.gov/~mengel/Ascii_Chart.html");
 
     std::cout << "ds.data().eof() is " << ds.data().eof() << std::endl;
     while(!ds.data().eof()) {
