@@ -147,15 +147,80 @@ std::string parent_dir(std::string path) {
    return path.substr(0, pos);
 }
 
+//
+// figure the destination filename for a source file
+// and a destination directory.
+//
+
+std::string dest_file( std::string src_file, std::string dest_dir) {
+    size_t pos;
+    pos = src_file.rfind('/');
+    if (pos == std::string::npos) {
+        pos = 0;
+    } else {
+        pos = pos + 1;
+    }
+    return dest_dir + "/" + src_file.substr(pos);
+}
+
+void
+test_dest_file() {
+    std::string src("/tmp/f1");
+    std::string ddir("/tmp/d2");
+    std::cout << "src: " << src << " ddir: " << ddir << " yeilds: " << dest_file(src,ddir) << "\n";
+}
+
+
+std::vector<std::string> slice_directories(std::vector<std::string> args, int curarg) {
+    std::vector<std::string> res;
+    std::vector<std::vector<std::string>::size_type> dest_slots;
+    
+    //
+    // find destination directory slots
+    //    
+    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+        if ( i == args.size() - 1 || args[i+1] == ";" ) {
+             dest_slots.push_back(i);
+        }
+    }
+
+    ifdh::_debug && std::cout << "slice_diretctories: building results:" ;
+    //
+    // now use destination directory slots to make
+    // pairwise copies
+    //
+    int cur_cp = 0;  // start with the zeroth copy
+    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+          if (args[i] == ";") {
+              cur_cp++;  // if we see a ";" we move on to next copy 
+              continue;
+          }
+          if( i != dest_slots[cur_cp] ) {  // don't do dest dest ";" 
+              res.push_back(args[i]);   
+              ifdh::_debug && std::cout << res.back() << " "; 
+              res.push_back(dest_file(args[i], args[dest_slots[cur_cp]]));   
+              ifdh::_debug && std::cout << res.back() << " ";
+              if (i != args.size() - 2) {
+                  res.push_back(";");
+                  ifdh::_debug && std::cout << res.back() << " ";
+              }
+          }
+     }
+     ifdh::_debug && std::cout << "\n";
+
+     return res;
+}
+
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
     std::string gftpHost("if-gridftp-");
     std::vector<std::string>::size_type curarg = 0;
-    int recursive = 0;
     string force = " ";
     cpn_lock cpn;
     int res;
+    bool recursive = false;
+    bool dest_is_dir = false;
 
     // handle --force=whatever and -f initially...
 
@@ -169,18 +234,23 @@ ifdh::cp( std::vector<std::string> args ) {
        curarg = 0;
        args = expandfile(args[1]);
     }
+
+    if (args[curarg] == "-D") { 
+       dest_is_dir = true;
+       curarg++;
+    }
    
     if (args[curarg] == "-r") { 
-       recursive = 1;
+       recursive = true;
        curarg++;
     }
  
     // now decide local/remote
     // if anything is not local, use remote
-    int use_srm = 0;
-    int use_exp_gridftp = 0;
-    int use_bst_gridftp = 0;
-    int use_cpn = 1;
+    bool use_srm = false;
+    bool use_exp_gridftp = false;
+    bool use_bst_gridftp = false;
+    bool use_cpn = true;
 
     if (force[0] == ' ') { // not forcing anything, so look
 
@@ -210,14 +280,14 @@ ifdh::cp( std::vector<std::string> args ) {
 	     }
 	 }
      } else if (force[0] == 's') {
-         use_cpn = 0;
-         use_srm = 1;
+         use_cpn = false;
+         use_srm = true;
      } else if (force[0] == 'g') {
-         use_cpn = 0;
-         use_bst_gridftp = 1;
+         use_cpn = false;
+         use_bst_gridftp = true;
      } else if (force[0] == 'e') {
-         use_cpn = 0;
-         use_exp_gridftp = 1;
+         use_cpn = false;
+         use_exp_gridftp = true;
      } else if (force[0] == 'c') { 
           ;   // forcing CPN, already set
      } else {
@@ -231,6 +301,11 @@ ifdh::cp( std::vector<std::string> args ) {
 
      if (use_exp_gridftp) {
         gftpHost.append(getexperiment());
+     }
+
+     if (dest_is_dir && !use_cpn) {
+         args = slice_directories(args, curarg);
+         curarg = 0;
      }
 
      int keep_going = 1;

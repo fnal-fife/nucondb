@@ -89,12 +89,21 @@ mkdir $work/d
 mkdir $work/d/b
 mkdir $work/d/c
 
+mkdir $work/e
+mkdir $work/e/b
+mkdir $work/e/c
+
 run_test 7 ".*" ifdh cp -r $work/a $work/b
 
 ls -R $work/b
 
-run_test 8 ".*"  ifdh cp $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
+run_test 8 ".*"  ifdh cp -D $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
 
 ls -R $work/d
+
+
+run_test 9 ".*"  ifdh cp --force=gridftp -D $work/a/f* $work/e \; $work/a/b/f* $work/e/b \; $work/a/c/f* $work/e/c
+
+ls -R $work/e
 
 rm -rf $work
