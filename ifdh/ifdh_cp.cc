@@ -127,15 +127,21 @@ std::vector<std::string> expandfile( std::string fname ) {
   std::string line;
   size_t pos;
 
+  bool first = true;
+
   fstream listf(fname.c_str(), fstream::in);
+  getline(listf, line);
   while( !listf.eof() && !listf.fail()) {
-      getline(listf, line);
+      if( !first ) {
+  	 res.push_back( ";" );
+      }
+      first = false;
       pos = line.find(' ');
       if (pos != string::npos) {
          res.push_back( line.substr(0,pos) );
          res.push_back( line.substr(pos+1) );
-         res.push_back( ";" );
       }
+      getline(listf, line);
   }
  
   return res;
@@ -355,5 +361,33 @@ ifdh::cp( std::vector<std::string> args ) {
     return res;
 } 
 
+
+int
+ifdh::mv(vector<string> args) {
+    int res;
+    vector<string>::iterator p;
+
+    res = cp(args);
+    if ( res == 0 ) {
+        args.pop_back();
+        for (p = args.begin(); p != args.end() ; p++ ) {
+            string &s = *p;
+            if (s == ";" || *(p+1) == ";" || s[0] == '-') {
+                // don't remove destinations, options, or files named ";"
+                continue;
+            }
+            if (0 == access(s.c_str(), W_OK)) {
+                _debug && std::cout << "unlinking: " << s << "\n";
+                unlink(s.c_str());
+            } else {
+                string srmcmd("srmrm ");
+                srmcmd +=  bestman_srm_uri + s + " ";
+                _debug && std::cout << "running: " << srmcmd << "\n";
+                // system(srmcmd.c_str());
+            }
+        }
+    }
+    return res;
+}
 
 }

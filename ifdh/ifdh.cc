@@ -502,29 +502,4 @@ ifdh::renameOutput(std::string how) {
     return rename(new_outfiles_name.c_str(), outfiles_name.c_str());
 }
 
-int
-ifdh::mv(vector<string> args) {
-    int res;
-    vector<string>::iterator p;
-    string srmcmd("srmrm ");
-    int srms = 0;
-
-    res = cp(args);
-    if ( res == 0 ) {
-        args.pop_back();
-        for (p = args.begin(); p != args.end() ; p++ ) {
-            if (0 == access(p->c_str(), W_OK)) {
-                unlink((*p).c_str());
-            } else {
-                srmcmd +=  bestmanuri + *p + " ";
-                srms++;
-            }
-        }
-        if (srms) {
-            system(srmcmd.c_str());
-        }
-    }
-    return res;
-}
-
 }

@@ -74,6 +74,8 @@ rm -f /tmp/extras.fcl
 # XXX need batch mode tests.
 
 work=/tmp/work$$
+
+make_dirtest() {
 mkdir $work
 mkdir $work/a
 mkdir $work/a/b
@@ -88,22 +90,57 @@ echo hi6 > $work/a/c/f6
 mkdir $work/d
 mkdir $work/d/b
 mkdir $work/d/c
+}
 
-mkdir $work/e
-mkdir $work/e/b
-mkdir $work/e/c
+clean_dirtest() {
+  rm -rf $work
+}
 
+
+make_dirtest
 run_test 7 ".*" ifdh cp -r $work/a $work/b
 
 ls -R $work/b
+
+clean_dirtest
+
+make_dirtest
 
 run_test 8 ".*"  ifdh cp -D $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
 
 ls -R $work/d
 
+clean_dirtest
 
-run_test 9 ".*"  ifdh cp --force=gridftp -D $work/a/f* $work/e \; $work/a/b/f* $work/e/b \; $work/a/c/f* $work/e/c
+make_dirtest
 
-ls -R $work/e
+run_test 9 ".*"  ifdh cp --force=gridftp -D $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
 
-rm -rf $work
+ls -R $work/d
+
+clean_dirtest
+
+make_dirtest
+
+cat > $work/filelist <<EOF
+$work/a/f1 $work/d/f1
+$work/a/f2 $work/d/f2
+$work/a/b/f3 $work/d/b/f3
+$work/a/b/f4 $work/d/b/f4
+$work/a/c/f5 $work/d/c/f5
+$work/a/c/f6 $work/d/c/f6
+EOF
+
+run_test 10 ".*"  ifdh cp -f $work/filelist
+
+ls -R $work/d
+
+clean_dirtest
+
+make_dirtest
+
+run_test 11 ".*"  ifdh mv -D $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $work/a/c/f* $work/d/c
+
+ls -R $work/a $work/d
+
+clean_dirtest
