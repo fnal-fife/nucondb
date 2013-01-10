@@ -27,20 +27,14 @@ int WebAPI::_debug(0);
 //
 WebAPIException::WebAPIException( std::string message, std::string tag ) throw() {
    // memset(this, 0, sizeof(*this));
-   m_message = message;
-   m_tag = tag;
+   m_message = message + tag;
 }
-
 
 const char *
 WebAPIException::what() const throw() 
 {
-   static std::string s("Exception: ");
-   return (s + m_message + m_tag).c_str();
+   return m_message.c_str();
 }
-
-std::ostream& operator<< ( std::ostream& os , std::exception *pse )
- { pse && (os << pse->what()); return os; }
 
 std::string
 WebAPI::encode(std::string s) {
@@ -350,9 +344,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
         message << "Status: " << _status << "\n";
         message << "Error text is:\n";
         while (_fromsite.getline(buf, 512).gcount() > 0) {
-            message << buf << "\n";
+	    message << buf << "\n";
         }
-        
         throw(WebAPIException(url,message.str()));
      }    
 }
@@ -412,24 +405,24 @@ test_WebAPI_fetchurl() {
 
 	    std::cout << "got line: " << line << std::endl;;
       }
-   } catch (WebAPIException we) {
-      std::cout << &we << std::endl;
+   } catch (WebAPIException &we) {
+      std::cout << we.what() << std::endl;
    }
 
    try {
       WebAPI ds4("http://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
-   } catch (WebAPIException we) {
-      std::cout << &we << std::endl;
+   } catch (WebAPIException &we) {
+      std::cout << we.what() << std::endl;
    }
    try {
       WebAPI ds5("borked://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
-   } catch (WebAPIException we) {
-      std::cout << &we << std::endl;
+   } catch (WebAPIException &we) {
+      std::cout << we.what() << std::endl;
    }
    try {
       WebAPI ds6("http://www.fnal.gov/nosuchdir/nosuchfile.html");
-   } catch (WebAPIException we) {
-      std::cout << &we << std::endl;
+   } catch (WebAPIException &we) {
+      std::cout << we.what() << std::endl;
    }
 }
 
