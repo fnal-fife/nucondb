@@ -144,3 +144,5 @@ run_test 11 ".*"  ifdh mv -D $work/a/f* $work/d \; $work/a/b/f* $work/d/b \; $wo
 ls -R $work/a $work/d
 
 clean_dirtest
+
+run_test 12 ".*" ifdh cp ifdh_cp.cc test_out.cc

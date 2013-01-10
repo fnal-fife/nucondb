@@ -228,29 +228,54 @@ ifdh::cp( std::vector<std::string> args ) {
     bool recursive = false;
     bool dest_is_dir = false;
 
-    // handle --force=whatever and -f initially...
+    //
+    // parse arguments
+    //
+    while (args[curarg][0] == '-') {
 
-    if (args[curarg].substr(0,8) == "--force=") {
-       force = args[0].substr(8,1);
-       _debug && cout << "force option is " << args[curarg] << " char is " << force << "\n";
-       curarg++;
-    }
+        //
+        // first any --long args
+        //
+        if (args[curarg].substr(0,8) == "--force=") {
+           force = args[0].substr(8,1);
+           _debug && cout << "force option is " << args[curarg] << " char is " << force << "\n";
+           curarg++;
+           continue;
+        }
 
-    if (args[curarg] == "-f") { 
-       curarg = 0;
-       args = expandfile(args[1]);
-    }
+        //
+        // now any longer args
+        //
+	if (args[curarg].find('D') != std::string::npos) {
+           dest_is_dir = true;
+        }
 
-    if (args[curarg] == "-D") { 
-       dest_is_dir = true;
-       curarg++;
+	if (args[curarg].find('r')  != std::string::npos) {
+           recursive = true;
+        }
+ 
+        // 
+        // handle -f last, 'cause it rewrites arg list
+        //
+	if (args[curarg].find('f') != std::string::npos) {
+	   curarg = 0;
+	   args = expandfile(args[curarg + 1]);
+           continue;
+	}
+
+        curarg++;
     }
    
-    if (args[curarg] == "-r") { 
-       recursive = true;
-       curarg++;
+    // convert relative paths to absolute
+    
+    string cwd(get_current_dir_name());
+
+    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+       if (args[i][0] != ';' && args[i][0] != '/') {
+	   args[i] = cwd + "/" + args[i];
+       }
     }
- 
+
     // now decide local/remote
     // if anything is not local, use remote
     bool use_srm = false;
