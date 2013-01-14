@@ -228,6 +228,10 @@ ifdh::cp( std::vector<std::string> args ) {
     bool recursive = false;
     bool dest_is_dir = false;
 
+    if (getenv("IFDH_FORCE")) {
+        force = getenv("IFDH_FORCE");
+    }
+
     //
     // parse arguments
     //

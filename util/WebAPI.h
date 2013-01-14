@@ -5,20 +5,17 @@
 #include <string>
 #include <sstream>
 #include <ext/stdio_filebuf.h>
+#include <stdexcept>
 
 namespace ifdh_util_ns {
 
-class WebAPIException : public std::exception {
+class WebAPIException : public std::logic_error {
 
-protected:
-     std::string m_message;
-     std::string m_tag;
 public:
    WebAPIException( std::string message, std::string tag) throw();
+   WebAPIException( const WebAPIException &) throw();
    virtual ~WebAPIException() throw() {;};
-   std::string message() const { return m_message; }
-   std::string tag() const { return m_tag; }
-   virtual const char *what () const throw ();
+   //virtual const char *what () const throw ();
 };
 
 class WebAPI {

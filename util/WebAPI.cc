@@ -25,15 +25,8 @@ int WebAPI::_debug(0);
 // this works if we're subclassed from GaudiException or our
 // SimpleException...
 //
-WebAPIException::WebAPIException( std::string message, std::string tag ) throw() {
-   // memset(this, 0, sizeof(*this));
-   m_message = message + tag;
-}
-
-const char *
-WebAPIException::what() const throw() 
-{
-   return m_message.c_str();
+WebAPIException::WebAPIException( std::string message, std::string tag ) throw() : logic_error(message + tag) {
+   ;
 }
 
 std::string
@@ -406,23 +399,23 @@ test_WebAPI_fetchurl() {
 	    std::cout << "got line: " << line << std::endl;;
       }
    } catch (WebAPIException &we) {
-      std::cout << we.what() << std::endl;
+      std::cout << "WebAPIException: " << we.what() << std::endl;
    }
 
    try {
       WebAPI ds4("http://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
    } catch (WebAPIException &we) {
-      std::cout << we.what() << std::endl;
+      std::cout << "WebAPIException: " << we.what() << std::endl;
    }
    try {
       WebAPI ds5("borked://nosuch.fnal.gov/~mengel/Ascii_Chart.html");
    } catch (WebAPIException &we) {
-      std::cout << we.what() << std::endl;
+      std::cout  << "WebAPIException: " << we.what() << std::endl;
    }
    try {
       WebAPI ds6("http://www.fnal.gov/nosuchdir/nosuchfile.html");
    } catch (WebAPIException &we) {
-      std::cout << we.what() << std::endl;
+      std::cout << "WebAPIException: " << we.what() << std::endl;
    }
 }
 
