@@ -7,7 +7,7 @@ SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh 
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g -I`echo /usr/include/python*` $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
-genOBJ=ifdh_main.o ifdh_wrap.o
+genOBJ=ifdh_main.o ifdh_wrap.o python/_ifdh.so
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 

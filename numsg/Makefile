@@ -20,7 +20,7 @@ install:
 	cp $(HDR) ../include
 
 clean:
-	rm -f *.o $(BIN) $(LIB)
+	rm -f *.o *.a $(BIN) $(LIB)
 
 nulogprintf: $(LOG_OBJ)
 	$(CXX) $(CXXFLAGS) -o nulogprintf $(LOG_OBJ) $(UTLOBJ)

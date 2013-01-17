@@ -6,7 +6,7 @@ all:
 
 clean:
 	for d in $(SUBDIRS); do ([ -d $$d ] && cd $$d && make $@); done
-	rm -rf build_art
+	rm -rf build_art 
 
 install: install-headers install-libs
 
