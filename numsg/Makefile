@@ -20,7 +20,7 @@ install:
 	cp $(HDR) ../include
 
 clean:
-	rm *.o $(BIN) $(LIB)
+	rm -f *.o $(BIN) $(LIB)
 
 nulogprintf: $(LOG_OBJ)
 	$(CXX) $(CXXFLAGS) -o nulogprintf $(LOG_OBJ) $(UTLOBJ)
@@ -33,3 +33,6 @@ numsg-test: $(UTLOBJ) numsg.cc
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+
+nulogprintf.o: nulogprintf.cc numsg.h ../util/SyslogAPI.h 
+numsg.o: ../util/utils.h 

@@ -19,3 +19,5 @@ clean:
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+utils.o: utils.cc utils.h 
+WebAPI.o: WebAPI.cc WebAPI.h 

@@ -38,3 +38,5 @@ $(UTLOBJ):
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+
+nucondb.o: nucondb.cc ../util/WebAPI.h ../util/utils.h
