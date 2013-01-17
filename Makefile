@@ -20,7 +20,7 @@ install:
 	cp $(LIB) $(SHLIB) ../lib
 	cp $(HDR) ../include
 clean:
-	rm -f *.o *.a 
+	rm -f *.o *.a  *.so
 
 $(LIB): $(OBJ) $(UTLOBJ)
 	rm -f $(LIB)
