@@ -32,4 +32,4 @@ do
 done
 
 cd $fqdir && make -f ../Makefile all install-libs
-make install-headers
+cd .. && make install-headers
