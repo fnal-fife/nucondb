@@ -89,8 +89,9 @@ ifdh::fetchInput( string src_uri ) {
         _lastinput = path;
         return path;
     }
-    if (src_uri.substr(0,6) == "srm://") {
-        cmd << "srmcp" 
+    if (src_uri.substr(0,6) == "srm://"  ||
+           src_uri.substr(0,9) == "gsiftp://") {
+        cmd << (src_uri[0] == 's' ? "srmcp" : "globus-url-copy")
             << " " << src_uri 
             << " " << "file:///" << localPath( src_uri )
             << " >&2" ;
@@ -145,7 +146,7 @@ ifdh::copyBackOutput(string dest_dir) {
        return 0;
     }
 
-    if (0 == access(dest_dir.c_str(), W_OK) && 0 == getenv("IFDH_FORCE_SRM") && 0 == getenv("IFDH_FORCE_IFGRIDFTP")) {
+    if (0 == access(dest_dir.c_str(), W_OK) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'c')) {
         // destination is visible, so use cpn
 	cmd  << cpn_loc;
         while (!outlog.eof() && !outlog.fail()) {
@@ -169,10 +170,10 @@ ifdh::copyBackOutput(string dest_dir) {
         std::string gftpHost("if-gridftp-");
         gftpHost.append(getexperiment());
 
-        if (0 != (hostp = gethostbyname(gftpHost.c_str())) && 0 == getenv("IFDH_FORCE_SRM") ) {
+        if ( 0 != (hostp = gethostbyname(gftpHost.c_str())) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'e') ) {
             //  if experiment specific gridftp host exists, use it...
             
-            cmd << "globus_url_copy";
+            cmd << "globus-url-copy";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		spos = line.find(' ');
