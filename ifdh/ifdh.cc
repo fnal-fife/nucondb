@@ -23,6 +23,7 @@ ifdh::_debug = 0;
 string cpn_loc  = "cpn";  // just use the one in the PATH -- its a product now
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
+std::string ifdh::_default_base_uri = "http://samweb.fnal.gov:8480/sam/";
 
 string datadir() {
     stringstream dirmaker;
@@ -250,8 +251,8 @@ do_url_2(int postflag, va_list ap) {
     char * val;
 
     val = va_arg(ap,char *);
-    if (*val == 0) {
-        throw(WebAPIException("Environment variable IFDH_BASE_URI not set!",""));
+    if (val == 0 || *val == 0) {
+        throw(WebAPIException("Environment variables IFDH_BASE_URI and EXPERIMENT not set and no URL set!",""));
     }
     while (strlen(val)) {
         url << sep << val;
@@ -403,7 +404,17 @@ int ifdh::endProject(string projecturi) {
   return do_url_int(1,projecturi.c_str(),"endProject","","","");
 }
 
-ifdh::ifdh(std::string baseuri) : _baseuri(baseuri) { ; }
+ifdh::ifdh(std::string baseuri) { 
+    if (0 != getenv("IFDH_DEBUG")) { 
+	_debug = 1;
+    }
+    if ( baseuri == "" ) {
+        _baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):(getenv("EXPERIMENT")?_default_base_uri+getenv("EXPERIMENT")+"/api":"") ;
+     } else {
+       _baseuri = baseuri;
+    }
+    _debug && std::cerr << "ifdh constructor: _baseuri is '" << _baseuri << "'\n";
+}
 
 void
 ifdh::set_base_uri(std::string baseuri) { 
