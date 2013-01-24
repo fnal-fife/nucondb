@@ -99,10 +99,16 @@ class ifdh_cp_cases(unittest.TestCase):
 
     def test_recursive_globus(self):
 
-        os.mkdir('%s/d' % self.work)
-
-        self.ifdh_handle.cp([ "--force=gridftp", "-r", "%s/a"%self.work, "%s/d"%self.work])
+        # local to local hoses up, try copying out and back in
+        # force copy outbound by experiment ftp server, so we
+        # own the files and can clean them out when done.
+        self.ifdh_handle.cp([ "--force=expftp", "-r", "%s/a"%self.work, "%s/a"%self.data_dir])
         
+        self.ifdh_handle.cp([ "--force=gridftp", "-r", "%s/a"%self.data_dir, "%s/d"%self.work])
+
+        # a little clean-up       
+        os.system('ssh gpsn01 rm -rf %s/a &' % self.data_dir)
+ 
         #afterwards, should have 6 files in work/d
         l4 = glob.glob("%s/d/f*" % self.work)
         l5 = glob.glob("%s/d/b/f*" % self.work)
@@ -122,7 +128,6 @@ class ifdh_cp_cases(unittest.TestCase):
                l2 + ['%s/d/b'%self.work, ';'] +
                l3 + ['%s/d/c'%self.work ] )
         
-        print "Doing cp with list:", list
         self.ifdh_handle.cp(list)
 
         #afterwards, should have 6 files in work/d
@@ -144,7 +149,6 @@ class ifdh_cp_cases(unittest.TestCase):
                l1 + ['%s/d'%self.work , ';'] +
                l2 + ['%s/d/b'%self.work, ';'] +
                l3 + ['%s/d/c'%self.work ] )
-        print "Doing cp with list:", list
 
         self.ifdh_handle.cp(list)
 
