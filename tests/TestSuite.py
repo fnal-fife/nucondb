@@ -95,5 +95,6 @@ def suite():
     return suite
 
 if __name__ == '__main__':
-    unittest.main()
+    runner = unittest.TextTestRunner()
+    result = runner.run(suite())
 
