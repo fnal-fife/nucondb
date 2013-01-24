@@ -12,10 +12,12 @@ CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I../..
 all: $(OBJ) $(TST)
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) *.a
 
 %-test: %.cc
 	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $< utils.o
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+utils.o: utils.cc utils.h 
+WebAPI.o: WebAPI.cc WebAPI.h 

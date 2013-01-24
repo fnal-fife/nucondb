@@ -149,6 +149,9 @@ std::vector<std::string> expandfile( std::string fname ) {
 
 std::string parent_dir(std::string path) {
    size_t pos = path.rfind('/');
+   if (pos == path.length() - 1) {
+       pos = path.rfind('/', pos - 1);
+   }
    ifdh::_debug && cout << "parent of " << path << " is " << path.substr(0, pos ) << "\n";
    return path.substr(0, pos);
 }
@@ -215,6 +218,17 @@ std::vector<std::string> slice_directories(std::vector<std::string> args, int cu
      ifdh::_debug && std::cout << "\n";
 
      return res;
+}
+
+//
+// globus_url_copy will not do recursive directory copies
+// without a trailing slash on the url... sigh
+//
+std::string fix_recursive_arg(std::string arg, bool recursive) {
+   if (recursive && arg[arg.length()-1] != '/') {
+       arg = arg + "/";
+   }
+   return arg;
 }
 
 int 
@@ -355,8 +369,13 @@ ifdh::cp( std::vector<std::string> args ) {
          if (recursive) {
             cmd << "-r ";
          }
+         if (recursive && !use_cpn) {
+             cmd << "-cd ";
+         }
 
          while (curarg < args.size() && args[curarg] != ";" ) {
+
+            args[curarg] = fix_recursive_arg(args[curarg],recursive);
 
             if (use_cpn) { 
                 // no need to munge arguments, take them as is.

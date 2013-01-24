@@ -6,7 +6,10 @@ all:
 
 clean:
 	for d in $(SUBDIRS); do ([ -d $$d ] && cd $$d && make $@); done
-	rm -rf build_art
+	rm -rf build_art 
+
+test:
+	cd tests && python TestSuite.py
 
 install: install-headers install-libs
 

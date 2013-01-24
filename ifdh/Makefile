@@ -7,6 +7,7 @@ SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh 
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g -I`echo /usr/include/python*` $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
+genOBJ=ifdh_main.o ifdh_wrap.o python/_ifdh.so
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 
@@ -21,7 +22,7 @@ install:
 	cp python/* ../lib/python
 
 clean: 
-	rm $(OBJ)
+	rm -f $(OBJ) $(genOBJ) $(LIB) libifdh.a
 
 python:
 	mkdir python
@@ -65,3 +66,9 @@ ifdh_main.o: ifdh_main.cc
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+
+ifdh_cp.o: ifdh_cp.cc ifdh.h ../util/WebAPI.h ../util/../numsg/numsg.h ../util/../numsg/../util/SyslogAPI.h 
+
+ifdh_main.o: ifdh_main.cc ifdh.h ../util/WebAPI.h 
+
+ifdh.o: ifdh.cc ifdh.h ../util/WebAPI.h ../util/../numsg/numsg.h ../util/../numsg/../util/SyslogAPI.h ifdh.h ../util/WebAPI.h 

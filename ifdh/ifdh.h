@@ -15,14 +15,11 @@ class ifdh {
         std::string _lastinput;
    public:
         static int _debug;
+        static std::string _default_base_uri;
 
         // generic constructor...
 
-#ifdef SWIG
         ifdh(std::string baseuri = "");
-#else
-        ifdh(std::string baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):"");
-#endif
         void set_debug(std::string s) { _debug = s[0] - '0';}
 
         void set_base_uri(std::string baseuri);

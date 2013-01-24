@@ -23,6 +23,7 @@ ifdh::_debug = 0;
 string cpn_loc  = "cpn";  // just use the one in the PATH -- its a product now
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
+std::string ifdh::_default_base_uri = "http://samweb.fnal.gov:8480/sam/";
 
 string datadir() {
     stringstream dirmaker;
@@ -37,7 +38,7 @@ string datadir() {
 
     if ( 0 != access(dirmaker.str().c_str(), W_OK) ) {
         res = mkdir(dirmaker.str().c_str(),0700);
-        cout <<  "mkdir " << dirmaker.str() << " => " << res << "\n";
+        ifdh::_debug && cout <<  "mkdir " << dirmaker.str() << " => " << res << "\n";
     }
     return dirmaker.str().c_str();
 }
@@ -68,29 +69,16 @@ ifdh::fetchInput( string src_uri ) {
     int p1, p2;
 
     if (src_uri.substr(0,7) == "file://") {
-	cmd << cpn_loc 
-            << " " << src_uri.substr(7) 
-            << " " << localPath( src_uri )
-            << " >&2" ;
-        _debug && std::cerr << "running: " << cmd.str() << "\n";
-        res = system(cmd.str().c_str());
-        _debug && std::cerr << "res is: " << res << "\n";
-        p1 = cmd.str().rfind(" ");
-        p2 = cmd.str().rfind(" ", p1-1);
-        path = cmd.str().substr(p2+1, p1 - p2 -1);
-        res2 = access(path.c_str(), R_OK);
-        _debug && std::cerr << "access res is: " << res2 << "\n";
-        if (res != 0 || res2 != 0 ) {
-            err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
-            throw(WebAPIException("cpn failed:", err.str().c_str() ));
-        }
-        _debug && std::cerr << "returning:" << path << "\n";
-
-        _lastinput = path;
+        std::vector<std::string> args;
+        path = localPath( src_uri );
+        args.push_back(src_uri.substr(7));
+        args.push_back(path);
+        cp( args );
         return path;
     }
-    if (src_uri.substr(0,6) == "srm://") {
-        cmd << "srmcp" 
+    if (src_uri.substr(0,6) == "srm://"  ||
+           src_uri.substr(0,9) == "gsiftp://") {
+        cmd << (src_uri[0] == 's' ? "srmcp" : "globus-url-copy")
             << " " << src_uri 
             << " " << "file:///" << localPath( src_uri )
             << " >&2" ;
@@ -145,7 +133,7 @@ ifdh::copyBackOutput(string dest_dir) {
        return 0;
     }
 
-    if (0 == access(dest_dir.c_str(), W_OK) && 0 == getenv("IFDH_FORCE_SRM") && 0 == getenv("IFDH_FORCE_IFGRIDFTP")) {
+    if (0 == access(dest_dir.c_str(), W_OK) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'c')) {
         // destination is visible, so use cpn
 	cmd  << cpn_loc;
         while (!outlog.eof() && !outlog.fail()) {
@@ -169,10 +157,10 @@ ifdh::copyBackOutput(string dest_dir) {
         std::string gftpHost("if-gridftp-");
         gftpHost.append(getexperiment());
 
-        if (0 != (hostp = gethostbyname(gftpHost.c_str())) && 0 == getenv("IFDH_FORCE_SRM") ) {
+        if ( 0 != (hostp = gethostbyname(gftpHost.c_str())) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'e') ) {
             //  if experiment specific gridftp host exists, use it...
             
-            cmd << "globus_url_copy";
+            cmd << "globus-url-copy ";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		spos = line.find(' ');
@@ -249,8 +237,8 @@ do_url_2(int postflag, va_list ap) {
     char * val;
 
     val = va_arg(ap,char *);
-    if (*val == 0) {
-        throw(WebAPIException("Environment variable IFDH_BASE_URI not set!",""));
+    if (val == 0 || *val == 0) {
+        throw(WebAPIException("Environment variables IFDH_BASE_URI and EXPERIMENT not set and no URL set!",""));
     }
     while (strlen(val)) {
         url << sep << val;
@@ -402,7 +390,17 @@ int ifdh::endProject(string projecturi) {
   return do_url_int(1,projecturi.c_str(),"endProject","","","");
 }
 
-ifdh::ifdh(std::string baseuri) : _baseuri(baseuri) { ; }
+ifdh::ifdh(std::string baseuri) { 
+    if (0 != getenv("IFDH_DEBUG")) { 
+	_debug = 1;
+    }
+    if ( baseuri == "" ) {
+        _baseuri = getenv("IFDH_BASE_URI")?getenv("IFDH_BASE_URI"):(getenv("EXPERIMENT")?_default_base_uri+getenv("EXPERIMENT")+"/api":"") ;
+     } else {
+       _baseuri = baseuri;
+    }
+    _debug && std::cerr << "ifdh constructor: _baseuri is '" << _baseuri << "'\n";
+}
 
 void
 ifdh::set_base_uri(std::string baseuri) { 

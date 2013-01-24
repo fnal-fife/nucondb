@@ -20,7 +20,7 @@ install:
 	cp $(LIB) $(SHLIB) ../lib
 	cp $(HDR) ../include
 clean:
-	rm -f *.o *.a 
+	rm -f *.o *.a  *.so
 
 $(LIB): $(OBJ) $(UTLOBJ)
 	rm -f $(LIB)
@@ -38,3 +38,5 @@ $(UTLOBJ):
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
+
+nucondb.o: nucondb.cc ../util/WebAPI.h ../util/utils.h

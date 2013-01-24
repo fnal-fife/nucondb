@@ -31,5 +31,6 @@ do
    cp $d/Makefile $fqdir/$d/Makefile
 done
 
-cd $fqdir && make -f ../Makefile all install-libs
-cd .. && make install-headers
+(cd $fqdir && make -f ../Makefile all install-libs)
+
+make install-headers
