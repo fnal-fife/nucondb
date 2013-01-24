@@ -160,7 +160,7 @@ ifdh::copyBackOutput(string dest_dir) {
         if ( 0 != (hostp = gethostbyname(gftpHost.c_str())) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'e') ) {
             //  if experiment specific gridftp host exists, use it...
             
-            cmd << "globus-url-copy";
+            cmd << "globus-url-copy ";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		spos = line.find(' ');
