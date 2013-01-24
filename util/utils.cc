@@ -15,8 +15,13 @@ const
 char *getexperiment() {
     static char expbuf[MAXEXPBUF];
     char *p1;
-    char *penv = getenv("CONDOR_TMP");
+    char *penv = getenv("EXPERIMENT");
  
+    if (penv) {
+        return penv;
+    }
+  
+    penv = getenv("CONDOR_TMP");
     if (penv) {
          /* if CONDOR_TMP looks like one of ours, use it */
          p1 = strchr(penv+1, '/');

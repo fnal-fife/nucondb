@@ -38,7 +38,7 @@ string datadir() {
 
     if ( 0 != access(dirmaker.str().c_str(), W_OK) ) {
         res = mkdir(dirmaker.str().c_str(),0700);
-        cout <<  "mkdir " << dirmaker.str() << " => " << res << "\n";
+        ifdh::_debug && cout <<  "mkdir " << dirmaker.str() << " => " << res << "\n";
     }
     return dirmaker.str().c_str();
 }
@@ -69,25 +69,11 @@ ifdh::fetchInput( string src_uri ) {
     int p1, p2;
 
     if (src_uri.substr(0,7) == "file://") {
-	cmd << cpn_loc 
-            << " " << src_uri.substr(7) 
-            << " " << localPath( src_uri )
-            << " >&2" ;
-        _debug && std::cerr << "running: " << cmd.str() << "\n";
-        res = system(cmd.str().c_str());
-        _debug && std::cerr << "res is: " << res << "\n";
-        p1 = cmd.str().rfind(" ");
-        p2 = cmd.str().rfind(" ", p1-1);
-        path = cmd.str().substr(p2+1, p1 - p2 -1);
-        res2 = access(path.c_str(), R_OK);
-        _debug && std::cerr << "access res is: " << res2 << "\n";
-        if (res != 0 || res2 != 0 ) {
-            err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
-            throw(WebAPIException("cpn failed:", err.str().c_str() ));
-        }
-        _debug && std::cerr << "returning:" << path << "\n";
-
-        _lastinput = path;
+        std::vector<std::string> args;
+        path = localPath( src_uri );
+        args.push_back(src_uri.substr(7));
+        args.push_back(path);
+        cp( args );
         return path;
     }
     if (src_uri.substr(0,6) == "srm://"  ||
