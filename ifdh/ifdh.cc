@@ -326,7 +326,7 @@ ifdh::describeDefinition( string name) {
 
 vector<string> 
 ifdh::translateConstraints( string dims) {
-  return do_url_lst(0,_baseuri.c_str(),"translateConstraints", "", "dims", WebAPI::encode(dims).c_str(), "format","plain", "","" );
+  return do_url_lst(0,_baseuri.c_str(),"files", "list", "", "dims", WebAPI::encode(dims).c_str(), "","" );
 }
 
 // files
