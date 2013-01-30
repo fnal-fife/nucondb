@@ -4,6 +4,13 @@ Product=ifdhc
 Group:
 
 Flavor=ANY
+Qualifiers=python26
+_qualbits=
+
+Action=setupbuild
+     setupRequired( python v2_6_4 )
+
+Flavor=ANY
 Qualifiers=""
 _qualbits=
 
