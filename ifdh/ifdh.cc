@@ -360,6 +360,10 @@ ifdh::establishProcess( string projecturi, string appname, string appversion, st
   char buf[64];
   snprintf(buf, 64, "%d", filelimit); 
 
+  if (filelimit == -1) {
+     filelimit = 0;
+  }
+
   return do_url_str(1,projecturi.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "filelimit", buf, "", "");
 }
 
