@@ -25,7 +25,7 @@ char *getexperiment() {
     if (penv) {
          /* if CONDOR_TMP looks like one of ours, use it */
          p1 = strchr(penv+1, '/');
-         if (p1 && 0 == strncmp(p1, "/app/users/condor-tmp",20)) {
+         if (p1 && 0 == strncmp(p1, "/data/",6) ) {
              *p1 = 0;
              strncpy(expbuf, penv+1, MAXEXPBUF);
              *p1 = '/';
@@ -43,6 +43,7 @@ char *getexperiment() {
        return "gm2";
     case 5111:
        return "minos";
+    case 1004:  // nova at smu
     case 9553:
        return "nova";
     case 9555:
