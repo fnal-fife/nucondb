@@ -161,6 +161,7 @@ ifdh::copyBackOutput(string dest_dir) {
         struct hostent *hostp;
         std::string gftpHost("if-gridftp-");
         gftpHost.append(getexperiment());
+        gftpHost.append(".fnal.gov");
 
         if ( 0 != (hostp = gethostbyname(gftpHost.c_str())) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'e') ) {
             //  if experiment specific gridftp host exists, use it...

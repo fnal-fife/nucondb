@@ -350,6 +350,7 @@ ifdh::cp( std::vector<std::string> args ) {
 
      if (use_exp_gridftp) {
         gftpHost.append(getexperiment());
+        gftpHost.append(".fnal.gov");
      }
 
      if (dest_is_dir && !use_cpn) {
