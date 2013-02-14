@@ -7,7 +7,7 @@ import time
 #
 # flag to use development sam instances
 #
-do_dev_sam = False
+do_dev_sam = True
 
 if do_dev_sam:
     base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/dev/api"
