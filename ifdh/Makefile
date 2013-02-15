@@ -3,7 +3,7 @@ VPATH=$(SRCDIR)
 
 LIB=libifdh.so
 HDR=ifdh.h
-SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo $${PYTHON_LIB:-/usr/lib/python*/config}/../../../include/python*` $(ARCH)
+SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo $${PYTHON_CONF:-/usr/lib/python*/config}/../../../include/python*` $(ARCH)
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g  $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
@@ -36,7 +36,9 @@ ifdh: libifdh.so ifdh_main.o
 	./ifdh --help | perl -pe 's{\tifdh ([^ ]*) *(.*?) *$$}{* *ifdh* *$$1* _$$2_}; s{\t--}{** }' > ifdh.textile
 
 python/_ifdh.so: $(PYMOD_OBJS)
-	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-/usr/lib*/python*/config}/libpython*.[as]* || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-/usr/lib/python*/config}/libpython*.[as]*
+	test -d python || mkdir python 
+	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_CONF:-/usr/lib*/python*/config}/libpython*.[as]* || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_CONF:-/usr/lib/python*/config}/libpython*.[as]*
+
 
 libifdh.so: $(ALL_OBJS)
 	g++ --shared $(ARCH) $(CPPFLAGS)  -o $@ $(ALL_OBJS)
@@ -54,7 +56,7 @@ ifdh_wrap.cxx: ifdh.i
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
-	g++ $(SWIGCXXFLAGS) $(ARCH) -c -o $@ $<
+	set -x ; g++ $(SWIGCXXFLAGS) $(ARCH) -c -o $@ $<
         
 ifdh.o: ifdh.h
 
