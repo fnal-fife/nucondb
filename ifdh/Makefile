@@ -3,8 +3,8 @@ VPATH=$(SRCDIR)
 
 LIB=libifdh.so
 HDR=ifdh.h
-SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo /usr/include/python*` $(ARCH)
-CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g -I`echo /usr/include/python*` $(ARCH) -I$(SRCDIR)
+SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo $${PYTHON_LIB:-/usr/lib/python*/config}/../../../include/python*` $(ARCH)
+CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g  $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 genOBJ=ifdh_main.o ifdh_wrap.o python/_ifdh.so

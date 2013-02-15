@@ -13,7 +13,6 @@ class WebAPIException : public std::logic_error {
 
 public:
    WebAPIException( std::string message, std::string tag) throw();
-   WebAPIException( const WebAPIException &) throw();
    virtual ~WebAPIException() throw() {;};
    //virtual const char *what () const throw ();
 };
