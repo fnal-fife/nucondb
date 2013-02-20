@@ -72,6 +72,7 @@ public:
 	// call lock, skip to last line 
 	pf = popen("$CPN_DIR/bin/lock","r");
 	while (fgets(buf, 512, pf)) {
+            puts(buf); // let folks see the lock output
 	    ;
 	}
 	pclose(pf);

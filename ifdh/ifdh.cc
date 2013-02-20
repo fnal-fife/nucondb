@@ -49,6 +49,7 @@ check_env() {
                   setenvbuf << cpn_basedir << "/v1_" << i << "/NULL";
                   if (0 == access(setenvbuf.str().c_str(), R_OK)) {
                       setenv("CPN_DIR", setenvbuf.str().c_str(), 1);
+                      break;
                   }
               }
            }
