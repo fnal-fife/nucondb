@@ -20,6 +20,59 @@ namespace ifdh_ns {
 int
 ifdh::_debug = 0;
 
+void
+path_prepend( string s1, string s2) {
+    stringstream setenvbuf;
+    string curpath(getenv("PATH"));
+
+    setenvbuf << s1 << s2 << ":" << curpath;
+    setenv("PATH", setenvbuf.str().c_str(), 1);
+}
+
+//
+// make sure appropriate environment stuff is set
+// and improve our chances of finding cpn, globus tools, etc.
+//
+static void
+check_env() {
+    static int checked = 0;
+    static const char *cpn_basedir = "/grid/fermiapp/products/common/prd/cpn";
+
+    if (!checked) {
+        checked = 1;
+
+        // try to find cpn even if it isn't setup
+        if (!getenv("CPN_DIR")) {
+           if (0 == access(cpn_basedir, R_OK)) {
+              for (int i = 10; i > 0; i-- ) {
+                  stringstream setenvbuf;
+                  setenvbuf << cpn_basedir << "/v1_" << i << "/NULL";
+                  if (0 == access(setenvbuf.str().c_str(), R_OK)) {
+                      setenv("CPN_DIR", setenvbuf.str().c_str(), 1);
+                  }
+              }
+           }
+        }
+              
+        string path(getenv("PATH"));
+        char *p;
+
+        if (0 != (p = getenv("VDT_LOCATION"))) {
+            if (string::npos == path.find(p)) {
+               path_prepend(p,"/globus/bin");
+               path_prepend(p,"/srm-client-fermi/bin");
+            }
+        } else if (0 == access("/usr/bin/globus-url-copy", R_OK)) {
+            if (string::npos == path.find("/usr/bin")) {
+               path_prepend("/usr","/bin");
+            }
+        } else {
+             // where is vdt?!?
+             ;
+        }
+    }
+}
+
 string cpn_loc  = "cpn";  // just use the one in the PATH -- its a product now
 string fermi_gsiftp  = "gsiftp://fg-bestman1.fnal.gov:2811";
 string bestmanuri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
@@ -401,6 +454,7 @@ int ifdh::endProject(string projecturi) {
 }
 
 ifdh::ifdh(std::string baseuri) { 
+    check_env();
     if (0 != getenv("IFDH_DEBUG")) { 
 	_debug = 1;
     }

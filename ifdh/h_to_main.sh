@@ -33,6 +33,7 @@ do
         printf "static int ds(string s)\t { cout << s << \"\\\\n\"; return 1; }\n"
         printf "static int dv(vector<string> v)\t{ for(size_t i = 0; i < v.size(); i++) { cout << v[i] << \"\\\\n\"; } return 1; }\n"
         printf "static vector<string> argvec(int argc, char **argv) { vector<string> v; for(int i = 0; i < argc; i++ ) { v.push_back(argv[i]); } return v; }\n"
+        printf "static string catargs(int argc, char **argv) { string res; for(int i = 0; i < argc; i++ ) { res.append(argv[i]); res.append(\" \"); } return res; }\n"
 
         printf "\n"
 
@@ -70,7 +71,14 @@ do
     $xlate || continue
     if $docall
     then
+        echo "args is: '$args'" >&2
         case "$args" in
+        std::string\ message\ *)
+          echo "message special case" >&2
+          cargs="catargs"
+          args="args";
+          ;;
+
         *vector*string*args*)
           echo "argvec case: $args" >&2 
           cargs="argvec"
@@ -92,6 +100,10 @@ do
         for a in $cargs
         do 
             case "$a" in
+            catargs*)
+                 echo "saw catargs case" >&2
+                 printf "catargs(argc-2,argv+2)"
+                 ;;
             argvec*)
                  echo "saw argvec case" >&2
                  printf "argvec(argc-2,argv+2)"
