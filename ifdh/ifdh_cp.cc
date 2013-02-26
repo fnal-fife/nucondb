@@ -308,11 +308,11 @@ ifdh::cp( std::vector<std::string> args ) {
             if( args[i] == ";" ) {
                 continue;
             }
-	    if( 0 != local_access(args[i].c_str(),R_OK) ) {
+	    if( 0 != access(args[i].c_str(),R_OK) ) {
 	       
 		if ( i == args.size() - 1 || args[i+1] == ";" ) {
 
-		   if (0 != local_access(parent_dir(args[i]).c_str(),R_OK)) {
+		   if (0 != access(parent_dir(args[i]).c_str(),R_OK)) {
 		       // if last one (destination)  and parent isn't 
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
