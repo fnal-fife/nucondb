@@ -8,7 +8,7 @@ Qualifiers=python26
 _qualbits=
 
 Action=setupbuild
-     setupRequired( python v2_6_4 )
+#     setupRequired( python v2_6_4 )
 
 Flavor=ANY
 Qualifiers=""
