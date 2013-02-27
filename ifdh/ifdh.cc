@@ -137,7 +137,7 @@ ifdh::fetchInput( string src_uri ) {
     }
     if (src_uri.substr(0,6) == "srm://"  ||
            src_uri.substr(0,9) == "gsiftp://") {
-        cmd << (src_uri[0] == 's' ? "srmcp" : "globus-url-copy")
+        cmd << (src_uri[0] == 's' ? "srmcp -2 " : "globus-url-copy")
             << " " << src_uri 
             << " " << "file:///" << localPath( src_uri )
             << " >&2" ;
@@ -239,7 +239,7 @@ ifdh::copyBackOutput(string dest_dir) {
         } else {
             // destination is not visible, use srmcp
             
-	    cmd << "srmcp";
+	    cmd << "srmcp -2 ";
             while (!outlog.eof() && !outlog.fail()) {
 		getline(outlog, line);
 		spos = line.find(' ');

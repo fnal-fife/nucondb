@@ -373,7 +373,7 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_cpn ? "cp "  : use_srm ? "srmcp " : use_exp_gridftp||use_bst_gridftp ? "globus-url-copy " : "false" );
+         cmd << (use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_exp_gridftp||use_bst_gridftp ? "globus-url-copy " : "false" );
          
          if (recursive) {
             cmd << "-r ";
