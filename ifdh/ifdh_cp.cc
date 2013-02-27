@@ -243,6 +243,13 @@ ifdh::cp( std::vector<std::string> args ) {
     bool recursive = false;
     bool dest_is_dir = false;
 
+    if (_debug) {
+         std::cout << "entering ifdh::cp( ";
+         for( std::vector<std::string>::size_type i = 0; i < args.size(); i++ ) {
+             std::cout << args[i] << " ";
+         }
+    }
+
     if (getenv("IFDH_FORCE")) {
         force = getenv("IFDH_FORCE");
     }
@@ -256,7 +263,7 @@ ifdh::cp( std::vector<std::string> args ) {
         // first any --long args
         //
         if (args[curarg].substr(0,8) == "--force=") {
-           force = args[0].substr(8,1);
+           force = args[curarg].substr(8,1);
            _debug && cout << "force option is " << args[curarg] << " char is " << force << "\n";
            curarg++;
            continue;

@@ -114,6 +114,25 @@ class ifdh_cp_cases(unittest.TestCase):
         l5 = glob.glob("%s/d/b/f*" % self.work)
         l6 = glob.glob("%s/d/c/f*" % self.work)
         self.assertEqual(len(l4)+len(l5)+len(l6), 6)
+
+    def test_recursive_globus_w_args(self):
+
+        # local to local hoses up, try copying out and back in
+        # force copy outbound by experiment ftp server, so we
+        # own the files and can clean them out when done.
+        self.ifdh_handle.cp([ "-r", "--force=expftp", "%s/a"%self.work, "%s/a"%self.data_dir])
+        
+        self.ifdh_handle.cp([ "-r", "--force=gridftp", "%s/a"%self.data_dir, "%s/d"%self.work])
+
+        # a little clean-up       
+        os.system('ssh gpsn01 rm -rf %s/a &' % self.data_dir)
+ 
+        #afterwards, should have 6 files in work/d
+        l4 = glob.glob("%s/d/f*" % self.work)
+        l5 = glob.glob("%s/d/b/f*" % self.work)
+        l6 = glob.glob("%s/d/c/f*" % self.work)
+        self.assertEqual(len(l4)+len(l5)+len(l6), 6)
+        
         
     def test_dirmode(self):
         l1 = glob.glob("%s/a/f*" % self.work)
@@ -146,6 +165,28 @@ class ifdh_cp_cases(unittest.TestCase):
         os.mkdir('%s/d/c' % self.work)
 
         list = (["--force=gridftp", "-D"] +
+               l1 + ['%s/d'%self.work , ';'] +
+               l2 + ['%s/d/b'%self.work, ';'] +
+               l3 + ['%s/d/c'%self.work ] )
+
+        self.ifdh_handle.cp(list)
+
+        #afterwards, should have 6 files in work/d
+        l4 = glob.glob("%s/d/f*" % self.work)
+        l5 = glob.glob("%s/d/b/f*" % self.work)
+        l6 = glob.glob("%s/d/c/f*" % self.work)
+        self.assertEqual(len(l4)+len(l5)+len(l6), 6)
+        
+    def test_dirmode_globus_args_order(self):
+
+        l1 = glob.glob("%s/a/f*" % self.work)
+        l2 = glob.glob("%s/a/b/f*" % self.work)
+        l3 = glob.glob("%s/a/c/f*" % self.work)
+        os.mkdir('%s/d' % self.work)
+        os.mkdir('%s/d/b' % self.work)
+        os.mkdir('%s/d/c' % self.work)
+
+        list = (["-D",  "--force=gridftp" ] +
                l1 + ['%s/d'%self.work , ';'] +
                l2 + ['%s/d/b'%self.work, ';'] +
                l3 + ['%s/d/c'%self.work ] )
