@@ -32,9 +32,9 @@ class ifdh_cp_cases(unittest.TestCase):
         self.hostname = socket.gethostname()
         self.work="/tmp/work%d" % os.getpid()
 	self.data_dir="/grid/data/%s" % os.environ['USER']
-        res = os.system("/scratch/grid/kproxy %s" % ifdh_cp_cases.experiment)
-        if 0 == res:
-            os.environ['X509_USER_PROXY'] = "/scratch/%s/grid/%s.%s.proxy" % ( 
+        if not  os.environ.has_key('X509_USER_PROXY'):
+            print "please run: /scratch/grid/kproxy %s" % ifdh_cp_cases.experiment
+            print "and export X509_USER_PROXY=/scratch/%s/grid/%s.%s.proxy" % ( 
 		os.environ['USER'], os.environ['USER'],ifdh_cp_cases.experiment)
 
         # setup test directory tree..
