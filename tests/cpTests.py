@@ -11,10 +11,16 @@ base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/api"
 class ifdh_cp_cases(unittest.TestCase):
     experiment = "nova"
     tc = 0
+    buffer = True
+
+    def list_remote_dir(self):
+        f = os.popen('srmls "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s" 2>&1' % self.data_dir, "r")
+        # print f.read()
+        f.close()
 
     def make_test_txt(self):
         # clean out copy on data dir...
-        os.system('ssh gpsn01 rm -f %s/test.txt' % self.data_dir)
+        os.system('srmrm "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" > srm.out 2>&1' % self.data_dir)
         ifdh_cp_cases.tc = ifdh_cp_cases.tc + 1
         out = open("%s/test.txt" % self.work, "w")
         out.write("testing testing %d \n" % ifdh_cp_cases.tc)
@@ -32,9 +38,9 @@ class ifdh_cp_cases(unittest.TestCase):
         self.hostname = socket.gethostname()
         self.work="/tmp/work%d" % os.getpid()
 	self.data_dir="/grid/data/%s" % os.environ['USER']
-        os.system("/scratch/grid/kproxy %s" % ifdh_cp_cases.experiment)
-        os.environ['X509_USER_PROXY'] = "/scratch/%s/grid/%s.%s.proxy" % ( 
-		os.environ['USER'], os.environ['USER'],ifdh_cp_cases.experiment)
+        #os.system("/scratch/grid/kproxy %s" % ifdh_cp_cases.experiment)
+        #os.environ['X509_USER_PROXY'] = "/scratch/%s/grid/%s.%s.proxy" % ( 
+	#	os.environ['USER'], os.environ['USER'],ifdh_cp_cases.experiment)
 
         # setup test directory tree..
         count = 0
@@ -56,6 +62,7 @@ class ifdh_cp_cases(unittest.TestCase):
         self.assertEqual(0,0)  # not sure how to verify if it is remote..
 
     def test_gsiftp_in(self):
+        self.list_remote_dir()
         self.ifdh_handle.cp([ "--force=gridftp" , "%s/test.txt" % self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
@@ -65,6 +72,7 @@ class ifdh_cp_cases(unittest.TestCase):
         self.assertEqual(0,0)  # not sure how to verify if it is remote..
 
     def test_expftp_in(self):
+        self.list_remote_dir()
         self.ifdh_handle.cp([ "--force=expftp" , "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
@@ -74,6 +82,7 @@ class ifdh_cp_cases(unittest.TestCase):
         self.assertEqual(0,0)  # not sure how to verify if it is remote..
 
     def test_srm_in(self):
+        self.list_remote_dir()
         self.ifdh_handle.cp([ "--force=srm" , "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
@@ -83,6 +92,7 @@ class ifdh_cp_cases(unittest.TestCase):
         self.assertEqual(0,0)  # not sure how to verify if it is remote..
 
     def test_default_in(self):
+        self.list_remote_dir()
         self.ifdh_handle.cp([ "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         res = os.stat("%s/test.txt" % self.work)
         self.assertEqual(self.check_test_txt(), True)
@@ -106,8 +116,6 @@ class ifdh_cp_cases(unittest.TestCase):
         
         self.ifdh_handle.cp([ "--force=gridftp", "-r", "%s/a"%self.data_dir, "%s/d"%self.work])
 
-        # a little clean-up       
-        os.system('ssh gpsn01 rm -rf %s/a &' % self.data_dir)
  
         #afterwards, should have 6 files in work/d
         l4 = glob.glob("%s/d/f*" % self.work)
@@ -124,9 +132,6 @@ class ifdh_cp_cases(unittest.TestCase):
         
         self.ifdh_handle.cp([ "-r", "--force=gridftp", "%s/a"%self.data_dir, "%s/d"%self.work])
 
-        # a little clean-up       
-        os.system('ssh gpsn01 rm -rf %s/a &' % self.data_dir)
- 
         #afterwards, should have 6 files in work/d
         l4 = glob.glob("%s/d/f*" % self.work)
         l5 = glob.glob("%s/d/b/f*" % self.work)
