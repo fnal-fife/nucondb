@@ -20,7 +20,7 @@ class ifdh_cp_cases(unittest.TestCase):
 
     def make_test_txt(self):
         # clean out copy on data dir...
-        os.system('srmrm "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" > srm.out 2>&1' % self.data_dir)
+        os.system('srmrm -2 "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" 2>&1' % self.data_dir)
         ifdh_cp_cases.tc = ifdh_cp_cases.tc + 1
         out = open("%s/test.txt" % self.work, "w")
         out.write("testing testing %d \n" % ifdh_cp_cases.tc)
