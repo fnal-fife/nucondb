@@ -82,17 +82,19 @@ public:
 	size_t pos = lockfilename.rfind(' ');
 	lockfilename = lockfilename.substr(pos+1);
 
+        // trim newline
+	lockfilename = lockfilename.substr(0,lockfilename.length()-1);
+
 	// kick off a backround thread to update the
 	// lock file every minute that we're still running
 
-	if ( lockfilename[0] != '/') {
+	if ( lockfilename[0] != '/' || 0 != access(lockfilename.c_str(),W_OK)) {
 	    throw( std::logic_error("Could not get CPN lock."));
 	}
      
 	_heartbeat_pid = fork();
 	if (_heartbeat_pid == 0) {
 	    parent_pid = getppid();
-	    sleep(60);
 	    while( 0 == kill(parent_pid, 0) ) {
                 // touch our lockfile
 		utimes(lockfilename.c_str(), NULL);
