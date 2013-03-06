@@ -43,8 +43,6 @@ class ifdh_cp_cases(unittest.TestCase):
             print "and export X509_USER_PROXY=/scratch/%s/grid/%s.%s.proxy" % ( 
 		os.environ['USER'], os.environ['USER'],ifdh_cp_cases.experiment)
 
-            exit(1)
-
         # setup test directory tree..
         count = 0
         os.mkdir("%s" % (self.work))

@@ -8,6 +8,7 @@ CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I 
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 genOBJ=ifdh_main.o ifdh_wrap.o python/_ifdh.so
+genSRC=ifdh_wrap.cc
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 
@@ -22,7 +23,7 @@ install:
 	cp python/* ../lib/python
 
 clean: 
-	rm -f $(OBJ) $(genOBJ) $(LIB) libifdh.a
+	rm -f $(OBJ) $(genOBJ) $(genSRC) $(LIB) libifdh.a
 
 python:
 	mkdir python
