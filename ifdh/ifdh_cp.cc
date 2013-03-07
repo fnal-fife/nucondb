@@ -1,6 +1,7 @@
 
 #include "ifdh.h"
 #include "utils.h"
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -97,7 +98,10 @@ public:
 	    parent_pid = getppid();
 	    while( 0 == kill(parent_pid, 0) ) {
                 // touch our lockfile
-		utimes(lockfilename.c_str(), NULL);
+		if ( 0 != utimes(lockfilename.c_str(), NULL)) {
+                    perror("Lockfile touch failed");
+                    exit(1);
+                }
 		sleep(60);
 	    }
 	    exit(0);
@@ -106,13 +110,19 @@ public:
 
     void
     free() {
+        int res;
         if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
             return;
         }
         kill(_heartbeat_pid, 15);
-        waitpid(_heartbeat_pid, NULL, 0);
+        res = waitpid(_heartbeat_pid, NULL, 0);
         system("$CPN_DIR/bin/lock free");
         _heartbeat_pid = -1;
+        if (!WIFSIGNALED(res) || 15 != WTERMSIG(res)) {
+            stringstream basemessage;
+            basemessage <<"lock touch process exited code " << res;
+            throw( std::logic_error(basemessage.str()));
+        }
     }
 
     cpn_lock() : _heartbeat_pid(-1) { ; }
@@ -145,6 +155,10 @@ std::vector<std::string> expandfile( std::string fname ) {
          res.push_back( line.substr(pos+1) );
       }
       getline(listf, line);
+  }
+  if (listf.fail()) {
+      std::string basemessage("error reading list of files file: ");
+      throw( std::logic_error(basemessage += fname));
   }
  
   return res;
@@ -298,6 +312,10 @@ ifdh::cp( std::vector<std::string> args ) {
     
     string cwd(get_current_dir_name());
 
+    if (cwd[0] != '/') {
+        throw( std::logic_error("unable to determine current working directory"));
+    }
+
     for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
        if (args[i][0] != ';' && args[i][0] != '/') {
 	   args[i] = cwd + "/" + args[i];
@@ -350,7 +368,8 @@ ifdh::cp( std::vector<std::string> args ) {
      } else if (force[0] == 'c') { 
           ;   // forcing CPN, already set
      } else {
-          throw( std::logic_error("invalid --force= option"));
+          std::string basemessage("invalid --force= option: ");
+          throw( std::logic_error(basemessage += force));
      }
 
 
@@ -417,6 +436,7 @@ ifdh::cp( std::vector<std::string> args ) {
         }
     }
     cpn.free();
+
     return res;
 } 
 
@@ -438,10 +458,10 @@ ifdh::mv(vector<string> args) {
                 _debug && std::cout << "unlinking: " << s << "\n";
                 unlink(s.c_str());
             } else {
-                string srmcmd("srmrm ");
+                string srmcmd("srmrm -2 ");
                 srmcmd +=  bestman_srm_uri + s + " ";
                 _debug && std::cout << "running: " << srmcmd << "\n";
-                // system(srmcmd.c_str());
+                res = system(srmcmd.c_str());
             }
         }
     }
