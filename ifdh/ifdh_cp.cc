@@ -115,12 +115,12 @@ public:
             return;
         }
         kill(_heartbeat_pid, 15);
-        res = waitpid(_heartbeat_pid, NULL, 0);
+        waitpid(_heartbeat_pid, &res, 0);
         system("$CPN_DIR/bin/lock free");
         _heartbeat_pid = -1;
         if (!WIFSIGNALED(res) || 15 != WTERMSIG(res)) {
             stringstream basemessage;
-            basemessage <<"lock touch process exited code " << res;
+            basemessage <<"lock touch process exited code " << res << " signalled: " << WIFSIGNALED(res) << " signal: " << WTERMSIG(res);
             throw( std::logic_error(basemessage.str()));
         }
     }
