@@ -9,9 +9,18 @@ dir=`dirname $dir`
 echo "Found myself in $dir"
 #-----------
 
+echo "proxy info:"
+echo " --------------------- "
+grid-proxy-info
+echo " --------------------- "
 
 # need this for our real username
 export USER=`basename $CONDOR_TMP`
+
+echo "proxy info:"
+echo " --------------------- "
+grid-proxy-info
+echo " --------------------- "
 
 # setup
 source /grid/fermiapp/products/common/etc/setups.sh
