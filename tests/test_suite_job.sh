@@ -35,6 +35,7 @@ printenv
 echo "-------------"
 
 python cpTests.py
+python projTests.py
 
 #python testSuite.py
 
