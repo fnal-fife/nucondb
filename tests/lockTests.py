@@ -189,9 +189,9 @@ class ifdh_lock_cases(unittest.TestCase):
         pids = f.read()
         f.close()
         print "found pid: ", pids
-        print "trimmed pid: ", pids[8:16]
+        print "trimmed pid: ", pids[7:14]
 
-        os.kill( int(pids[8:16]), 15)
+        os.kill( int(pids[7:14]), 15)
 
         time.sleep(1)
 
