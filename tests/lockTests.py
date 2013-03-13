@@ -15,6 +15,8 @@ base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/api"
 
 class ifdh_lock_cases(unittest.TestCase):
 
+    buffer = True
+
     def set_limit_wait(self, l, w):
         f = open(self.limit,"w")
         f.write("%d\n" % l)
@@ -39,14 +41,20 @@ class ifdh_lock_cases(unittest.TestCase):
         # always put stats back...
         self.set_limit_wait(5,5)
 
-    def start_copy(self):
-        self.cp_s = Popen("exec ifdh cp --force=cpn /dev/null /dev/zero 2>&1",shell=True, bufsize=1024, stdout=PIPE)
+    def start_copy(self, source="/dev/null"):
+
+        if source == "/dev/null":
+            dest = "/dev/zero"
+        else:
+            dest = "/dev/null"
+
+        self.cp_s = Popen("exec ifdh cp --force=cpn %s %s 2>&1" % (source, dest),shell=True, bufsize=1024, stdout=PIPE, preexec_fn=os.setsid)
         self.cp_p = self.cp_s.stdout
 
     def get_lock_line(self):
         s = self.cp_p.readline()
         print "\nread line: ", s
-        while not ("LOCK -" in s) or ("already in progress" in s):
+        while  s and (not ("LOCK -" in s) or ("already in progress" in s)):
             s = self.cp_p.readline()
             print "\nread line: ", s
         return s
@@ -56,7 +64,11 @@ class ifdh_lock_cases(unittest.TestCase):
         self.set_limit_wait(5,5)
  
     def check_heartbeat(self,qf):
-        sb = os.stat(qf)
+        try:
+            sb = os.stat(qf)
+        except OSError:
+            return False
+
         t1 = sb[stat.ST_MTIME]
         print "time before: " , t1
         for i in range(0,7):
@@ -64,10 +76,14 @@ class ifdh_lock_cases(unittest.TestCase):
             sys.stdout.flush()
             time.sleep(10)
         print ""
-        sb = os.stat(qf)
+        try:
+            sb = os.stat(qf)
+        except OSError:
+            return False
+ 
         t2 = sb[stat.ST_MTIME]
         print "time after: " , t2
-        self.assertTrue(t1 != t2)
+        return t1 != t2
 
     def wakeup(self):
         # guess port -- it should be our ifdh_cp's  pid + 2000
@@ -114,18 +130,76 @@ class ifdh_lock_cases(unittest.TestCase):
         print "checking queue..."
         qf = "%s/QUEUE/%s" % ( self.lock , s[p+6:-1])
 
-        self.check_heartbeat(qf)
+        self.assertTrue(self.check_heartbeat(qf))
 
         # set parameters to let it continue
         self.set_limit_wait(5,5)
 
         self.wakeup()
 
-        s = self.get_lock_line()
-        self.assertTrue(" lock " in s)
-
+        self.expect_lock_line(" lock ")
         self.expect_lock_line(" freed ")
 
+    def test_03_interrupt_queued(self):
+        # set param files to force waiting...
+        self.set_limit_wait(0,200)
+
+        # start a copy which will sleep
+        self.start_copy()
+        s = self.expect_lock_line(" sleeping ")
+        s = self.expect_lock_line(" queue ")
+
+        os.killpg( self.cp_s.pid, 15)
+        time.sleep(5)
+        
+        # make sure queue file exists, and has time updated
+        p = s.find("queue")
+        print "checking queue..."
+        qf = "%s/QUEUE/%s" % ( self.lock , s[p+6:-1])
+
+        self.assertFalse(self.check_heartbeat(qf))
+        self.set_limit_wait(5,5)
+
+
+    def test_04_interrupted_copy(self):
+
+        # start a copy which will sleep
+        self.start_copy("/grid/data/ifmon/CPNTEST/FILES/20G")
+        s = self.expect_lock_line(" lock ")
+
+       
+        os.killpg( self.cp_s.pid, 15)
+
+        lockf = s[s.rfind(" ")+1:-1]
+        print "checking lock file: '%s'" % lockf
+        
+        self.assertFalse(self.check_heartbeat(lockf))
+        
+    def test_05_interrupted_just_cp(self):
+
+        # start a copy which will sleep
+        self.start_copy("/grid/data/ifmon/CPNTEST/FILES/20G")
+        s = self.expect_lock_line(" lock ")
+
+        # kill off just the underlying cp...
+        time.sleep(1)
+        cmd = "ps -ef | grep -v grep | grep ' %d ' | grep ' cp /' " % self.cp_s.pid 
+        print "looking with: " , cmd
+        f = os.popen(cmd , "r")
+        pids = f.read()
+        f.close()
+        print "found pid: ", pids
+        print "trimmed pid: ", pids[8:16]
+
+        os.kill( int(pids[8:16]), 15)
+
+        time.sleep(1)
+
+        lockf = s[s.rfind(" ")+1:-1]
+        print "checking lock file: '%s'" % lockf
+        
+        self.assertFalse(self.check_heartbeat(lockf))
+        
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_lock_cases)
     return suite
