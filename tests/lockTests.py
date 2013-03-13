@@ -41,6 +41,11 @@ class ifdh_lock_cases(unittest.TestCase):
         # always put stats back...
         self.set_limit_wait(5,5)
 
+    def tearDown(self):
+        # always put stats back...
+        self.set_limit_wait(5,5)
+        #os.system("lock clean")
+
     def start_copy(self, source="/dev/null"):
 
         if source == "/dev/null":
@@ -59,9 +64,6 @@ class ifdh_lock_cases(unittest.TestCase):
             print "\nread line: ", s
         return s
 
-    def tearDown(self):
-        # always put stats back...
-        self.set_limit_wait(5,5)
  
     def check_heartbeat(self,qf):
         try:
