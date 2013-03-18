@@ -74,10 +74,16 @@ public:
 
 	// call lock, skip to last line 
 	pf = popen("$CPN_DIR/bin/lock","r");
-	while (fgets(buf, 512, pf)) {
-            puts(buf); // let folks see the lock output
-	    ;
+	while (!feof(pf) && !ferror(pf)) {
+            if (fgets(buf, 512, pf)) {
+                fputs(buf,stdout);
+                fflush(stdout);
+            }
 	}
+        if (ferror(pf)) {
+	    pclose(pf);
+	    throw( std::logic_error("Could not get CPN lock: error reading lock output"));
+        }
 	pclose(pf);
 
 	// pick lockfile name out of last line
