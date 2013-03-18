@@ -267,8 +267,8 @@ ifdh::cp( std::vector<std::string> args ) {
     bool recursive = false;
     bool dest_is_dir = false;
     struct rusage rusage_before, rusage_after;
+    time_t time_before, time_after;
 
-    getrusage(RUSAGE_CHILDREN, &rusage_before);
     if (_debug) {
          std::cout << "entering ifdh::cp( ";
          for( std::vector<std::string>::size_type i = 0; i < args.size(); i++ ) {
@@ -402,6 +402,12 @@ ifdh::cp( std::vector<std::string> args ) {
 
      cpn.lock();
 
+     getrusage(RUSAGE_CHILDREN, &rusage_before);
+     if (_debug) {
+         std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
+     }
+     time(&time_before);
+
      while( keep_going ) {
          stringstream cmd;
 
@@ -446,20 +452,24 @@ ifdh::cp( std::vector<std::string> args ) {
             keep_going = 0;
         }
     }
-    cpn.free();
 
+    time(&time_after);
     getrusage(RUSAGE_CHILDREN, &rusage_after);
 
     long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
     long int delta_out = rusage_after.ru_oublock - rusage_before.ru_oublock;
+    long int delta_t = time_after - time_before;
 
     if (_debug) {
          std::cout << "rusage blocks after: " << rusage_after.ru_inblock << " " << rusage_after.ru_oublock << "\n"; 
-         std::cout << "total blocks: " <<  delta_in << " in " << delta_out << " out\n";
+         std::cout << "total blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds\n";
     }
     stringstream logmessage;
-    logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out\n";
+    logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds \n";
     this->log(logmessage.str());
+
+    cpn.free();
+
     return res;
 }
 
