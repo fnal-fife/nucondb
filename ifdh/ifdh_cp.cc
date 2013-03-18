@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/vfs.h> 
@@ -23,6 +24,7 @@
 #include <unistd.h>
 #include <wait.h>
 #include <linux/nfs_fs.h>
+
 
 using namespace std;
 
@@ -258,12 +260,15 @@ ifdh::cp( std::vector<std::string> args ) {
     int res;
     bool recursive = false;
     bool dest_is_dir = false;
+    struct rusage rusage_before, rusage_after;
 
+    getrusage(RUSAGE_CHILDREN, &rusage_before);
     if (_debug) {
          std::cout << "entering ifdh::cp( ";
          for( std::vector<std::string>::size_type i = 0; i < args.size(); i++ ) {
              std::cout << args[i] << " ";
          }
+         std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
     }
 
     if (getenv("IFDH_FORCE")) {
@@ -437,8 +442,20 @@ ifdh::cp( std::vector<std::string> args ) {
     }
     cpn.free();
 
+    getrusage(RUSAGE_CHILDREN, &rusage_after);
+
+    long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
+    long int delta_out = rusage_after.ru_oublock - rusage_before.ru_oublock;
+
+    if (_debug) {
+         std::cout << "rusage blocks after: " << rusage_after.ru_inblock << " " << rusage_after.ru_oublock << "\n"; 
+         std::cout << "total blocks: " <<  delta_in << " in " << delta_out << " out\n";
+    }
+    stringstream logmessage;
+    logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out\n";
+    this->log(logmessage.str());
     return res;
-} 
+}
 
 int
 ifdh::mv(vector<string> args) {
