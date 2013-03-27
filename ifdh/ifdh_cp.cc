@@ -50,6 +50,50 @@ local_access(const char *path, int mode) {
     }
 }
 
+struct stat *
+cache_stat(std::string s) {
+   int res;
+   static struct stat sbuf;
+   static string last_s;
+   if (last_s == s) {
+       return &sbuf;
+   }
+   res = stat(s.c_str(), &sbuf);
+   if (res != 0) {
+       return 0;
+   }
+   last_s = s;
+   return  &sbuf;
+}
+
+int
+is_directory(std::string dirname) {
+    struct stat *sb = cache_stat(dirname);
+    if (!sb) {
+        return 0;
+    }
+    ifdh::_debug && std::cout << "is_directory(" << dirname << ") -> " <<  S_ISDIR(sb->st_mode);
+    return S_ISDIR(sb->st_mode);
+}
+
+#include <dirent.h>
+int
+is_empty(std::string dirname) {
+    DIR *pd = opendir(dirname.c_str());
+    struct dirent *pde;
+    int count = 0;
+
+    while( 0 != (pde = readdir(pd)) ) {
+        count++;
+        if (count > 2) {
+            break;
+        }
+    }
+    closedir(pd);
+    ifdh::_debug && cout << "is_empty " << dirname << "is " << (count > 2);
+    return count == 2;
+}
+
 extern std::string datadir();
 
 // file io
@@ -393,11 +437,12 @@ ifdh::cp( std::vector<std::string> args ) {
         gftpHost.append(".fnal.gov");
      }
 
-     if (dest_is_dir && !use_cpn) {
+     if (dest_is_dir && use_srm) {
          args = slice_directories(args, curarg);
          curarg = 0;
      }
 
+     int error_expected;
      int keep_going = 1;
 
      cpn.lock();
@@ -416,13 +461,41 @@ ifdh::cp( std::vector<std::string> args ) {
          if (recursive) {
             cmd << "-r ";
          }
-         if (recursive && !use_cpn) {
+
+         if ((recursive || dest_is_dir) && !use_cpn) {
              cmd << "-cd ";
          }
+
+         error_expected  = 0;
 
          while (curarg < args.size() && args[curarg] != ";" ) {
 
             args[curarg] = fix_recursive_arg(args[curarg],recursive);
+
+            if (is_directory(args[curarg])) {
+
+		if ( use_bst_gridftp || use_exp_gridftp ) {
+		    if ( is_empty(args[curarg])) {
+			ifdh::_debug && std::cout << "expecting error due to empty dir " << args[curarg] << "\n";
+				error_expected = 1;
+		    }
+		    if ( args[curarg][args[curarg].length()-1] != '/' ) {
+			args[curarg] += "/";
+		    }
+		}
+
+                // emulate globus-url-copy directory behavior of doing 1-level
+                // deep copy for cpn by doing dir/*
+                if (use_cpn && !recursive && curarg != args.size() - 1 && args[curarg+1] != ";" && !is_empty(args[curarg]) ) {
+                    args[curarg] += "/*";   
+                }
+
+            }
+
+	    if (!use_cpn && dest_is_dir && (curarg == args.size() - 1 || args[curarg+1] == ";" ) &&  args[curarg][args[curarg].length()-1] != '/' ) {
+		 
+		    args[curarg] += "/";
+	    }
 
             if (use_cpn) { 
                 // no need to munge arguments, take them as is.
@@ -444,8 +517,13 @@ ifdh::cp( std::vector<std::string> args ) {
         _debug && std::cerr << "running: " << cmd.str() << "\n";
 
         res = system(cmd.str().c_str());
+       
+        if ( res != 0 && error_expected ) {
+            _debug && std::cerr << "expected error...\n";
+            res = 0;
+        }
 
-        if (curarg < args.size() && args[curarg] == ";" && res == 0) {
+        if (curarg < args.size() && args[curarg] == ";" && res == 0 ) {
             curarg++;
             keep_going = 1;
         } else {
