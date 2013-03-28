@@ -53,6 +53,7 @@ class ifdh_cp_cases(unittest.TestCase):
                 f = open("%s/%s/f%d" % (self.work,sd,count),"w")
                 f.write("foo\n")
                 f.close()
+        os.system("ls -R %s" % self.work)
 
     def tearDown(self):
         os.system("rm -rf %s" % self.work)
@@ -65,6 +66,16 @@ class ifdh_cp_cases(unittest.TestCase):
     def test_gsiftp_in(self):
         self.list_remote_dir()
         self.ifdh_handle.cp([ "--force=gridftp" , "%s/test.txt" % self.data_dir, "%s/test.txt"%self.work])
+        self.assertEqual(self.check_test_txt(), True)
+
+    def test_explicit_gsiftp__out(self):
+        self.make_test_txt()
+        self.ifdh_handle.cp([ "%s/test.txt"%self.work, "gsiftp://if-gridftp-nova.fnal.gov%s/test.txt" % self.data_dir])
+        self.assertEqual(0,0)  # not sure how to verify if it is remote..
+
+    def test_explicit_gsiftp_in(self):
+        self.list_remote_dir()
+        self.ifdh_handle.cp([ "gsiftp://if-gridftp-nova.fnal.gov%s/test.txt" % self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
     def test_expftp__out(self):
@@ -87,6 +98,16 @@ class ifdh_cp_cases(unittest.TestCase):
         self.ifdh_handle.cp([ "--force=srm" , "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
+    def test_explicit_srm__out(self):
+        self.make_test_txt()
+        self.ifdh_handle.cp([ "%s/test.txt"%self.work, "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" % self.data_dir])
+        self.assertEqual(0,0)  # not sure how to verify if it is remote..
+
+    def test_explicit_srm_in(self):
+        self.list_remote_dir()
+        self.ifdh_handle.cp([ "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
+        self.assertEqual(self.check_test_txt(), True)
+
     def test_default__out(self):
         self.make_test_txt()
         self.ifdh_handle.cp([ "%s/test.txt"%self.work, "%s/test.txt" % self.data_dir])
@@ -97,6 +118,15 @@ class ifdh_cp_cases(unittest.TestCase):
         self.ifdh_handle.cp([ "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         res = os.stat("%s/test.txt" % self.work)
         self.assertEqual(self.check_test_txt(), True)
+
+    def test_dd(self):
+        os.mkdir("%s/d" % self.work)
+
+        self.ifdh_handle.cp(["--force=dd", "-D", "%s/a/b/f3"%self.work, "%s/a/b/f4"%self.work, "%s/d"%self.work])
+
+        #afterwards, should have 2 files in work/d
+        l4 = glob.glob("%s/d/f*" % self.work)
+        self.assertEqual(len(l4), 2)
 
     def test_recursive(self):
 

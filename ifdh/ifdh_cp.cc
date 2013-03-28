@@ -50,6 +50,50 @@ local_access(const char *path, int mode) {
     }
 }
 
+struct stat *
+cache_stat(std::string s) {
+   int res;
+   static struct stat sbuf;
+   static string last_s;
+   if (last_s == s) {
+       return &sbuf;
+   }
+   res = stat(s.c_str(), &sbuf);
+   if (res != 0) {
+       return 0;
+   }
+   last_s = s;
+   return  &sbuf;
+}
+
+int
+is_directory(std::string dirname) {
+    struct stat *sb = cache_stat(dirname);
+    if (!sb) {
+        return 0;
+    }
+    ifdh::_debug && std::cout << "is_directory(" << dirname << ") -> " <<  S_ISDIR(sb->st_mode);
+    return S_ISDIR(sb->st_mode);
+}
+
+#include <dirent.h>
+int
+is_empty(std::string dirname) {
+    DIR *pd = opendir(dirname.c_str());
+    struct dirent *pde;
+    int count = 0;
+
+    while( 0 != (pde = readdir(pd)) ) {
+        count++;
+        if (count > 2) {
+            break;
+        }
+    }
+    closedir(pd);
+    ifdh::_debug && cout << "is_empty " << dirname << "is " << (count > 2);
+    return count == 2;
+}
+
 extern std::string datadir();
 
 // file io
@@ -328,7 +372,7 @@ ifdh::cp( std::vector<std::string> args ) {
     }
 
     for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
-       if (args[i][0] != ';' && args[i][0] != '/') {
+       if (args[i][0] != ';' && args[i][0] != '/' && args[i].find("srm:") != 0 && args[i].find("gsiftp:") != 0) {
 	   args[i] = cwd + "/" + args[i];
        }
     }
@@ -339,13 +383,29 @@ ifdh::cp( std::vector<std::string> args ) {
     bool use_exp_gridftp = false;
     bool use_bst_gridftp = false;
     bool use_cpn = true;
+    bool use_dd = false;
+    bool use_any_gridftp = false;
 
     if (force[0] == ' ') { // not forcing anything, so look
 
 	for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+
             if( args[i] == ";" ) {
                 continue;
             }
+
+            if( args[i].find("srm:") == 0)  { 
+               use_cpn = false; 
+               use_srm = true; 
+               break; 
+            }
+
+            if( args[i].find("gsiftp:") == 0) { 
+               use_cpn = false; 
+               use_bst_gridftp = true; 
+               break; 
+            }
+
 	    if( 0 != access(args[i].c_str(),R_OK) ) {
 	       
 		if ( i == args.size() - 1 || args[i+1] == ";" ) {
@@ -367,6 +427,9 @@ ifdh::cp( std::vector<std::string> args ) {
 		break;
 	     }
 	 }
+     } else if (force[0] == 'd') {
+         use_cpn = false;
+         use_dd = true;
      } else if (force[0] == 's') {
          use_cpn = false;
          use_srm = true;
@@ -383,9 +446,10 @@ ifdh::cp( std::vector<std::string> args ) {
           throw( std::logic_error(basemessage += force));
      }
 
+     use_any_gridftp = use_any_gridftp || use_exp_gridftp || use_bst_gridftp;
 
-     if (recursive && use_srm) { 
-        throw( std::logic_error("invalid use of -r with --force=srm"));
+     if (recursive && (use_srm || use_dd )) { 
+        throw( std::logic_error("invalid use of -r with --force=srm or --force=dd"));
      }
 
      if (use_exp_gridftp) {
@@ -393,11 +457,15 @@ ifdh::cp( std::vector<std::string> args ) {
         gftpHost.append(".fnal.gov");
      }
 
-     if (dest_is_dir && !use_cpn) {
+     //
+     // srmcp and dd only do specific srcfile,destfile copies
+     //
+     if (dest_is_dir && (use_srm || use_dd)) {
          args = slice_directories(args, curarg);
          curarg = 0;
      }
 
+     int error_expected;
      int keep_going = 1;
 
      cpn.lock();
@@ -411,32 +479,76 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_exp_gridftp||use_bst_gridftp ? "globus-url-copy " : "false" );
+         cmd << (use_dd ? "dd bs=32k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_any_gridftp ? "globus-url-copy " : "false" );
          
          if (recursive) {
             cmd << "-r ";
          }
-         if (recursive && !use_cpn) {
+
+         if ((recursive || dest_is_dir) && use_any_gridftp) {
              cmd << "-cd ";
          }
+
+         error_expected  = 0;
 
          while (curarg < args.size() && args[curarg] != ";" ) {
 
             args[curarg] = fix_recursive_arg(args[curarg],recursive);
 
+            if (is_directory(args[curarg])) {
+
+		if ( use_bst_gridftp || use_exp_gridftp ) {
+		    if ( is_empty(args[curarg])) {
+			ifdh::_debug && std::cout << "expecting error due to empty dir " << args[curarg] << "\n";
+				error_expected = 1;
+		    }
+		    if ( args[curarg][args[curarg].length()-1] != '/' ) {
+			args[curarg] += "/";
+		    }
+		}
+
+                // emulate globus-url-copy directory behavior of doing 1-level
+                // deep copy for cpn by doing dir/*
+                if (use_cpn && !recursive && curarg != args.size() - 1 && args[curarg+1] != ";" && !is_empty(args[curarg]) ) {
+                    args[curarg] += "/*";   
+                }
+
+            }
+
+	    if (use_any_gridftp && dest_is_dir && (curarg == args.size() - 1 || args[curarg+1] == ";" ) &&  args[curarg][args[curarg].length()-1] != '/' ) {
+		 
+		    args[curarg] += "/";
+	    }
+
             if (use_cpn) { 
                 // no need to munge arguments, take them as is.
                 cmd << args[curarg] << " ";
+            } else if (use_dd) {
+                if (curarg == args.size() - 1 || args[curarg+1] == ";" ){
+                   cmd << "of=" << args[curarg] << " ";
+                } else {
+                   cmd << "if=" << args[curarg] << " ";
+                }
             } else if (0 == local_access(args[curarg].c_str(), R_OK)) {
                 cmd << "file:///" << args[curarg] << " ";
             } else if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && (0 == local_access(parent_dir(args[curarg]).c_str(), R_OK))) {
                 cmd << "file:///" << args[curarg] << " ";
             } else if (use_srm) {
-		cmd << bestman_srm_uri << args[curarg] << " ";
+                if( args[curarg].find("srm:") == 0)  
+		    cmd << args[curarg] << " ";
+                else
+		    cmd << bestman_srm_uri << args[curarg] << " ";
+              
             } else if (use_exp_gridftp) {
-                cmd << "gsiftp://" << gftpHost << args[curarg] << " ";
+                if( args[curarg].find("gsiftp:") == 0)  
+                    cmd << args[curarg] << " ";
+                else
+                    cmd << "gsiftp://" << gftpHost << args[curarg] << " ";
             } else if (use_bst_gridftp) {
-                cmd << bestman_ftp_uri << args[curarg] << " ";
+                if( args[curarg].find("gsiftp:") == 0)  
+                    cmd << args[curarg] << " ";
+                else
+                    cmd << bestman_ftp_uri << args[curarg] << " ";
             }
             curarg++;
         }
@@ -444,8 +556,13 @@ ifdh::cp( std::vector<std::string> args ) {
         _debug && std::cerr << "running: " << cmd.str() << "\n";
 
         res = system(cmd.str().c_str());
+       
+        if ( res != 0 && error_expected ) {
+            _debug && std::cerr << "expected error...\n";
+            res = 0;
+        }
 
-        if (curarg < args.size() && args[curarg] == ";" && res == 0) {
+        if (curarg < args.size() && args[curarg] == ";" && res == 0 ) {
             curarg++;
             keep_going = 1;
         } else {
