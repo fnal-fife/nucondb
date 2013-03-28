@@ -8,7 +8,7 @@ CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I 
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
 genOBJ=ifdh_main.o ifdh_wrap.o python/_ifdh.so
-genSRC=ifdh_wrap.cc ifdh_main.cc
+genSRC=ifdh_wrap.cxx ifdh_main.cc
 PYMOD_OBJS=$(ALL_OBJS) ifdh_wrap.o
 
 
@@ -51,9 +51,10 @@ libifdh.a: $(ALL_OBJS)
 
 ifdh_wrap.cxx: ifdh.h 
 
-ifdh_wrap.cxx: ifdh.i
+ifdh_wrap.cxx: ifdh.i 
 	test -d python || mkdir python
 	swig -python -c++ -o ifdh_wrap.cxx $<
+	python -V 2>&1| grep '2\.[67]' > /dev/null && ( patch -p0 < ifdh_wrap.patch  || patch -p0 < ../../ifdh/ifdh_wrap.patch)
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx

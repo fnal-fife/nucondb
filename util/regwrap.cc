@@ -1,5 +1,6 @@
 #include <iostream>
 #include "regwrap.h"
+#include <string.h>
 
 // classes to hide regex ugliness
 

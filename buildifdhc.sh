@@ -23,6 +23,8 @@ opt)   ARCH="-std=c++11 -O2";;
 esac
 export ARCH
 
+export PYTHON_CONF=`echo $PYTHON_LIB/python*/config`
+
 fqdir="`ups flavor -4`-$qualdir" 
 
 for d in ifbeam ifdh nucondb numsg ups util
