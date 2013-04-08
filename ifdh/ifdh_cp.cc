@@ -460,7 +460,7 @@ ifdh::cp( std::vector<std::string> args ) {
      //
      // srmcp and dd only do specific srcfile,destfile copies
      //
-     if (dest_is_dir && (use_srm || use_dd)) {
+     if (dest_is_dir && (use_srm || use_dd || use_any_gridftp)) {
          args = slice_directories(args, curarg);
          curarg = 0;
      }
