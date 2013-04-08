@@ -54,7 +54,7 @@ ifdh_wrap.cxx: ifdh.h
 ifdh_wrap.cxx: ifdh.i 
 	test -d python || mkdir python
 	swig -python -c++ -o ifdh_wrap.cxx $<
-	set -x ; python -V 2>&1 | grep ' 2.[67]' > /dev/null && (patch -p0 < ifdh_wrap.patch ||  patch -p0 < ../../ifdh/ifdh_wrap.patch) || true
+	set -x ; python -V 2>&1 | grep ' 2.[67]' > /dev/null && rpm -qf /usr/bin/swig | grep 1.3.29 && (patch -p0 < ifdh_wrap.patch ||  patch -p0 < ../../ifdh/ifdh_wrap.patch) || true
 	mv ifdh.py python/ifdh.py
 
 ifdh_wrap.o: ifdh_wrap.cxx
