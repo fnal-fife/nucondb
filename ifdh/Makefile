@@ -3,7 +3,7 @@ VPATH=$(SRCDIR)
 
 LIB=libifdh.so
 HDR=ifdh.h
-SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo $${PYTHON_INCLUDE:-$${PYTHON_DIR:-/usr}/include}/python*` $(ARCH)
+SWIGCXXFLAGS=-fPIC -I../util -I../numsg -I../../util -I../../numsg -I../../ifdh -g -I`echo $${PYTHON_INCLUDE:-$${PYTHON_DIR:-/usr}/include/python*}` $(ARCH)
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -I../../util -I../util -I ../../numsg -I../numsg -g  $(ARCH) -I$(SRCDIR)
 OBJ=ifdh.o ifdh_cp.o
 ALL_OBJS=$(OBJ) ../util/WebAPI.o ../numsg/numsg.o ../util/SyslogAPI.o ../util/utils.o
@@ -38,7 +38,7 @@ ifdh: libifdh.so ifdh_main.o
 
 python/_ifdh.so: $(PYMOD_OBJS)
 	test -d python || mkdir python 
-	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-$${PYTHON_DIR:-/usr}/lib*}/python*/config/libpython*.[as]* || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-$${PYTHON_DIR:-/usr}/lib*}python*/config/libpython*.[as]*
+	g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-$${PYTHON_DIR:-/usr}/lib*}/python*/config/libpython*.[as]* || g++ --shared $(ARCH) -o  $@ $(PYMOD_OBJS) $${PYTHON_LIB:-$${PYTHON_DIR:-/usr}/lib}/python*/config/libpython*.[as]*
 
 
 libifdh.so: $(ALL_OBJS)
