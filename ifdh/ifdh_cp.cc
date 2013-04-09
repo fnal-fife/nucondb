@@ -452,6 +452,14 @@ ifdh::cp( std::vector<std::string> args ) {
         throw( std::logic_error("invalid use of -r with --force=srm or --force=dd"));
      }
 
+     //
+     // default to dd for non-recursive copies.
+     // 
+     if (use_cpn && !recursive) {
+         use_cpn = 0;
+         use_dd = 1;
+     }
+
      if (use_exp_gridftp) {
         gftpHost.append(getexperiment());
         gftpHost.append(".fnal.gov");
@@ -479,7 +487,7 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=32k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_any_gridftp ? "globus-url-copy " : "false" );
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_any_gridftp ? "globus-url-copy " : "false" );
          
          if (recursive) {
             cmd << "-r ";
