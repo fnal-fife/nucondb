@@ -185,7 +185,7 @@ class ifdh_lock_cases(unittest.TestCase):
 
         # kill off just the underlying cp...
         time.sleep(1)
-        cmd = "ps -ef | grep -v grep | grep ' %d ' | grep ' cp /' " % self.cp_s.pid 
+        cmd = "ps -ef | grep -v grep | grep ' %d ' | egrep ' cp /| dd.*if./' " % self.cp_s.pid 
         print "looking with: " , cmd
         f = os.popen(cmd , "r")
         pids = f.read()
