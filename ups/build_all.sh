@@ -15,7 +15,10 @@ setup -. ifdhc
 python <<XXXX
 import ifdh
 XXXX
-upd addproduct -r `pwd` -M ups -m ifdhc.table $DECLAREBITS ifdhc version
+upd addproduct -r `pwd` -M ups -m ifdhc.table $DECLAREBITS ifdhc VERSION
+cd 
+rm -rf /tmp/$USER$$
+
 EOF
 
 multixterm -xc "ssh %n" $hostlist
