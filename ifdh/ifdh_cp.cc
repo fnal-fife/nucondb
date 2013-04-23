@@ -308,6 +308,7 @@ ifdh::cp( std::vector<std::string> args ) {
     string force = " ";
     cpn_lock cpn;
     int res;
+    int rres = 0;
     bool recursive = false;
     bool dest_is_dir = false;
     struct rusage rusage_before, rusage_after;
@@ -570,7 +571,12 @@ ifdh::cp( std::vector<std::string> args ) {
             res = 0;
         }
 
-        if (curarg < args.size() && args[curarg] == ";" && res == 0 ) {
+
+        if (res != 0 && rres == 0) {
+            rres = res;
+        }
+ 
+        if (curarg < args.size() && args[curarg] == ";" ) {
             curarg++;
             keep_going = 1;
         } else {
@@ -595,7 +601,7 @@ ifdh::cp( std::vector<std::string> args ) {
 
     cpn.free();
 
-    return res;
+    return rres;
 }
 
 int
