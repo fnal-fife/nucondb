@@ -1,8 +1,9 @@
 # buildifdhc.sh <opt|debug|prof> [e2|gcc47]
 # default is gcc47
 
-extraqual=${1}
-basequal=${2}
+
+extraqual=${2}
+basequal=${1}
 
 fullqual=${basequal}:${extraqual}
 qualdir=${basequal}-${extraqual}
