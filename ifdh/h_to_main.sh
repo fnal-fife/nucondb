@@ -30,6 +30,7 @@ do
         printf "using namespace std;\n"
         printf "using namespace ifdh_util_ns;\n"
         # printf "extern \"C\" { void exit(int); }\n"
+        printf "static void usage();\n"
         printf "static int di(int i)\t{ exit(i);  return 1; }\n"
         printf "static int ds(string s)\t { cout << s << \"\\\\n\"; return 1; }\n"
         printf "static int dv(vector<string> v)\t{ for(size_t i = 0; i < v.size(); i++) { cout << v[i] << \"\\\\n\"; } return 1; }\n"
@@ -40,6 +41,9 @@ do
 
         printf "int\nmain(int argc, char **argv) { \n"
         printf "\tifdh i;\n"
+        printf "\tif (0 == strcmp(argv[1],\"--help\") || 0 == strcmp(argv[2],\"--help\")) { \n"
+        printf "\t\tusage();exit(0);\n"
+        printf "\t}\n";
         printf "\tif (0 != getenv(\"IFDH_DEBUG\")) { \n"
         printf "\t\tifdh::_debug = 1;\n"
         printf "\t}\n";
@@ -48,11 +52,14 @@ do
 	;;
     \}\;)
         $xlate || continue
-	printf "\telse {\n$help\n\t\texit(1);\t\n\t}\n"
+	printf "\telse {\nusage(); exit(1);\t\n\t}\n"
         printf "   } catch (std::exception &e) {\n"
         printf "      std::cerr << \"Exception:\" << e.what() << std::endl;\n"
         printf "      exit(1);\n"
         printf "   }\n"
+	printf "}\n"
+	printf "void usage(){\n"
+        printf "$help\n"
 	printf "}\n"
         ;;
     void)
