@@ -24,7 +24,15 @@ class ifdh {
 
         void set_base_uri(std::string baseuri);
 
-        // general file copy using cpn or srmcp
+        // general file copy using cpn locks dd, gridftp, or srmcp
+        // supports:
+        // * cp src1 dest1 [';' src2 dest2 [';'...]]
+        // * cp -r src1 dest1 [';' src2 dest2 [';'...]]
+        // * cp -D src1 src2 destdir1 [';' src3 src4 destdir2 [';'...]]
+        // * cp -f file_with_src_space_dest_lines
+        // * any of the above can take --force={cpn,gridftp,srmcp,expgridftp}
+        // * any of the file/dest arguments can be URIs
+        // ---
         int cp(std::vector<std::string> args);
 
 	// get input file to local scratch, return scratch location

@@ -208,7 +208,7 @@ std::vector<std::string> expandfile( std::string fname ) {
       }
       getline(listf, line);
   }
-  if (listf.fail()) {
+  if ( !listf.eof() ) {
       std::string basemessage("error reading list of files file: ");
       throw( std::logic_error(basemessage += fname));
   }
