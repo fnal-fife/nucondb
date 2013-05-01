@@ -114,6 +114,9 @@ class ifdh_cp_cases(unittest.TestCase):
         os.system("mv %s/test3.txt %s/test.txt" % (self.work, self.work))
         self.assertEqual(self.check_test_txt(), True)
          
+    def test_dirmode_expftp(self):
+        self.ifdh_handle.cp(['--force=expftp', '-D', '%s/a/f1' % self.work, '%s/a/f2' % self.work, self.data_dir])
+        self.assertEqual(True,True)
 
     def test_gsiftp__out(self):
         self.make_test_txt()

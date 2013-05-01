@@ -471,6 +471,7 @@ ifdh::cp( std::vector<std::string> args ) {
      //
      if (dest_is_dir && (use_srm || use_dd || use_any_gridftp)) {
          args = slice_directories(args, curarg);
+         dest_is_dir = false;
          curarg = 0;
      }
 
