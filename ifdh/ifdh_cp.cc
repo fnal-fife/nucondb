@@ -300,6 +300,51 @@ std::string fix_recursive_arg(std::string arg, bool recursive) {
    return arg;
 }
 
+std::vector<std::string> 
+ifdh::build_stage_list( std::vector<std::string> args, int curarg) {
+   std::vector<std::string>  res;
+   std::string stagefile("stage_");
+   std::string ustring;
+
+   // if we are told how to stage, use it, fall back to OSG_SITE_WRITE,
+   //  or worst case, the bestman gateway.
+   std::string base_uri(getenv("IFDH_STAGE_VIA")? getenv("IFDH_STAGE_VIA"):
+			getenv("OSG_SITE_WRITE")? getenv("OSG_SITE_WRITE"):
+			bestman_srm_uri + "/grid/data/" + getexperiment())
+
+   std::string stage_location;
+
+   ustring =  unique_string();
+
+   stagefile += ustring;
+   base_uri += "/ifdh_stage/data/";
+   base_uri += unique_string;
+
+   args = slice_directories(args, curarg);
+   
+   fstream stageout(stagefile.c_str(), fstream::out);
+   // argument list is now in src dest [;] triples
+   for( std::vector<std::string>::size_type i = 0; i < args.size(); i+=3 ) {
+
+       // we're going to keep this in our stage queue area
+       stage_location = base_uri << '/' << basename(args[i]);
+
+       // we copy to the stage location
+       res.push_back(args[i])
+       res.push_back(stage_location)
+       res.push_back(";")
+
+       // the stage item out is from there to the final destination
+       stageout << stage_location << ' ' << args[i+1]  << '\n';
+   }
+
+   // copy our queue file in last, it means the others are ready to copy
+   res.push_back( stagefile );
+   res.push_back( base_uri + "/ifdh_stage/queue/" + stagefile );
+
+   return res;
+}
+
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
@@ -321,6 +366,7 @@ ifdh::cp( std::vector<std::string> args ) {
          }
          std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
     }
+
 
     if (getenv("IFDH_FORCE")) {
         force = getenv("IFDH_FORCE");
@@ -364,6 +410,7 @@ ifdh::cp( std::vector<std::string> args ) {
         curarg++;
     }
    
+
     // convert relative paths to absolute
     
     string cwd(get_current_dir_name());
@@ -376,6 +423,12 @@ ifdh::cp( std::vector<std::string> args ) {
        if (args[i][0] != ';' && args[i][0] != '/' && args[i].find("srm:") != 0 && args[i].find("gsiftp:") != 0) {
 	   args[i] = cwd + "/" + args[i];
        }
+    }
+
+    if (getenv("IFDH_STAGE_VIA") || getenv("IFDH_STAGE")) {
+       args = build_stage_file(args, curarg);
+       curarg = 0;
+       dest_is_dir = false;
     }
 
     // now decide local/remote

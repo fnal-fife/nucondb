@@ -432,6 +432,19 @@ ifdh::set_base_uri(std::string baseuri) {
     _baseuri = baseuri; 
 }
 
+std::string
+ifdh::unique_string() {
+    static int count = 0;
+    char hbuf[512];
+    gethostname(hbuf, 512);
+    time_t t = time(0);
+    int pid = getpid();
+    stringstream uniqstr;
+
+    uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count;
+    return uniqstr.string();
+}
+
 // give output files reported with addOutputFile a unique name
 int 
 ifdh::renameOutput(std::string how) {
@@ -484,11 +497,6 @@ ifdh::renameOutput(std::string how) {
 
         }
     } else if (how[0] == 'u') {
-        int count = 0;
-        char hbuf[512];
-        gethostname(hbuf, 512);
-        time_t t = time(0);
-        int pid = getpid();
 
 
         while (!outlog.eof() && !outlog.fail()) {
@@ -509,11 +517,9 @@ ifdh::renameOutput(std::string how) {
                spos = file.length();
             }
 
-            stringstream uniqstr;
-            uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count;
 
             outfile = file;
-            outfile = outfile.insert( spos, uniqstr.str() );
+            outfile = outfile.insert( spos, unique_string() );
 	    rename(file.c_str(), outfile.c_str());
 
 	    _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";

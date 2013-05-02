@@ -7,6 +7,8 @@ import glob
 
 base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/api"
 
+class Skipped(EnvironmentError):
+    pass
 
 class ifdh_cp_cases(unittest.TestCase):
     experiment = "nova"
