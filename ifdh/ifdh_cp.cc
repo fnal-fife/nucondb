@@ -391,6 +391,7 @@ ifdh::cp( std::vector<std::string> args ) {
     int rres = 0;
     bool recursive = false;
     bool dest_is_dir = false;
+    bool cleanup_stage = false;
     struct rusage rusage_before, rusage_after;
     time_t time_before, time_after;
 
@@ -461,6 +462,7 @@ ifdh::cp( std::vector<std::string> args ) {
     }
 
     if (getenv("IFDH_STAGE_VIA") || getenv("IFDH_STAGE")) {
+       cleanup_stage = true;
        args = build_stage_list(dest_is_dir, args, curarg);
        curarg = 0;
        dest_is_dir = false;
@@ -685,6 +687,11 @@ ifdh::cp( std::vector<std::string> args ) {
 
     time(&time_after);
     getrusage(RUSAGE_CHILDREN, &rusage_after);
+
+    if (cleanup_stage) {
+        _debug && std::cerr << "removing: " << args[curarg - 2 ] << "\n";
+        unlink( args[curarg - 2].c_str());
+    }
 
     long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
     long int delta_out = rusage_after.ru_oublock - rusage_before.ru_oublock;
