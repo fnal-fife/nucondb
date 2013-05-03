@@ -441,8 +441,8 @@ ifdh::unique_string() {
     int pid = getpid();
     stringstream uniqstr;
 
-    uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count;
-    return uniqstr.string();
+    uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count++;
+    return uniqstr.str();
 }
 
 // give output files reported with addOutputFile a unique name
@@ -500,7 +500,6 @@ ifdh::renameOutput(std::string how) {
 
 
         while (!outlog.eof() && !outlog.fail()) {
-            count++;
 
             getline(outlog,line);
             spos = line.find(' ');
