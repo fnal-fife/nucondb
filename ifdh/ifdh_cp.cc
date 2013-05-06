@@ -327,7 +327,7 @@ std::string fix_recursive_arg(std::string arg, bool recursive) {
 }
 
 std::vector<std::string> 
-ifdh::build_stage_list( bool dirflag, std::vector<std::string> args, int curarg) {
+ifdh::build_stage_list(std::vector<std::string> args, int curarg) {
    std::vector<std::string>  res;
    std::string stagefile("stage_");
    std::string ustring;
@@ -339,8 +339,10 @@ ifdh::build_stage_list( bool dirflag, std::vector<std::string> args, int curarg)
 
    // if we are told how to stage, use it, fall back to OSG_SITE_WRITE,
    //  or worst case, the bestman gateway.
-   std::string base_uri(getenv("IFDH_STAGE_VIA")? getenv("IFDH_STAGE_VIA"):
-			getenv("OSG_SITE_WRITE")? getenv("OSG_SITE_WRITE"): bestman_srm_uri + "/grid/data/");
+   std::string base_uri(getenv("IFDH_STAGE_VIA")? getenv("IFDH_STAGE_VIA"): bestman_srm_uri + "/grid/data/");
+   if (base_uri == "OSG_SITE_WRITE") {
+       base_uri = getenv("OSG_SITE_WRITE");
+   }
    base_uri = (base_uri + "/" + getexperiment());
    stagefile += ustring;
 
@@ -353,12 +355,6 @@ ifdh::build_stage_list( bool dirflag, std::vector<std::string> args, int curarg)
    // open our stageout queue file/copy back instructions
    fstream stageout(stagefile.c_str(), fstream::out);
 
-   // get args in single src dest ";" pair format...
-   if (dirflag) { 
-       args = slice_directories(args, curarg);
-       curarg = 0;
-   }
-   
    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i+=3 ) {
 
        // we're going to keep this in our stage queue area
@@ -461,12 +457,6 @@ ifdh::cp( std::vector<std::string> args ) {
        }
     }
 
-    if (getenv("IFDH_STAGE_VIA") || getenv("IFDH_STAGE")) {
-       cleanup_stage = true;
-       args = build_stage_list(dest_is_dir, args, curarg);
-       curarg = 0;
-       dest_is_dir = false;
-    }
 
     // now decide local/remote
     // if anything is not local, use remote
@@ -506,8 +496,13 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
 		       use_cpn = 0;
-		       use_exp_gridftp = 1;
-                       _debug && cout << "deciding to use exp gridftp due to: " << args[i] << "\n";
+                       if (getenv("IFDH_STAGE_VIA")) {
+                           use_srm = 1;
+                           _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA and: " << args[i] << "\n";
+                       } else {
+		           use_exp_gridftp = 1;
+                           _debug && cout << "deciding to use exp gridftp due to: " << args[i] << "\n";
+                       }
 		   }      
 		} else {
 		   // for non-local sources, default to bestman gridftp
@@ -543,6 +538,7 @@ ifdh::cp( std::vector<std::string> args ) {
         throw( std::logic_error("invalid use of -r with --force=srm or --force=dd"));
      }
 
+
      //
      // default to dd for non-recursive copies.
      // 
@@ -562,6 +558,13 @@ ifdh::cp( std::vector<std::string> args ) {
      if (dest_is_dir && (use_srm || use_dd || use_any_gridftp)) {
          args = slice_directories(args, curarg);
          dest_is_dir = false;
+         curarg = 0;
+     }
+
+     if (getenv("IFDH_STAGE_VIA") && use_srm ) {
+         args = build_stage_list(args, curarg);
+	 // we now have a stage back file to clean up later...
+         cleanup_stage = true;
          curarg = 0;
      }
 
