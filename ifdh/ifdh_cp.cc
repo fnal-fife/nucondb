@@ -192,11 +192,11 @@ public:
         if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
             return;
         }
-        kill(_heartbeat_pid, 15);
+        kill(_heartbeat_pid, 9);
         waitpid(_heartbeat_pid, &res, 0);
         system("$CPN_DIR/bin/lock free");
         _heartbeat_pid = -1;
-        if (!WIFSIGNALED(res) || 15 != WTERMSIG(res)) {
+        if (!WIFSIGNALED(res) || 9 != WTERMSIG(res)) {
             stringstream basemessage;
             basemessage <<"lock touch process exited code " << res << " signalled: " << WIFSIGNALED(res) << " signal: " << WTERMSIG(res);
             throw( std::logic_error(basemessage.str()));
