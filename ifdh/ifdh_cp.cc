@@ -66,14 +66,40 @@ cache_stat(std::string s) {
    return  &sbuf;
 }
 
-int
+bool
 is_directory(std::string dirname) {
     struct stat *sb = cache_stat(dirname);
     if (!sb) {
-        return 0;
+        return false;
     }
     ifdh::_debug && std::cout << "is_directory(" << dirname << ") -> " <<  S_ISDIR(sb->st_mode);
-    return S_ISDIR(sb->st_mode);
+    return S_ISDIR(sb->st_mode) != 0;
+}
+
+bool 
+is_bestman_server(std::string uri) {
+   std::stringstream cmd;
+   static char buf[512];
+   FILE *pf;
+
+   // if it starts with a slash, we're rewriting it to 
+   // the fermi bestman server...
+   if (uri[0] == '/') 
+        return true;
+
+   ifdh::_debug && cout << "checking with srmping\n";
+   cmd << "srmping " << uri;
+   pf = popen(cmd.str().c_str(),"r");
+   bool found = false;
+   while (fgets(buf, 512, pf)) {
+       ifdh::_debug && cout << "srmping says: " << buf;
+       if (0 == strncmp("backend_type:BeStMan", buf, 20)) {
+           found = true; 
+           break;
+       }
+   }
+   pclose(pf);
+   return found;
 }
 
 #include <dirent.h>
@@ -208,7 +234,7 @@ std::vector<std::string> expandfile( std::string fname ) {
       }
       getline(listf, line);
   }
-  if (listf.fail()) {
+  if ( !listf.eof() ) {
       std::string basemessage("error reading list of files file: ");
       throw( std::logic_error(basemessage += fname));
   }
@@ -300,6 +326,56 @@ std::string fix_recursive_arg(std::string arg, bool recursive) {
    return arg;
 }
 
+std::vector<std::string> 
+ifdh::build_stage_list(std::vector<std::string> args, int curarg) {
+   std::vector<std::string>  res;
+   std::string stagefile("stage_");
+   std::string ustring;
+   std::string stage_location;
+
+   // unique string for this stage out
+   ustring = unique_string();
+   std::string mkdirstring("srmmkdir -2 ");
+
+   // if we are told how to stage, use it, fall back to OSG_SITE_WRITE,
+   //  or worst case, the bestman gateway.
+   std::string base_uri(getenv("IFDH_STAGE_VIA")? getenv("IFDH_STAGE_VIA"): bestman_srm_uri + "/grid/data/");
+   if (base_uri == "OSG_SITE_WRITE") {
+       base_uri = getenv("OSG_SITE_WRITE");
+   }
+   base_uri = (base_uri + "/" + getexperiment());
+   stagefile += ustring;
+
+   // make sure directory hierarchy is there..
+   system( (mkdirstring +  base_uri + "/ifdh_stage").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/queue").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/data").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring).c_str() );
+
+   // open our stageout queue file/copy back instructions
+   fstream stageout(stagefile.c_str(), fstream::out);
+
+   for( std::vector<std::string>::size_type i = curarg; i < args.size(); i+=3 ) {
+
+       // we're going to keep this in our stage queue area
+       stage_location = base_uri + "/ifdh_stage/data/" + ustring + "/" +  basename(args[i].c_str());
+
+       // we copy to the stage location
+       res.push_back(args[i]);
+       res.push_back(stage_location);
+       res.push_back(";");
+
+       // the stage item out is from there to the final destination
+       stageout << stage_location << ' ' << args[i+1]  << '\n';
+   }
+
+   // copy our queue file in last, it means the others are ready to copy
+   res.push_back( stagefile );
+   res.push_back( base_uri + "/ifdh_stage/queue/" + stagefile );
+
+   return res;
+}
+
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
@@ -311,6 +387,7 @@ ifdh::cp( std::vector<std::string> args ) {
     int rres = 0;
     bool recursive = false;
     bool dest_is_dir = false;
+    bool cleanup_stage = false;
     struct rusage rusage_before, rusage_after;
     time_t time_before, time_after;
 
@@ -321,6 +398,7 @@ ifdh::cp( std::vector<std::string> args ) {
          }
          std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
     }
+
 
     if (getenv("IFDH_FORCE")) {
         force = getenv("IFDH_FORCE");
@@ -364,6 +442,7 @@ ifdh::cp( std::vector<std::string> args ) {
         curarg++;
     }
    
+
     // convert relative paths to absolute
     
     string cwd(get_current_dir_name());
@@ -377,6 +456,7 @@ ifdh::cp( std::vector<std::string> args ) {
 	   args[i] = cwd + "/" + args[i];
        }
     }
+
 
     // now decide local/remote
     // if anything is not local, use remote
@@ -416,8 +496,13 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
 		       use_cpn = 0;
-		       use_exp_gridftp = 1;
-                       _debug && cout << "deciding to use exp gridftp due to: " << args[i] << "\n";
+                       if (getenv("IFDH_STAGE_VIA")) {
+                           use_srm = 1;
+                           _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA and: " << args[i] << "\n";
+                       } else {
+		           use_exp_gridftp = 1;
+                           _debug && cout << "deciding to use exp gridftp due to: " << args[i] << "\n";
+                       }
 		   }      
 		} else {
 		   // for non-local sources, default to bestman gridftp
@@ -453,6 +538,7 @@ ifdh::cp( std::vector<std::string> args ) {
         throw( std::logic_error("invalid use of -r with --force=srm or --force=dd"));
      }
 
+
      //
      // default to dd for non-recursive copies.
      // 
@@ -471,6 +557,14 @@ ifdh::cp( std::vector<std::string> args ) {
      //
      if (dest_is_dir && (use_srm || use_dd || use_any_gridftp)) {
          args = slice_directories(args, curarg);
+         dest_is_dir = false;
+         curarg = 0;
+     }
+
+     if (getenv("IFDH_STAGE_VIA") && use_srm ) {
+         args = build_stage_list(args, curarg);
+	 // we now have a stage back file to clean up later...
+         cleanup_stage = true;
          curarg = 0;
      }
 
@@ -488,8 +582,8 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 " : use_any_gridftp ? "globus-url-copy " : "false" );
-         
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 "  : use_any_gridftp ? "globus-url-copy " : "false" );
+
          if (recursive) {
             cmd << "-r ";
          }
@@ -547,7 +641,17 @@ ifdh::cp( std::vector<std::string> args ) {
 		    cmd << args[curarg] << " ";
                 else
 		    cmd << bestman_srm_uri << args[curarg] << " ";
-              
+
+                //
+                // if it is a third party copy *to* a BestMan server
+                // use -pushmode=true See:
+                // http://ticket.grid.iu.edu/goc/5232?expandall=true&sort=up
+                //
+                if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && is_bestman_server( args[curarg]) && std::string::npos == cmd.str().find("file:///") ) {
+                    
+                    cmd.str( cmd.str().replace(5,1," -pushmode=true "));
+                }
+
             } else if (use_exp_gridftp) {
                 if( args[curarg].find("gsiftp:") == 0)  
                     cmd << args[curarg] << " ";
@@ -586,6 +690,11 @@ ifdh::cp( std::vector<std::string> args ) {
 
     time(&time_after);
     getrusage(RUSAGE_CHILDREN, &rusage_after);
+
+    if (cleanup_stage) {
+        _debug && std::cerr << "removing: " << args[curarg - 2 ] << "\n";
+        unlink( args[curarg - 2].c_str());
+    }
 
     long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
     long int delta_out = rusage_after.ru_oublock - rusage_before.ru_oublock;

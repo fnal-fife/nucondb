@@ -178,12 +178,13 @@ ifdh::addOutputFile(string filename) {
 
 int 
 ifdh::copyBackOutput(string dest_dir) {
-    stringstream cmd;
     string line;
-    stringstream err;
     string file;
+    string filelast;
+    string sep(";");
+    bool first = true;
+    vector<string> cpargs;
     size_t spos;
-    int res;
     string outfiles_name;
     // int baseloc = dest_dir.find("/") + 1;
     outfiles_name = datadir()+"/output_files";
@@ -192,76 +193,35 @@ ifdh::copyBackOutput(string dest_dir) {
        return 0;
     }
 
-    if (0 == access(dest_dir.c_str(), W_OK) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'c')) {
-        // destination is visible, so use cpn
-	cmd  << cpn_loc;
-        while (!outlog.eof() && !outlog.fail()) {
-            getline(outlog,line);
-            spos = line.find(' ');
-            if (spos != string::npos) {
-	        file = line.substr(0,spos);
-            } else {
-                file = line;
-            }
-            if ( !file.size() ) {
-               break;
-            }
-            cmd << " " << file;
+    while (!outlog.eof() && !outlog.fail()) {
+
+        getline(outlog, line);
+
+        _debug && std::cout << "parsing: " << line << "\n";
+	spos = line.find(' ');
+	if (spos != string::npos) {
+	    file = line.substr(0,spos);
+	} else {
+	    file = line;
+	}
+	if ( !file.size() ) {
+	   break;
+	}
+	spos = line.rfind('/');
+	if (spos != string::npos) {
+	    filelast = file.substr(spos+1);
+	} else {
+	    filelast = file;
+	}
+        if (!first) {
+            cpargs.push_back(sep);
         }
-        cmd << " " << dest_dir;
-
-    } else {
-
-        struct hostent *hostp;
-        std::string gftpHost("if-gridftp-");
-        gftpHost.append(getexperiment());
-        gftpHost.append(".fnal.gov");
-
-        if ( 0 != (hostp = gethostbyname(gftpHost.c_str())) && (0 == getenv("IFDH_FORCE") || getenv("IFDH_FORCE")[0] == 'e') ) {
-            //  if experiment specific gridftp host exists, use it...
-            
-            cmd << "globus-url-copy ";
-            while (!outlog.eof() && !outlog.fail()) {
-		getline(outlog, line);
-		spos = line.find(' ');
-		if (spos != string::npos) {
-		    file = line.substr(0,spos);
-		} else {
-		    file = line;
-		}
-                if ( !file.size() ) {
-                   break;
-                }
-		cmd << " file:///" << file;
-	    }
-            cmd << " ftp://" << gftpHost << dest_dir;
-
-        } else {
-            // destination is not visible, use srmcp
-            
-	    cmd << "srmcp -2 ";
-            while (!outlog.eof() && !outlog.fail()) {
-		getline(outlog, line);
-		spos = line.find(' ');
-		if (spos != string::npos) {
-		    file = line.substr(0,spos);
-		} else {
-		    file = line;
-		}
-                if ( !file.size() ) {
-                   break;
-                }
-		cmd << " file:///" << file;
-	    }
-	    cmd << " " << bestmanuri << dest_dir;
-       }
+        first = false;
+        cpargs.push_back(file);
+        cpargs.push_back(dest_dir + "/" + filelast);
+   
     }
-    res = system(cmd.str().c_str());
-    if (res != 0) {
-        err << "command: '" << cmd << "'exit code: " << res;
-        throw(WebAPIException("copy  failed:", err.str().c_str() ));
-    }
-    return 1;
+    return cp(cpargs);
 }
 
 // logging
@@ -472,6 +432,19 @@ ifdh::set_base_uri(std::string baseuri) {
     _baseuri = baseuri; 
 }
 
+std::string
+ifdh::unique_string() {
+    static int count = 0;
+    char hbuf[512];
+    gethostname(hbuf, 512);
+    time_t t = time(0);
+    int pid = getpid();
+    stringstream uniqstr;
+
+    uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count++;
+    return uniqstr.str();
+}
+
 // give output files reported with addOutputFile a unique name
 int 
 ifdh::renameOutput(std::string how) {
@@ -524,15 +497,9 @@ ifdh::renameOutput(std::string how) {
 
         }
     } else if (how[0] == 'u') {
-        int count = 0;
-        char hbuf[512];
-        gethostname(hbuf, 512);
-        time_t t = time(0);
-        int pid = getpid();
 
 
         while (!outlog.eof() && !outlog.fail()) {
-            count++;
 
             getline(outlog,line);
             spos = line.find(' ');
@@ -546,14 +513,12 @@ ifdh::renameOutput(std::string how) {
   
             spos = file.find('.');
             if (spos == string::npos) {
-               spos = 0;
+               spos = file.length();
             }
 
-            stringstream uniqstr;
-            uniqstr << '_' << hbuf << '_' << t << '_' << pid << '_' << count;
 
             outfile = file;
-            outfile = outfile.insert( spos, uniqstr.str() );
+            outfile = outfile.insert( spos, unique_string() );
 	    rename(file.c_str(), outfile.c_str());
 
 	    _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";

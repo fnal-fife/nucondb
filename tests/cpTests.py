@@ -7,11 +7,14 @@ import glob
 
 base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/api"
 
+class Skipped(EnvironmentError):
+    pass
 
 class ifdh_cp_cases(unittest.TestCase):
     experiment = "nova"
     tc = 0
     buffer = True
+
 
     def list_remote_dir(self):
         f = os.popen('srmls "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s" 2>&1' % self.data_dir, "r")
@@ -53,10 +56,73 @@ class ifdh_cp_cases(unittest.TestCase):
                 f = open("%s/%s/f%d" % (self.work,sd,count),"w")
                 f.write("foo\n")
                 f.close()
-        os.system("ls -R %s" % self.work)
+        # os.system("ls -R %s" % self.work)
 
     def tearDown(self):
         os.system("rm -rf %s" % self.work)
+
+    def test_0_OuputFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.copyBackOutput(self.data_dir)
+        self.ifdh_handle.cleanup()
+
+    def test_0_OuputRenameFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.renameOutput('unique')
+        self.ifdh_handle.copyBackOutput(self.data_dir)
+        self.ifdh_handle.cleanup()
+
+    def test_01_OuputRenameFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.renameOutput('s/f/g/')
+        self.ifdh_handle.copyBackOutput(self.data_dir)
+        self.ifdh_handle.cleanup()
+
+    def test_1_OuputFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.copyBackOutput(self.work)
+        self.ifdh_handle.cleanup()
+
+    def test_1_OuputRenameFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.renameOutput('unique')
+        self.ifdh_handle.copyBackOutput(self.work)
+        self.ifdh_handle.cleanup()
+
+    def test_11_OuputRenameFiles(self):
+        self.ifdh_handle.cleanup()
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.renameOutput('s/f/g/')
+        self.ifdh_handle.copyBackOutput(self.work)
+        self.ifdh_handle.cleanup()
+
+    def test_1_list_copy(self):
+        self.make_test_txt()
+        f = open("%s/list" % self.work,"w")
+        f.write("%s/test.txt %s/test2.txt\n%s/test2.txt %s/test3.txt\n" % (self.work, self.work, self.work, self.work))
+        f.close()
+        self.ifdh_handle.cp([ "-f", "%s/list" % self.work])
+        os.system("mv %s/test3.txt %s/test.txt" % (self.work, self.work))
+        self.assertEqual(self.check_test_txt(), True)
+         
+    def test_dirmode_expftp(self):
+        self.ifdh_handle.cp(['--force=expftp', '-D', '%s/a/f1' % self.work, '%s/a/f2' % self.work, self.data_dir])
+        if (os.access("%s/f1" % self.data_dir, os.R_OK)) :
+            statinfo = os.stat("%s/f1" % self.data_dir)
+    	    self.assertEqual(statinfo.st_mode & 040000, 0 )
+        else:
+            self.assertEqual(True,True)
 
     def test_gsiftp__out(self):
         self.make_test_txt()
@@ -234,6 +300,8 @@ class ifdh_cp_cases(unittest.TestCase):
         l5 = glob.glob("%s/d/b/f*" % self.work)
         l6 = glob.glob("%s/d/c/f*" % self.work)
         self.assertEqual(len(l4)+len(l5)+len(l6), 6)
+ 
+    
         
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_cp_cases)
