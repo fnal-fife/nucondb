@@ -19,7 +19,7 @@ flag=true
 furi=`ifdh getNextFile $cpurl $consumer_id`
 while [ "$furi"  != "" ]
 do
-	fname=`ifdh fetchInput $furi `
+	fname=`ifdh fetchInput $furi | tail -1 `
         if $flag
         then
 		ifdh updateFileStatus $cpurl  $consumer_id $fname transferred
