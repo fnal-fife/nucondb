@@ -7,7 +7,7 @@
 #include "ifbeam_c.h"
 
 /*
- * Note: This code uses qelib module. In order to compile it needs files qelib.h and qelib.o to be present.
+ * Note: This code uses wda module. In order to compile it needs files wda.h and wda.o to be present.
  */
 
 int main(void) 
