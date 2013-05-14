@@ -21,7 +21,7 @@ typedef void *Tuple;
  * Low level generic function which returns the whole buffer received
  * The buffer returned by this function needs to be freed with free(void *ptr) function call
  */
-void *getHTTP(const char *url, size_t *length, int *status);
+void *getHTTP(const char *url, const char *headers[], size_t nheaders, size_t *length, int *status);
 
 /*
  * Low level generic function which posts the whole buffer of given length
@@ -33,7 +33,7 @@ void postHTTPsigned(const char *url, const char* password, const char *headers[]
 /*
  * Low level generic function which returns the whole dataset
  */
-Dataset getData(const char *url, int *error);
+Dataset getData(const char *url, const char *uagent, int *error);
 
 
 /*

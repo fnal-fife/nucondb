@@ -6,10 +6,15 @@
 #include <time.h>
 #include <errno.h>
 #include <openssl/md5.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include <curl/curl.h>
 
 #include "wda.h"
+
+#define xversion(v)     version(v)
+#define version(v)      #v
 
 //#define DEBUG   1
 /*
@@ -116,8 +121,9 @@ static size_t writeMemoryCallback(void *contents, size_t size, size_t nmemb, voi
  * The function communicates with the server using CURL library
  * It returns pointer to the data as return value and passes data size via parameter
  */
-void *getHTTP(const char *url, size_t *length, int *status)
+void *getHTTP(const char *url, const char *headers[], size_t nheaders, size_t *length, int *status)
 {
+    int i;
     CURL *curl_handle;
     CURLcode ret;
 
@@ -131,35 +137,45 @@ void *getHTTP(const char *url, size_t *length, int *status)
 
     /* init the curl session */
     curl_handle = curl_easy_init();
+    
+    if (curl_handle) {
+        struct curl_slist *headerlist = NULL;
+        char user_agent[256];
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
+        if (headers) {
+            for (i = 0; i < nheaders; i++) {
+                if (headers[i])
+                    headerlist = curl_slist_append(headerlist, headers[i]);
+            }
+        }
+        headerlist = curl_slist_append(headerlist, user_agent);
 
-    /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, url);
+        /* specify URL to get */
+        curl_easy_setopt(curl_handle, CURLOPT_URL, url);
 
-    /* send all data to this function  */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeMemoryCallback);
+        /* send all data to this function  */
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeMemoryCallback);
 
-    /* we pass our 'response' struct to the callback function */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
+        /* we pass our 'response' struct to the callback function */
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
 
-    /* some servers don't like requests that are made without a user-agent 
-     field, so we provide one 
-    */
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        /* Enable redirection */
+        curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 
-    /* Enable redirection */
-    curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+        ret = curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headerlist);    /* Set extra headers            */
 
-    /* get it! */
-    ret = curl_easy_perform(curl_handle);
-    if (ret != CURLE_OK) {                                                  /* Check for errors             */
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
-    }
-
-    /* cleanup curl stuff */
-    curl_easy_cleanup(curl_handle);
+        /* get it! */
+        ret = curl_easy_perform(curl_handle);
+        if (ret != CURLE_OK) {                                                  /* Check for errors             */
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+        }
+        /* cleanup curl stuff */
+        curl_easy_cleanup(curl_handle);
+        curl_slist_free_all(headerlist);                                        /* Free the custom headers      */
 # if DEBUG
-    fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
+        fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
 # endif
+    }
     /* we're done with libcurl, so clean it up */
     curl_global_cleanup();
 
@@ -243,11 +259,16 @@ void postHTTP(const char *url, const char *headers[], size_t nheaders, const cha
 
     if (curl) {
         struct curl_slist *headerlist = NULL;
+        char user_agent[256];
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
         if (headers) {
             for (i = 0; i < nheaders; i++) {
-                headerlist = curl_slist_append(headerlist, headers[i]);
+                if (headers[i])
+                    headerlist = curl_slist_append(headerlist, headers[i]);
             }
         }
+        headerlist = curl_slist_append(headerlist, user_agent);
+
         curl_easy_setopt(curl, CURLOPT_URL, url);                               /* Set the target URL           */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);                       /* Pass the pointer to the data */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)length);            /* Pass the data length         */
@@ -273,7 +294,7 @@ void postHTTP(const char *url, const char *headers[], size_t nheaders, const cha
  * It returns the structure which contains the array of rows as strings
  * along with its size.
  */
-static HttpResponse get_data_rows(const char *url)
+static HttpResponse get_data_rows(const char *url, const char *headers[], size_t nheaders)
 {
     CURL *curl_handle;
     CURLcode ret;
@@ -292,59 +313,69 @@ static HttpResponse get_data_rows(const char *url)
     /* init the curl session */
     curl_handle = curl_easy_init();
 
-    /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, url);
+    if (curl_handle) {
+        struct curl_slist *headerlist = NULL;
+        char user_agent[256];
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
+        if (headers) {
+            for (i = 0; i < nheaders; i++) {
+                if (headers[i])
+                    headerlist = curl_slist_append(headerlist, headers[i]);
+            }
+        }
+        headerlist = curl_slist_append(headerlist, user_agent);
 
-    /* send all data to this function  */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeMemoryCallback);
+        /* specify URL to get */
+        curl_easy_setopt(curl_handle, CURLOPT_URL, url);
 
-    /* we pass our 'response' struct to the callback function */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
+        /* send all data to this function  */
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeMemoryCallback);
 
-    /* some servers don't like requests that are made without a user-agent 
-     field, so we provide one 
-    */
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        /* we pass our 'response' struct to the callback function */
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
 
-    /* Enable redirection */
-    curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+        /* Enable redirection */
+        curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 
-    /* get it! */
-    ret = curl_easy_perform(curl_handle);
-    if (ret != CURLE_OK) {                                                  /* Check for errors             */
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
-    }
+        ret = curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headerlist);    /* Set extra headers            */
 
-    /* cleanup curl stuff */
-    curl_easy_cleanup(curl_handle);
+        /* get it! */
+        ret = curl_easy_perform(curl_handle);
+        if (ret != CURLE_OK) {                                                  /* Check for errors             */
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+        }
+
+        /* cleanup curl stuff */
+        curl_easy_cleanup(curl_handle);
+        curl_slist_free_all(headerlist);                                        /* Free the custom headers      */
 # if DEBUG
-    fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
+        fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
 # endif
-    /* Calculate the number of rows */
-    for (i = 0, k = 0; i < response.size; i++) {
-      if (response.memory[i]=='\n')
-          k++;
-    }
+        /* Calculate the number of rows */
+        for (i = 0, k = 0; i < response.size; i++) {
+          if (response.memory[i]=='\n')
+              k++;
+        }
 # if DEBUG
-    fprintf(stderr, "get_data_rows: %d lines retrieved\n", k);
+        fprintf(stderr, "get_data_rows: %d lines retrieved\n", k);
 # endif
-    /* Allocate memory for array of rows */
-    response.rows = (char **)malloc(sizeof(char *) * k + 8);
-    if (response.rows == NULL) {
-        /* out of memory! */
-        PRINT_ALLOC_ERROR(malloc);
-        exit(EXIT_FAILURE);
-    }
-    response.nrows = k;
+        /* Allocate memory for array of rows */
+        response.rows = (char **)malloc(sizeof(char *) * k + 8);
+        if (response.rows == NULL) {
+            /* out of memory! */
+            PRINT_ALLOC_ERROR(malloc);
+            exit(EXIT_FAILURE);
+        }
+        response.nrows = k;
 
-    /* Now break response to the rows */
-    running = response.memory;                                  // Start from the beginning of the response buffer
-    for (k = 0; row = strsep(&running, "\n"); k++) {            // Walk through, find all newlines, replace them with '\0'
-//        fprintf(stderr, "t = '%s'\n", row);
-//        fprintf(stderr, "running = '%lx'\n", running);
-        response.rows[k] = row;                                 // Store pointer to the line
+        /* Now break response to the rows */
+        running = response.memory;                                  // Start from the beginning of the response buffer
+        for (k = 0; row = strsep(&running, "\n"); k++) {            // Walk through, find all newlines, replace them with '\0'
+    //        fprintf(stderr, "t = '%s'\n", row);
+    //        fprintf(stderr, "running = '%lx'\n", running);
+            response.rows[k] = row;                                 // Store pointer to the line
+        }
     }
-
     /* we're done with libcurl, so clean it up */
     curl_global_cleanup();
 
@@ -446,9 +477,10 @@ static DataRec *parse_csv(const char *s)
 /*
  * Low level generic function which returns the whole dataset
  */
-Dataset getData(const char *url, int *error)
+Dataset getData(const char *url, const char *uagent, int *error)
 {
     HttpResponse *response;
+    const char *headers[] = {uagent, NULL};
 # if DEBUG
     fprintf(stderr, "getData: url='%s'\n", url);
 # endif
@@ -461,7 +493,7 @@ Dataset getData(const char *url, int *error)
 //        exit(EXIT_FAILURE);
         return NULL;
     }
-    *response = get_data_rows(url);
+    *response = get_data_rows(url, headers, 1);
     *error = errno;
 
     return (Dataset)response;

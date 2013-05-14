@@ -1,11 +1,13 @@
 SRCDIR=../../fife_wda/
 VPATH=$(SRCDIR)
 LIB=libwda.a
-HDR=ifbeam.h wda.h
+HDR=ifbeam_c.h wda.h
 OBJ=ifbeam.o wda.o
 SRC= ifbeam.c wda.c
 TST=test_ifbeam
-CXXFLAGS=-fPIC -g $(DEFS) $(ARCH) -I$(SRCDIR)
+VERSION=v2.7
+DEFS=-DVERSION=$(VERSION)
+CXXFLAGS=-fPIC -g -O0 $(DEFS) $(ARCH) -I$(SRCDIR)
 
 VPATH=../../ifbeam
 
@@ -25,7 +27,8 @@ $(LIB): $(OBJ) $(UTLOBJ)
 	ar qv $(LIB) $(OBJ) 
 
 %.o: %.c
-	gcc -c -o $@  $(CXXFLAGS) $< 
+	gcc -c -o $@ $(CXXFLAGS) $< 
 
 test_ifbeam: test_ifbeam.o $(OBJ)
-	gcc -o ifbeam_test test_ifbeam.o $(OBJ) `test -r /usr/lib/libcurl.a && echo --static` -lcurl --dynamic 
+	echo $(VERSION) > VERSION
+	gcc -o ifbeam_test test_ifbeam.o $(OBJ) `test -r /usr/lib/libcurl.a && echo -Wl,-Bstatic` -lcurl -llber -lldap -Wl,-Bdynamic -lidn -lssl

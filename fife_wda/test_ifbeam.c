@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "ifbeam.h"
+#include "ifbeam_c.h"
 
 /*
  * Note: This code uses qelib module. In order to compile it needs files qelib.h and qelib.o to be present.
