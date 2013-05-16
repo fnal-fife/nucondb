@@ -80,7 +80,7 @@ numsg::printf(const char *fmt, ...) {
     static char buf[1024];
     va_list va;
     va_start(va, fmt);
-    vsprintf(buf, fmt, va);
+    vsnprintf(buf, 1024, fmt, va);
     _sa.send( _facility, _severity, _jobname.c_str(), buf);
 }
 
