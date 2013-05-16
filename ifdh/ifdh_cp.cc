@@ -88,7 +88,7 @@ is_bestman_server(std::string uri) {
         return true;
 
    ifdh::_debug && cout << "checking with srmping\n";
-   cmd << "srmping " << uri;
+   cmd << "srmping -2 " << uri;
    pf = popen(cmd.str().c_str(),"r");
    bool found = false;
    while (fgets(buf, 512, pf)) {
