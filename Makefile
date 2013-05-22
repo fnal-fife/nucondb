@@ -21,7 +21,7 @@ install-libs: all
 
 install-headers:
 	rm -rf $(DESTDIR)inc
-	test -d $(DESTDIR)inc || mkdir -p $(DESTDIR)inc && cp [inu]*/*.h $(DESTDIR)inc
+	test -d $(DESTDIR)inc || mkdir -p $(DESTDIR)inc && cp [finu]*/*.h $(DESTDIR)inc
 
 32bit:
 	ARCH="-m32 $(ARCH)" make all  install
