@@ -41,7 +41,7 @@ do
 
         printf "int\nmain(int argc, char **argv) { \n"
         printf "\tifdh i;\n"
-        printf "\tif (0 == strcmp(argv[1],\"--help\") || 0 == strcmp(argv[2],\"--help\")) { \n"
+        printf "\tif (! argv[1] || 0 == strcmp(argv[1],\"--help\") || (argv[2] && 0 == strcmp(argv[2],\"--help\"))) { \n"
         printf "\t\tusage();exit(0);\n"
         printf "\t}\n";
         printf "\tif (0 != getenv(\"IFDH_DEBUG\")) { \n"
