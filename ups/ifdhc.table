@@ -18,16 +18,8 @@ Action=setupbuild
 
 Flavor=ANY
 Qualifiers=e2:debug
-_qualbits=e2-debug
+_qualbits=debug-e2
 
-
-Action=setupbuild
-     setupRequired( gcc v4_7_1 )
-     setupRequired( python v2_7_3 -q gcc47 )
-
-Flavor=ANY
-Qualifiers=e2:debug
-_qualbits=e2-debug
 
 Action=setupbuild
      setupRequired( gcc v4_7_1 )
@@ -35,7 +27,7 @@ Action=setupbuild
 
 Flavor=ANY
 Qualifiers=e2:prof
-_qualbits=e2-prof
+_qualbits=prof-e2
 
 Action=setupbuild
      setupRequired( gcc v4_7_1 )
