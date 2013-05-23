@@ -15,7 +15,7 @@ then
 fi
 
 # use the art externals python, too
-. `ups setup python v2_7_3 -q gcc47`
+. `ups setup python v2_7_3 -q gcc47` || true
 
 case $basequal in
 debug) ARCH="-std=c++11 -O0 -g";;

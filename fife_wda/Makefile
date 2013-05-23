@@ -17,7 +17,7 @@ install:
 	test -d ../lib || mkdir ../lib
 	test -d ../include/wda || mkdir -p ../include/wda
 	cp $(LIB) ../lib
-	cp $(HDR) ../include/wda
+	cp $(HDR) ../include
 
 clean:
 	rm -f *.o *.a 

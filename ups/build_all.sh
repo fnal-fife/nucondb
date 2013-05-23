@@ -15,7 +15,9 @@ setup -. ifdhc
 python <<XXXX
 import ifdh
 XXXX
-upd addproduct -r `pwd` -M ups -m ifdhc.table $DECLAREBITS ifdhc VERSION
+setup upd
+VERSION=v1_2_0
+upd addproduct -r `pwd` -M ups -m ifdhc.table $DECLAREBITS ifdhc $VERSION
 cd 
 rm -rf /tmp/$USER$$
 
