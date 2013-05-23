@@ -28,7 +28,7 @@ export PYTHON_CONF=`echo $PYTHON_LIB/python*/config`
 
 fqdir="`ups flavor -4`-$qualdir" 
 
-for d in ifbeam ifdh nucondb numsg ups util
+for d in ifbeam ifdh nucondb numsg ups util fife_wda
 do
    mkdir -p $fqdir/$d
    cp $d/Makefile $fqdir/$d/Makefile

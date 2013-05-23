@@ -9,7 +9,6 @@ VERSION=v2.7
 DEFS=-DVERSION=$(VERSION)
 CXXFLAGS=-fPIC -g -O0 $(DEFS) $(ARCH) -I$(SRCDIR)
 
-VPATH=../../ifbeam
 
 all: $(BIN) $(TST) $(LIB) $(SHLIB)
 
