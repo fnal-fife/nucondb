@@ -104,7 +104,7 @@ static size_t writeMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     if (response->memory == NULL) {
         /* out of memory! */
         PRINT_ALLOC_ERROR(realloc);
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     memcpy(&(response->memory[response->size]), contents, realsize);
@@ -364,7 +364,8 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
         if (response.rows == NULL) {
             /* out of memory! */
             PRINT_ALLOC_ERROR(malloc);
-            exit(EXIT_FAILURE);
+            response.size = 0;
+            return response;
         }
         response.nrows = k;
 
@@ -455,7 +456,7 @@ static DataRec *parse_csv(const char *s)
         if (dataRec->columns == NULL) {
             /* out of memory! */
             PRINT_ALLOC_ERROR(malloc);
-            exit(EXIT_FAILURE);
+            return 0;
         }
 
         sp = ss;                                                    // Start from the begining of the line
@@ -490,7 +491,6 @@ Dataset getData(const char *url, const char *uagent, int *error)
         /* out of memory! */
         PRINT_ALLOC_ERROR(malloc);
         *error = errno;
-//        exit(EXIT_FAILURE);
         return NULL;
     }
     *response = get_data_rows(url, headers, 1);
