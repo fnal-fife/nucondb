@@ -467,6 +467,11 @@ ifdh::cp( std::vector<std::string> args ) {
     bool use_dd = false;
     bool use_any_gridftp = false;
 
+    if (getenv("IFDH_STAGE_VIA") && force[0] == ' ') {
+        force =  "srm";
+        _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA \n";
+    }
+
     if (force[0] == ' ') { // not forcing anything, so look
 
 	for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
