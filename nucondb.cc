@@ -115,32 +115,17 @@ Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIExc
 }
 
 
-#ifdef TIMES_CACHING
-// get all channels for time nearest when into cache
-void
-Folder::fetchData(long key) throw(WebAPIException) {
-    if (key == _cache_key) {
-        return;
-    }
-    _cache_key = key;
-   // }
-#else
 void
 Folder::fetchData(double when)  throw(WebAPIException){
     if (_cache_start <= when  && when < _cache_end) {
         // its in the cache already...
         return;
     }
-#endif
     std::string columnstr;
     std::stringstream fullurl;
     fullurl << std::setiosflags(std::ios::fixed);
     fullurl << _url << "/data?f=" << _foldername 
-#ifdef TIMES_CACHING
-           << "&i=" << key ;
-#else
            << "&t=" << when ;
-#endif
     if (_tag.length() > 0) {
          fullurl << "&tag=" << _tag;
     }
@@ -189,46 +174,6 @@ Folder::fetchData(double when)  throw(WebAPIException){
    s.data().close();
 }
 
-#ifdef TIMES_CACHING
-// get all channels for time nearest when into cache
-void
-Folder::fetchData(double when)  throw(WebAPIException){
-    std::string columnstr;
-    long int key = 1;
-
-    if (_cache_start <= when  && when < _cache_end) {
-        // its in the cache already...
-        return;
-    }
-
-    // only get new time list if needed
-    if (_times.size() == 0 || (when < _times.front().when || when > _times.back().when) ) {
-       _times = getTimes(when);
-    }
-
-    if (_times.size() == 0) {
-       _cache_start = 0;
-       _cache_end = 0;
-       _n_datarows = 0;
-       sprintf(ebuf, "Time %f: ", when);
-       throw(WebAPIException(ebuf, "not found in database."));
-    }
-
-    // search list of times for nearest one to us
-    // if it isn't off the end
-    if (when > _times.back().when) {
-       key = _times.back().key;
-    } else {
-	for(unsigned int i = 0; i < _times.size()-1 ; i++ ) {
-	    if ( when >= _times[i].when and when < _times[i+1].when) {
-               key = _times[i].key;
-	    }
-	}
-    }
-
-    this->fetchData(key);
-}
-#endif
 //XXX still  needs to use names...
 //
 int
