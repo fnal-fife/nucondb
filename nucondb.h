@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include "../util/WebAPI.h"
+#include "../fife_wda/wda.h"
 
 namespace nucondb_ns {
 
@@ -16,7 +17,8 @@ private:
      long int _cache_key;
      std::vector<std::string> _columns;
      std::vector<std::string> _types;
-     std::vector<std::string> _cache_data;
+     //std::vector<std::string> _cache_data;
+     Dataset _cache_dataset;
      int _n_datarows;
      std::vector<tk> _times;
      std::string _last_times_url;
@@ -26,7 +28,7 @@ private:
      int _cached_row;
      unsigned long _cached_channel;
 
-     int parse_fields(std::vector<std::string> names,const char *, va_list);
+     int parse_fields(std::vector<std::string> names,const Tuple, va_list);
 
 public:
      static int _debug;

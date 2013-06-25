@@ -8,6 +8,7 @@ HDR=nucondb.h ../util/*.h
 OBJ=nucondb.o $(UTL)
 SRC=nucondb.cc
 TST=nucondb-test 
+LDFLAGS=-L ../fife_wda -L ../../fife_wda -lcurl -lwda
 TESTDEFS=-DUNITTEST
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I$(SRCDIR)
 
@@ -28,13 +29,13 @@ $(LIB): $(OBJ) $(UTLOBJ)
 
 $(SHLIB): $(OBJ) $(UTLOBJ)
 	rm -f $(SHLIB)
-	g++ --shared -o $(SHLIB) $(OBJ) $(UTLOBJ)
+	g++ --shared -o $(SHLIB) $(OBJ) $(UTLOBJ) $(LDFLAGS)
 
 $(UTLOBJ):
 	cd ../util; make
 
 %-test: %.cc
-	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(UTLOBJ) $<
+	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(UTLOBJ) $< $(LDFLAGS)
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
