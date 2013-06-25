@@ -29,6 +29,7 @@ Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPI
    _cache_end = 0;
    _cached_row = -1;
    _cached_channel = 0;
+   _cache_dataset = 0;
    _tag = WebAPI::encode(tag);
    _last_times_url = "";
    if (_url[_url.length()-1] == '/') {
@@ -117,6 +118,8 @@ Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIExc
 
 void
 Folder::fetchData(double when)  throw(WebAPIException){
+    int err;
+    int i;
     if (_cache_start <= when  && when < _cache_end) {
         // its in the cache already...
         return;
@@ -129,60 +132,58 @@ Folder::fetchData(double when)  throw(WebAPIException){
     if (_tag.length() > 0) {
          fullurl << "&tag=" << _tag;
     }
-    WebAPI s( fullurl.str() );
+
+    if (_cache_dataset) {
+        releaseDataset(_cache_dataset);
+    }
+
+    _cache_dataset =  getData(fullurl.str().c_str(), (char*)0, &err);
+
+    _n_datarows = getNtuples(_cache_dataset) - 4;
 
 
     // get start and end times
-    getline(s.data(), columnstr); 
-    _debug && std::cout << "got: " << columnstr << std::endl;;
-    _cache_start = atof(columnstr.c_str());
+    Tuple t;
+    t = getTuple(_cache_dataset, 0);
+    _cache_start = getDoubleValue(t,0, &err);
+    releaseTuple(t);
 
-    getline(s.data(), columnstr);
-    _debug && std::cout << "got: " << columnstr << std::endl;;
-    if (columnstr[0] == '-') {
-        _cache_end = 9999999999.90;  // a really long time from now
-    } else {
-        _cache_end = atof(columnstr.c_str());
-    }
-    
+    t = getTuple(_cache_dataset, 1);
+    _cache_end = getDoubleValue(t,0, &err);
+    releaseTuple(t);
+
+    const int buffer_size(128);
+    char buf[buffer_size];
+
     // get column names
-    getline(s.data(), columnstr);
-    _debug && std::cout << "got: " << columnstr << std::endl;
-    _columns = split(columnstr,',');
+    t = getTuple(_cache_dataset, 2);
+    _columns.clear();
+    for( i = 0; i < getNfields(t); i++) {
+       getStringValue(t, i, buf, buffer_size,  &err);
+       _columns.push_back( buf );
+    }
+
     // get column types
-    getline(s.data(), columnstr);
-    _debug && std::cout << "got: " << columnstr << std::endl;
-    _types = split(columnstr,',');
+    t = getTuple(_cache_dataset, 3);
+    _types.clear();
+    for( i = 0; i < getNfields(t); i++) {
+       getStringValue(t, i, buf, buffer_size,  &err);
+       _types.push_back( buf );
+    }
 
-    _n_datarows = 0;
-    _cache_data.clear();
-    // preallocate vector rows -- pedestal tables are bigger...
-    _cache_data.reserve(_foldername[0] == 'p' ? 65000:1000);
-    _cached_channel = 0;
-    _cached_row = -1;
-
-    while (!s.data().eof()) {
-
-       getline(s.data(), columnstr);
-
-       if (!s.data().eof() && !s.data().fail() && columnstr.c_str()) {
-           _debug && std::cout << "got: " << columnstr << std::endl;
-	   _cache_data.push_back(columnstr);
-	   _n_datarows++;
-       }
-   }
-   s.data().close();
 }
 
-//XXX still  needs to use names...
 //
 int
-Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al) {
+Folder::parse_fields(std::vector<std::string> names, const Tuple t, va_list al) {
     void *vp;
+    int err;
     std::vector<std::string>::iterator it, nit, cit;
     std::vector<std::string> fields;
 
-    fields = split(pc,',',true);
+    const int buffer_size(128);
+    char buf[buffer_size];
+
     for( nit = names.begin(); nit != names.end(); nit++ ) {
 	vp = va_arg(al, void*);
         if (!vp) {
@@ -193,20 +194,21 @@ Folder::parse_fields(std::vector<std::string> names, const char *pc, va_list al)
                 _debug && std::cout << "found " << *nit << " matching " << _columns[i] <<"\n";
 		switch(_types[i][0]) {
 		case 'd': //double precision
-		    *(double *)vp = atof(fields[i-1].c_str());
+		    *(double *)vp = getDoubleValue(t, i, &err);
 		    break;
 		case 'f': //single precision
-		    *(float *)vp = atof(fields[i-1].c_str());
+		    *(float *)vp = getDoubleValue(t, i, &err);
 		    break;
 		case 't': //text
-		    *(char**)vp = strdup(fields[i-1].c_str());
-		    fixquotes(*(char**)vp, _debug);
+                    getStringValue(t,i,buf,buffer_size, &err);
+		    *(char**)vp = strdup(buf);
+		    // fixquotes(*(char**)vp, _debug);
 		    break;
 		case 'i': //integer
-		    *(int*)vp = atoi(fields[i-1].c_str());
+		    *(int*)vp = getLongValue(t, i, &err);
 		    break;
 		case 'l': //long int
-		    *(long*)vp = atol(fields[i-1].c_str());
+		    *(long*)vp = getLongValue(t, i, &err);
 		    break;
 		}
 	    }
@@ -240,7 +242,8 @@ int
 Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::string> namev, va_list al) throw(WebAPIException) {
     int l, m, r;
     unsigned long val;
-    int comma;
+    Tuple tup;
+    int err, res;
 
     fetchData(t);
 
@@ -253,7 +256,13 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
        throw(WebAPIException(ebuf, "Data not found in database."));
     }
 
-    if (_cached_row != -1 && _cached_channel == chan &&  strtoul(_cache_data[_cached_row].c_str(),NULL,0) == chan ) {
+    if (_cached_row != -1) {
+        tup = getTuple(_cache_dataset,_cached_row);
+        val = getLongValue(tup,0,&err);
+        releaseTuple(tup);
+    }
+
+    if (_cached_row != -1 && _cached_channel == chan && val == chan ) {
        m = _cached_row;
        _debug && std::cout << "using _cached_row " << m << "\n";
     } else {
@@ -265,7 +274,10 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
 			       << " r: " << r;
 	    _debug && std::cout.flush();
 
-	    val = strtoul(_cache_data[m].c_str(),NULL,0);
+            tup = getTuple(_cache_dataset, m + 4);
+	    // val = strtoul(_cache_data[m].c_str(),NULL,0);
+	    val = getLongValue(tup, 0, &err);
+            releaseTuple(tup);
 	    _debug && std::cout << " val: " << val 
 		      << std::endl;
 	    if( val  > chan )  r = m - 1;
@@ -285,19 +297,21 @@ Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::s
 
      _debug && std::cout << "found slot " << m ;
      _debug && std::cout.flush();
-     _debug && std::cout << ": " << _cache_data[m] << std::endl;
 
-     _debug && std::cout.flush();
+     tup = getTuple(_cache_dataset, m + 4);
+     val = getLongValue(tup, 0, &err);
 
-     comma = _cache_data[m].find_first_of(',');
-     val = strtoul(_cache_data[m].c_str(),NULL,0);
      if (val == chan) {
          _cached_channel = chan;
          _cached_row = m;
 
-         return this->parse_fields(namev, _cache_data[m].c_str() + comma + 1, al);
+         res = this->parse_fields(namev, tup, al);
+
+         releaseTuple(tup);
+         return res;
      } else {
          sprintf(ebuf, "Channel %lu: ", chan);
+         releaseTuple(tup);
          throw(WebAPIException(ebuf , "not found in data."));
      }
 }
