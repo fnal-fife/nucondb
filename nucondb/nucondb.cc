@@ -148,8 +148,14 @@ Folder::fetchData(double when)  throw(WebAPIException){
     _cache_start = getDoubleValue(t,0, &err);
     releaseTuple(t);
 
+    char ebuf[40];
     t = getTuple(_cache_dataset, 1);
-    _cache_end = getDoubleValue(t,0, &err);
+    getStringValue(t,0,ebuf,40, &err);
+    if ( 0 == strcmp(ebuf,"-")) {
+         _cache_end = 9999999999.90;  // a really long time from now
+    } else {
+        _cache_end = getDoubleValue(t,0, &err);
+    }
     releaseTuple(t);
 
     const int buffer_size(128);
@@ -424,6 +430,40 @@ test3() {
    d3.getNamedChannelData(
 	 1300969766.0,
          1210377216,
+         "atten,atten_error,amp,amp_error,reflect,reflect_error",
+         
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
+        );
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "atten,atten_error,amp,amp_error,reflect,reflect_error"
+               << "\n"
+               << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] 
+               << std::setw(9) << d[3] << std::setw(9) << d[4] 
+               << std::setw(9) << d[5] 
+               << "\n";
+
+
+   // check first, last channel
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1208222720,
+         "atten,atten_error,amp,amp_error,reflect,reflect_error",
+         
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
+        );
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+     std::cout << "got by name: "
+               << "atten,atten_error,amp,amp_error,reflect,reflect_error"
+               << "\n"
+               << d[0] << std::setw(9) << d[1] << std::setw(9) << d[2] 
+               << std::setw(9) << d[3] << std::setw(9) << d[4] 
+               << std::setw(9) << d[5] 
+               << "\n";
+
+   d3.getNamedChannelData(
+	 1300969766.0,
+         1865022464,
          "atten,atten_error,amp,amp_error,reflect,reflect_error",
          
          &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
