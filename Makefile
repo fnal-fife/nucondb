@@ -30,5 +30,5 @@ withart:
 	ARCH="-g -std=c++11 $(ARCH)" make all
 
 distrib:
-	tar czvf nucondb-client.tgz Makefile  [nu]*/*.[ch]* [nu]*/Makefile
+	tar czvf nucondb-client.tgz Makefile  [nuf]*/*.[ch]* [nuf]*/Makefile
 	tar czvf ifdhc.tgz Makefile */*.[ch]* */Makefile ups

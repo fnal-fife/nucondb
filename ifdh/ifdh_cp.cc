@@ -39,14 +39,19 @@ local_access(const char *path, int mode) {
     static struct statfs buf;
     int res;
 
+    
+    ifdh::_debug && std::cout << "local_access(" << path << " , " << mode ;
     res = statfs(path, &buf);
     if (0 != res ) {
        return res;
     }
     if (buf.f_type == NFS_SUPER_MAGIC) {
+       ifdh::_debug && std::cout << ") -- not local \n";
        return -1;
     } else {
-       return access(path, mode);
+       res = access(path, mode);
+       ifdh::_debug && std::cout << ") -- local returning " <<  res << "\n";
+       return res;
     }
 }
 
@@ -327,7 +332,7 @@ std::string fix_recursive_arg(std::string arg, bool recursive) {
 }
 
 std::vector<std::string> 
-ifdh::build_stage_list(std::vector<std::string> args, int curarg) {
+ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_via) {
    std::vector<std::string>  res;
    std::string stagefile("stage_");
    std::string ustring;
@@ -339,12 +344,20 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg) {
 
    // if we are told how to stage, use it, fall back to OSG_SITE_WRITE,
    //  or worst case, the bestman gateway.
-   std::string base_uri(getenv("IFDH_STAGE_VIA")? getenv("IFDH_STAGE_VIA"): bestman_srm_uri + "/grid/data/");
-   if (base_uri == "OSG_SITE_WRITE") {
-       base_uri = getenv("OSG_SITE_WRITE");
+   std::string base_uri(stage_via? stage_via : bestman_srm_uri + "/grid/data/");
+   if (base_uri[0] == '$') {
+       base_uri = getenv(base_uri.substr(1).c_str());
    }
    base_uri = (base_uri + "/" + getexperiment());
    stagefile += ustring;
+
+   // double slashes past the first srm:// break srmls
+   // so clean any other double slashe out.
+   size_t dspos = base_uri.rfind("//");
+   while (dspos != string::npos && dspos > 7) {
+      base_uri = base_uri.substr(0,dspos) + base_uri.substr(dspos+1);
+      dspos = base_uri.rfind("//");
+   }
 
    // make sure directory hierarchy is there..
    system( (mkdirstring +  base_uri + "/ifdh_stage").c_str() );
@@ -467,7 +480,8 @@ ifdh::cp( std::vector<std::string> args ) {
     bool use_dd = false;
     bool use_any_gridftp = false;
 
-    if (getenv("IFDH_STAGE_VIA") && force[0] == ' ') {
+    char *stage_via = getenv("IFDH_STAGE_VIA");
+    if (stage_via && force[0] == ' ') {
         force =  "srm";
         _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA \n";
     }
@@ -501,7 +515,7 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
 		       use_cpn = 0;
-                       if (getenv("IFDH_STAGE_VIA")) {
+                       if (stage_via) {
                            use_srm = 1;
                            _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA and: " << args[i] << "\n";
                        } else {
@@ -510,10 +524,10 @@ ifdh::cp( std::vector<std::string> args ) {
                        }
 		   }      
 		} else {
-		   // for non-local sources, default to bestman gridftp
+		   // for non-local sources, default to srm, for throttling
 		   use_cpn = 0;
-		   use_bst_gridftp = 1;
-	           _debug && cout << "deciding to use bestman gridftp due to: " << args[i] << "\n";
+		   use_srm = 1;
+	           _debug && cout << "deciding to use bestman to: " << args[i] << "\n";
 		}
 		break;
 	     }
@@ -531,6 +545,10 @@ ifdh::cp( std::vector<std::string> args ) {
          use_cpn = false;
          use_exp_gridftp = true;
      } else if (force[0] == 'c') { 
+          use_cpn = true;
+          use_srm = false;
+          use_exp_gridftp = false;
+          use_bst_gridftp = false;
           ;   // forcing CPN, already set
      } else {
           std::string basemessage("invalid --force= option: ");
@@ -566,8 +584,8 @@ ifdh::cp( std::vector<std::string> args ) {
          curarg = 0;
      }
 
-     if (getenv("IFDH_STAGE_VIA") && use_srm ) {
-         args = build_stage_list(args, curarg);
+     if (stage_via && use_srm ) {
+         args = build_stage_list(args, curarg, stage_via);
 	 // we now have a stage back file to clean up later...
          cleanup_stage = true;
          curarg = 0;
