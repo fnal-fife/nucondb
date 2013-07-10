@@ -141,6 +141,11 @@ Folder::fetchData(double when)  throw(WebAPIException){
 
     _n_datarows = getNtuples(_cache_dataset) - 4;
 
+    if (_n_datarows < 1) {
+       sprintf(ebuf, "Time %f:", when);
+       throw(WebAPIException(ebuf, "Data not found in database."));
+    }
+
 
     // get start and end times
     Tuple t;
