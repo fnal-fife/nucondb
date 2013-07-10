@@ -481,7 +481,9 @@ static DataRec *parse_csv(const char *s)
 Dataset getData(const char *url, const char *uagent, int *error)
 {
     HttpResponse *response;
-    const char *headers[] = {uagent, NULL};
+    char user_agent[256];
+    snprintf(user_agent, 256, "User-Agent: %s", uagent);
+    const char *headers[] = {user_agent, NULL};
 # if DEBUG
     fprintf(stderr, "getData: url='%s'\n", url);
 # endif
