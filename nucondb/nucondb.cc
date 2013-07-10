@@ -368,7 +368,7 @@ test_getchannel_feb() {
                         &d[28], &d[29], &d[30], &d[31], &d[32], &d[33], &d[34], &d[35], &d[36], &d[37], &d[38]);
    
    } catch (WebAPIException we) {
-       std::cout << "got exception:" << &we << "\n";
+       std::cout << "got exception:" << we.what() << "\n";
    }
 }
 
@@ -394,7 +394,7 @@ test_getchanneldata_window(Folder &f) {
        std::cout << "Failed to get exception!";
        abort();
    } catch (WebAPIException we) {
-       std::cout << "got exception:" << &we << "\n";
+       std::cout << "got exception:" << we.what() << "\n";
    }
 }
   
@@ -531,6 +531,21 @@ test3() {
 }
 
 void
+test_bad_time() {
+   static double d[8];
+
+   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
+   d3.getNamedChannelData(
+	 500.0,
+         1210377216,
+         "atten,atten_error,amp,amp_error,reflect,reflect_error",
+         
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5]
+        );
+     std::cout << std::setiosflags(std::ios::fixed) << std::setfill(' ') << std::setprecision(4);
+}
+
+void
 test_tagged_folder() {
 static double d[8];
 
@@ -594,7 +609,7 @@ main() {
    try {
    test_tagged_folder();
    } catch (WebAPIException we) {
-      std::cout << "Exception:" << &we << std::endl;
+      std::cout << "Exception:" << we.what() << std::endl;
    }
 
    test_getchannel_feb();
@@ -607,7 +622,13 @@ main() {
 	   test_getchanneldata_window(d2);
            }
    } catch (WebAPIException we) {
-      std::cout << "Exception:" << &we << std::endl;
+      std::cout << "Exception:" << we.what() << std::endl;
+   }
+
+   try {
+      test_bad_time();
+   } catch (WebAPIException we) {
+      std::cout << "Exception:" << we.what() << std::endl;
    }
  
    std::cout << "Done!";
