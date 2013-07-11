@@ -32,4 +32,4 @@ withart:
 distrib:
 	tar czvf nucondb-client.tgz Makefile  [nuf]*/*.[ch]* [nuf]*/Makefile
 	tar czvf ifdhc.tgz Makefile */*.[ch]* */Makefile ups
-	tar czvf ifbeam.tgz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* ups
+	tar czvf ifbeam.tgz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups
