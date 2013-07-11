@@ -1,0 +1,10 @@
+FILE=Table
+Product=ifbeam
+
+Flavor=ANY
+Qualifiers=""
+
+Action=Setup
+   SetupEnv()
+   ProdDir()
+   PathPrepend(LD_LIBRARY_PATH, ${UPS_PROD_DIR}/lib)
