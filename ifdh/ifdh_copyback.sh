@@ -38,13 +38,11 @@ init() {
 
 get_first() {
    #debugging
-   printf "Lock dir listing output:\n" >&2
-   srmls -2 "$wprefix/lock" >&2
-   printf "::\n" >&2
+   #printf "Lock dir listing output:\n" >&2
+   #srmls -2 "$wprefix/lock" >&2
+   #printf "::\n" >&2
 
-
-   srmls -2 "$wprefix/lock" | tail -2 | head -1  || 
-      srmmkdir -2 "$wprefix/lock"
+   srmls -2 "$wprefix/lock" | sed -e '1d' -e '/^$/d' | sort | head -1
 }
 
 i_am_first() {
@@ -54,10 +52,10 @@ i_am_first() {
 expired_lock() {
    set : `get_first`
    first_file="$3"
-   if [ "x$first_file" != "x" ]
+   if [ "x$first_file" != "x" ] && [ "`basename $first_file`" != "lock" ]
    then
        printf "Checking lock file: $first_file ... "
-       first_time=`echo $first_file | sed -e 's/.*_\(.*\)_.*/\1/' -e 's/T/ /'`
+       first_time=`echo $first_file | sed -e 's;.*/t_\([^_]*\)_.*;\1;' -e 's/T/ /'`
        first_secs=`date --date="$first_time" '+%s'`
        cur_secs=`date '+%s'`
 
@@ -106,8 +104,8 @@ get_lock() {
 }
 
 clean_lock() {
-   printf "Removing lock: $wprefix/lock/$uniqfile\n"
-   srmrm $wprefix/lock/$uniqfile
+   printf "Removing my lock: $wprefix/lock/$uniqfile\n"
+   srmrm $wprefix/lock/$uniqfile > /dev/null 2>&1
 }
 
 have_queue() {
@@ -132,7 +130,19 @@ copy_files() {
          printf "starting copy..."
          ifdh log "ifdh_copyback.sh: starting copies for $filename"
 
-         ifdh cp -f ${filelist}
+         if ifdh cp -f ${filelist} 
+         then
+             :
+         else
+             echo Retrying...
+             if ifdh cp -f ${filelist}
+             then
+                :
+             else
+                echo "Copy failed."
+                continue
+             fi
+         fi
 
          printf "completed.\n"
          ifdh log "ifdh_copyback.sh: finished copies for $filename"
@@ -171,6 +181,7 @@ copy_daemon() {
        clean_lock
    done
 
+   clean_lock
    
    printf "Finished on $host at `date`\n"
 
