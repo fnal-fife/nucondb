@@ -360,16 +360,21 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    }
 
    // make sure directory hierarchy is there..
-   system( (mkdirstring +  base_uri + "/ifdh_stage").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/queue").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/data").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring).c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
+   system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring + ">/dev/null 2>&1").c_str() );
 
    // open our stageout queue file/copy back instructions
    fstream stageout(stagefile.c_str(), fstream::out);
 
+   bool staging_out = false;
+
    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i+=3 ) {
 
+     if (0 == local_access(args[i].c_str(), R_OK) && 0 != local_access(args[i+1].c_str(), R_OK)) {
+       staging_out = true;
        // we're going to keep this in our stage queue area
        stage_location = base_uri + "/ifdh_stage/data/" + ustring + "/" +  basename(args[i].c_str());
 
@@ -380,11 +385,20 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 
        // the stage item out is from there to the final destination
        stageout << stage_location << ' ' << args[i+1]  << '\n';
+     } else {
+       res.push_back(args[i]);
+       res.push_back(args[i+1]);
+       res.push_back(";");
+     }
    }
 
    // copy our queue file in last, it means the others are ready to copy
-   res.push_back( stagefile );
-   res.push_back( base_uri + "/ifdh_stage/queue/" + stagefile );
+   if ( staging_out ) {
+      res.push_back( stagefile );
+      res.push_back( base_uri + "/ifdh_stage/queue/" + stagefile );
+   } else {
+      res.pop_back();
+   }
 
    return res;
 }
@@ -602,6 +616,8 @@ ifdh::cp( std::vector<std::string> args ) {
      }
      time(&time_before);
 
+     bool need_copyback = false;
+
      while( keep_going ) {
          stringstream cmd;
 
@@ -660,6 +676,9 @@ ifdh::cp( std::vector<std::string> args ) {
             } else if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && (0 == local_access(parent_dir(args[curarg]).c_str(), R_OK))) {
                 cmd << "file:///" << args[curarg] << " ";
             } else if (use_srm) {
+                if (stage_via) {
+                    need_copyback = true;
+                }
                 if( args[curarg].find("srm:") == 0)  
 		    cmd << args[curarg] << " ";
                 else
@@ -717,6 +736,10 @@ ifdh::cp( std::vector<std::string> args ) {
     if (cleanup_stage) {
         _debug && std::cerr << "removing: " << args[curarg - 2 ] << "\n";
         unlink( args[curarg - 2].c_str());
+    }
+
+    if (need_copyback) {
+        system("ifdh_copyback.sh");
     }
 
     long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
