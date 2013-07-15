@@ -46,7 +46,11 @@ get_first() {
 }
 
 i_am_first() {
-   get_first |  grep $uniqfile > /dev/null
+   lockfile=`get_first` 
+   case "$lockfile" in
+   *$uniquefile) return 0;;
+   *)            return 1;;
+   esac
 }
 
 expired_lock() {

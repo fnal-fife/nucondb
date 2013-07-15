@@ -346,7 +346,8 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    //  or worst case, the bestman gateway.
    std::string base_uri(stage_via? stage_via : bestman_srm_uri + "/grid/data/");
    if (base_uri[0] == '$') {
-       base_uri = getenv(base_uri.substr(1).c_str());
+       base_uri = base_uri.substr(1);
+       base_uri = getenv(base_uri.c_str());
    }
    base_uri = (base_uri + "/" + getexperiment());
    stagefile += ustring;
