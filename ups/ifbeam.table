@@ -1,9 +1,23 @@
 FILE=Table
 Product=ifbeam
 
+group:
 Flavor=ANY
 Qualifiers=""
 
+Flavor=ANY
+Qualifiers="e2:debug"
+
+Flavor=ANY
+Qualifiers="e2:prof"
+
+Flavor=ANY
+Qualifiers="nu:e2:debug"
+
+Flavor=ANY
+Qualifiers="nu:e2:prof"
+
+common:
 Action=Setup
    SetupEnv()
    ProdDir()
