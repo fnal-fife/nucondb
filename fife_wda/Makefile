@@ -7,7 +7,7 @@ SRC= ifbeam.c wda.c
 TST=test_ifbeam
 VERSION=v2.7
 DEFS=-DVERSION=$(VERSION)
-CXXFLAGS=-fPIC -g -O0 $(DEFS) $(ARCH) -I$(SRCDIR)
+CXXFLAGS=-fPIC -g -O3 $(DEFS) $(ARCH) -I$(SRCDIR)
 
 
 all: $(BIN) $(TST) $(LIB) $(SHLIB)
