@@ -32,4 +32,4 @@ withart:
 distrib:
 	tar czvf nucondb-client.tgz Makefile  [nuf]*/*.[ch]* [nuf]*/Makefile
 	tar czvf ifdhc.tar.gz Makefile bin lib/libifd* lib/python inc/ifdh* inc/[uSW]* inc/num* util ifdh numsg tests ups
-	tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups
+	tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h lib/libsrc_IFBeamService_IFBeam_service.so`
