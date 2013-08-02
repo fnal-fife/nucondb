@@ -35,6 +35,8 @@ typedef struct {
     char **rows;        // Array of rows in the buffer
     size_t nrows;       // Number of rows
     size_t idx;         // Current index
+	long http_code;		// Status code
+	DataRec *dataRecs[0];	// Array of parsed data records. Filled by getTuple calls
 } HttpResponse;
 
 
@@ -294,10 +296,11 @@ void postHTTP(const char *url, const char *headers[], size_t nheaders, const cha
  * It returns the structure which contains the array of rows as strings
  * along with its size.
  */
-static HttpResponse get_data_rows(const char *url, const char *headers[], size_t nheaders)
+static HttpResponse get_data_rows(const char *url, const char *headers[], size_t nheaders, int *error)
 {
     CURL *curl_handle;
     CURLcode ret;
+	long http_code = 0;
 
     HttpResponse response;
     int i, k;
@@ -306,7 +309,9 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
 
 
     response.memory = (char *)malloc(1);  /* will be grown as needed by the realloc above */
-    response.size = 0;                    /* no data at this point                        */
+    response.rows = NULL; 				  /* no data at this point                        */
+    response.nrows = response.size = 0;   /* no data at this point                        */
+    response.http_code = 0;
 
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -341,16 +346,29 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
 
         /* get it! */
         ret = curl_easy_perform(curl_handle);
+        *error = ret;
         if (ret != CURLE_OK) {                                                  /* Check for errors             */
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
-        }
-
+            response.size = 0;
+		    response.http_code = 0;
+        } else {
+			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &response.http_code);
+			if (response.http_code == 200 && ret != CURLE_ABORTED_BY_CALLBACK) {
+				//Succeeded
+			} else {
+				//Failed
+				//fprintf(stderr, "HTTP status code=%d: '%s'\n", response.http_code, response.memory);
+			}
+		}
         /* cleanup curl stuff */
         curl_easy_cleanup(curl_handle);
         curl_slist_free_all(headerlist);                                        /* Free the custom headers      */
 # if DEBUG
         fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
 # endif
+        if (ret != CURLE_OK || response.http_code != 200) {
+            return response;
+		}
         /* Calculate the number of rows */
         for (i = 0, k = 0; i < response.size; i++) {
           if (response.memory[i]=='\n')
@@ -480,8 +498,10 @@ static DataRec *parse_csv(const char *s)
  */
 Dataset getData(const char *url, const char *uagent, int *error)
 {
+	int err;
     HttpResponse *response;
     char user_agent[256];
+    
     snprintf(user_agent, 256, "User-Agent: %s", uagent);
     const char *headers[] = {user_agent, NULL};
 # if DEBUG
@@ -495,8 +515,19 @@ Dataset getData(const char *url, const char *uagent, int *error)
         *error = errno;
         return NULL;
     }
-    *response = get_data_rows(url, headers, 1);
-    *error = errno;
+    *response = get_data_rows(url, headers, 1, &err);
+    if (err) {
+    	*error = errno = ENODATA;
+	}
+    /* Now grow the response structure to allocate space for dataRecs array */
+    response = (HttpResponse *)realloc(response, sizeof (HttpResponse) + response->nrows*sizeof(DataRec));
+    if (response == NULL) {
+        /* out of memory! */
+        PRINT_ALLOC_ERROR(malloc);
+        *error = errno;
+        return NULL;
+    }
+    memset(response->dataRecs, 0, response->nrows*sizeof(DataRec));
 
     return (Dataset)response;
 }
@@ -511,15 +542,33 @@ int getNtuples(Dataset dataset)
 }
 
 
+int getIndex(Dataset dataset)
+{
+    HttpResponse *response;
+
+    response = (HttpResponse *)dataset;
+    return response->idx;
+}
+
+
 Tuple getTuple(Dataset dataset, int idx)
 {
     HttpResponse *response;
     DataRec *dataRec;
 
     response = (HttpResponse *)dataset;
-    if (idx < 0 || idx >= response->nrows)
+    if (idx < 0 || idx >= response->nrows) {
+		errno = ENODATA;
         return NULL;
-    dataRec = parse_csv(response->rows[idx]);          // parse the line
+    }
+    if (response->dataRecs[idx]) {
+//    	fprintf(stderr, "Get from cache\n");
+	    dataRec = response->dataRecs[idx];
+	} else {
+//    	fprintf(stderr, "Store in cache\n");
+	    dataRec = parse_csv(response->rows[idx]);          // parse the line
+	    response->dataRecs[idx] = dataRec;
+	}
     (response->idx) = idx + 1;
     return (Tuple)(dataRec);
 }
@@ -646,12 +695,36 @@ int getIntArray(Tuple tuple, int position, long *buffer, int buffer_size, int *e
 
 int releaseDataset(Dataset dataset)
 {
+	int i;
+    HttpResponse *response = (HttpResponse *)dataset;
+    /* First, release all stored dataRecs	*/
+	for (i = 0; i < response->nrows; i++) {
+		if (response->dataRecs[i]) {
+			destroyDataRec(response->dataRecs[i]);
+			response->dataRecs[i] = NULL;
+		}
+	}
+	/* Second, release dataset itself		*/
     return destroyHttpResponse((HttpResponse *)dataset);
 }
 
 
 int releaseTuple(Tuple tuple)
 {
+# if 0
     return destroyDataRec((DataRec *)tuple);
+# else
+	return 0;
+# endif
+}
+
+long getHTTPstatus(Dataset dataset)
+{
+	return ((HttpResponse *)dataset)->http_code;
+}
+
+char *getHTTPmessage(Dataset dataset)
+{
+	return ((HttpResponse *)dataset)->memory;
 }
 

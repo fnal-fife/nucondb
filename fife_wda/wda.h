@@ -41,6 +41,8 @@ Dataset getData(const char *url, const char *uagent, int *error);
  */
 int getNtuples(Dataset dataset);            /* Returns number of tuples in the dataset  */
 
+int getIndex(Dataset dataset);				/* Returns current index value in dataset 	*/
+
 Tuple getTuple(Dataset dataset, int i);     /* Returns NULL if out of range             */
 
 Tuple getFirstTuple(Dataset dataset);       /* Returns the first tuple in the dataset   */
@@ -79,6 +81,10 @@ int getLongArray(Tuple tuple, int position, long *buffer, int buffer_size, int *
 int releaseDataset(Dataset dataset);        /* Releases memory allocated for dataset    */
 
 int releaseTuple(Tuple tuple);              /* Releases memory allocated for tuple      */
+
+long getHTTPstatus(Dataset dataset);		/* Returns HTTP status code					*/
+
+char *getHTTPmessage(Dataset dataset);		/* Returns HTTP status message				*/
 
 #ifdef __cplusplus 
 } 
