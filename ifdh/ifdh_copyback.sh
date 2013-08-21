@@ -9,6 +9,18 @@
 #
 
 init() {
+
+    for cmd in "ifdh --help" "srmcp -help" "srm-copy -help" "srmls -help"
+    do
+	if [ `$cmd 2>&1 | wc -l` -gt 2 ]
+	then
+	    : 
+	else
+	    echo "Cannot get output of $cmd; bailing out..."
+	    exit 1
+	fi
+    done
+    
  
     printf "ifdh copyback script starting for experiment %s\n" "${EXPERIMENT:-nova}"
 
@@ -33,6 +45,8 @@ init() {
     ifdh log "ifdh_copyback.sh: starting for ${EXPERIMENT} on $host location $wprefix"
     # avoid falling into a hall of mirrors
     unset IFDH_STAGE_VIA
+
+    cd ${TMPDIR:-/tmp}
 }
 
 
@@ -134,19 +148,25 @@ copy_files() {
          printf "starting copy..."
          ifdh log "ifdh_copyback.sh: starting copies for $filename"
 
-         if ifdh cp -f ${filelist} 
-         then
-             :
-         else
-             echo Retrying...
-             if ifdh cp -f ${filelist}
-             then
-                :
-             else
-                echo "Copy failed."
-                continue
-             fi
-         fi
+         #
+         # for now, we need to use srm-copy with 3rdparty to
+         # actually do the copy; too many sites are bestman in
+         # gateway mode which doesn't do pushmode,etc. copies.
+         #
+         
+         while read src dest
+         do              
+  	     # fixup plain fermi destinations
+             case "$dest" in
+             srm:*) ;;
+             /*)  dest="srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=$dest"
+;;
+             esac
+
+             cmd="srm-copy \"$src\" \"$dest\" -3partycopy"
+             ifdh log "ifdh_copyback.sh: $cmd"
+             eval "$cmd"
+         done < $filelist
 
          printf "completed.\n"
          ifdh log "ifdh_copyback.sh: finished copies for $filename"
