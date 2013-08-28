@@ -17,7 +17,7 @@ install-libs: all
 	rm -rf $(DESTDIR)lib 
 	test -d $(DESTDIR)lib || mkdir -p  $(DESTDIR)lib && cp [inu]*/*.so [inu]*/*.a  $(DESTDIR)lib
 	test -d $(DESTDIR)lib/python || mkdir -p  $(DESTDIR)lib/python && cp ifdh/python/*  $(DESTDIR)lib/python
-	test -d $(DESTDIR)bin || mkdir -p $(DESTDIR)bin && cp ifdh/ifdh ifdh/ifdh_copyback.sh $(DESTDIR)bin
+	test -d $(DESTDIR)bin || mkdir -p $(DESTDIR)bin && cp ifdh/ifdh ifdh/ifdh_copyback.sh ifdh/ifdh_fetch $(DESTDIR)bin
 
 install-headers:
 	rm -rf $(DESTDIR)inc
