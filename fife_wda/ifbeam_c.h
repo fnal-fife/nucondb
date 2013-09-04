@@ -28,7 +28,7 @@ typedef struct {
 	char units[16];		// Units
 	double value;		// Scalar device value && vector_size==0
     size_t vector_size;	// Number of elements in data array
-	double vector[0];	// Vector device values && vector_size > 0
+	double vector[1];	// Vector device values && vector_size > 0
 } *Measurement;
 
 /*

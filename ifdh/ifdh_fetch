@@ -1,19 +1,59 @@
 #!/bin/sh
 
+while :
+do
+case x$1 in 
+x--dims)
+    dims="$2"
+    shift
+    shift
+    set : "$@" `ifdh translateConstraints "$dims"`
+    shift
+    continue
+    ;;
+x--help)
+    usage
+    exit 0
+    ;;
+x-e)
+    export EXPERIMENT=$2
+    shift
+    shift
+    ;;
+x)  usage
+    exit 1
+    ;;
+*)  break
+    ;;
+esac
+done
+
+case x$EXPERIMENT in
+x) echo "Need EXPERIMENT set in the environment"
+   exit 1
+   ;;
+*) ;;
+esac
+
 eloc='srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/'
 for f in "$@"
 do
    flocs=`ifdh locateFile $f`
    eflocs=`echo "$flocs" | grep enstore: | head -1`
-   bflocs=`echo "$flocs" | grep _bluearc: | head -1`
-   if [ x$eflocs != x ]
+   bflocs=`echo "$flocs" | egrep '(_bluearc|data):' | head -1`
+   if [ x$bflocs != x ]
    then
+       echo "found file on bluearc"
+       src="`echo $bflocs | head -1 | perl -pe 's/.*(_bluearc|data)://;'`/$f"
+   else
        echo "found file on enstore, using dcache srm"
+
+       # make sure we have a proxy
+       voms-proxy-info -all | grep $EXPERIMENT > /dev/null || (
+         kx509 && voms-proxy-init -noregen -voms fermilab:/fermilab/$EXPERIMENT/Role=Analysis)
        src="`echo $eflocs |
 	      sed -e "s;enstore:/pnfs/;$eloc;" -e 's/(.*//'`/$f"
-   else
-       echo "found file on bluearc"
-       src="`echo $bflocs | head -1 | sed -e 's/.*_bluearc://'`/$f"
+
    fi
    echo "doing:" ifdh cp "$src"  "./$f" 
    ifdh cp "$src"  "./$f"
