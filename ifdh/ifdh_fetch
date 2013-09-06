@@ -28,6 +28,10 @@ x)  usage
 esac
 done
 
+# make sure we have a proxy
+voms-proxy-info -all | grep $EXPERIMENT > /dev/null || (
+ kx509 && voms-proxy-init -noregen -voms fermilab:/fermilab/$EXPERIMENT/Role=Analysis)
+
 case x$EXPERIMENT in
 x) echo "Need EXPERIMENT set in the environment"
    exit 1
@@ -48,9 +52,6 @@ do
    else
        echo "found file on enstore, using dcache srm"
 
-       # make sure we have a proxy
-       voms-proxy-info -all | grep $EXPERIMENT > /dev/null || (
-         kx509 && voms-proxy-init -noregen -voms fermilab:/fermilab/$EXPERIMENT/Role=Analysis)
        src="`echo $eflocs |
 	      sed -e "s;enstore:/pnfs/;$eloc;" -e 's/(.*//'`/$f"
 
