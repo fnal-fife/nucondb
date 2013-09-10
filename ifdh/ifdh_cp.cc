@@ -530,7 +530,11 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
 		       use_cpn = 0;
-                       if (stage_via) {
+                       if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
+                           _debug && cout << "deciding to use srm because we don't have CPN and: "<< args[i] <<  "\n";
+                           use_srm = 1;
+                           
+                       } else if (stage_via) {
                            use_srm = 1;
                            _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA and: " << args[i] << "\n";
                        } else {

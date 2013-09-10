@@ -8,7 +8,7 @@ eloc='srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/'
 
 def ifdh_fetch( *flist, **kwargs ):
      ifdh_handle = ifdh()
-     if kwargs.has_key("--dims"):
+     if kwargs.has_key("dims"):
           flist.extend( ifdh_handle.translateConstraints(kwargs["dims"]))
 
      os.system("""
