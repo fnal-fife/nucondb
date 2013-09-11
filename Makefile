@@ -31,6 +31,6 @@ withart:
 	ARCH="-g -std=c++11 $(ARCH)" make all
 
 distrib:
-	op='c';  for d in  ifbeam  [nuf]* ; do (cd $$d ; tar --ignore-failed-read -$${op}vf ../nucondb.tar [^t]*.c [^dr]*.cc *.h) ; op='r';  done; gzip nucondb.tar ;mv nucondb.tar.gz nucondb-client.tgz
+	mkdir src; cp ifbeam/*.[ch]*  [nuf]*/[^d]*.[ch]* src ; mv src/ifbeam.c src/ifbeam_c.c;  tar czvf nucondb-client.tgz src; rm -rf src
 	tar czvf ifdhc.tar.gz Makefile bin lib/libifd* lib/python inc/ifdh* inc/[uSW]* inc/num* util ifdh numsg tests ups
 	tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h lib/libsrc_IFBeamService_IFBeam_service.so`
