@@ -145,6 +145,10 @@ copy_files() {
          printf "Fetching queue entry: $filename\n"
          srmcp  $wprefix/queue/$filename file:///${filelist}
 
+         #printf "queue entry contents:\n-------------\n"
+         #cat ${filelist}
+         #printf "\n-------------\n"
+
          printf "starting copy..."
          ifdh log "ifdh_copyback.sh: starting copies for $filename"
 
@@ -163,9 +167,11 @@ copy_files() {
 ;;
              esac
 
-             cmd="srm-copy \"$src\" \"$dest\" -3partycopy"
+             cmd="srm-copy \"$src\" \"$dest\" -3partycopy -dcau false"
+             echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
              eval "$cmd"
+             echo "status; $?"
          done < $filelist
 
          printf "completed.\n"
