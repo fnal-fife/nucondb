@@ -52,17 +52,18 @@ init() {
 
 get_first() {
    #debugging
-   #printf "Lock dir listing output:\n" >&2
-   #srmls -2 "$wprefix/lock" >&2
-   #printf "::\n" >&2
+   printf "Lock dir listing output:\n" >&2
+   srmls -2 "$wprefix/lock" >&2
+   printf "::\n" >&2
 
-   srmls -2 "$wprefix/lock" | sed -e '1d' -e '/^$/d' | sort | head -1
+   srmls -2 "$wprefix/lock" | sed -e '1d' -e '/^$/d' | sort -r | head -1
 }
 
 i_am_first() {
    lockfile=`get_first` 
+   echo "comparing $lockfile to $uniqfile" 
    case "$lockfile" in
-   *$uniquefile) return 0;;
+   *$uniqfile) return 0;;
    *)            return 1;;
    esac
 }
@@ -100,7 +101,7 @@ get_lock() {
 
    expired_lock
 
-   datestamp=`date +%FT%T`
+   datestamp=`date +%FT%T | sed -e s/[^a-z0-9]/_/g`
    uniqfile="t_${datestamp}_${host}_$$"
 
    echo lock > ${TMPDIR:-/tmp}/$uniqfile
@@ -110,8 +111,8 @@ get_lock() {
       sleep 5
       if i_am_first
       then
-         echo "Obtained lock $uniquefile at `date`"
-         ifdh log "ifdh_copyback.sh: Obtained lock $uniquefile at `date`"
+         echo "Obtained lock $uniqfile at `date`"
+         ifdh log "ifdh_copyback.sh: Obtained lock $uniqfile at `date`"
          return 0  
       fi
    fi
