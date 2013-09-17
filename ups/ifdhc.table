@@ -48,7 +48,42 @@ _qualbits=prof-e2
 
 Action=setupbuild
      setupRequired( gcc v4_7_1 )
-     setupRequired( python v2_7_3 -q gcc47 )
+     setupRequired( python v2_7_5 )
+
+
+Flavor=ANY
+Qualifiers=e4:debug
+_qualbits=debug-e4
+
+
+Action=setupbuild
+     setupRequired( gcc v4_8_1 )
+     setupRequired( python v2_7_5 )
+
+Flavor=ANY
+Qualifiers=e4:prof
+_qualbits=prof-e4
+
+Action=setupbuild
+     setupRequired( gcc v4_8_1 )
+     setupRequired( python v2_7_5 )
+
+Flavor=ANY
+Qualifiers=e4:debug:nu
+_qualbits=debug-e4
+
+
+Action=setupbuild
+     setupRequired( gcc v4_8_1 )
+     setupRequired( python v2_7_5 )
+
+Flavor=ANY
+Qualifiers=e4:nu:prof
+_qualbits=prof-e4
+
+Action=setupbuild
+     setupRequired( gcc v4_8_1 )
+     setupRequired( python v2_7_3 )
 
 Common:
 

@@ -17,6 +17,18 @@ Qualifiers="nu:e2:debug"
 Flavor=ANY
 Qualifiers="nu:e2:prof"
 
+Flavor=ANY
+Qualifiers="e4:debug"
+
+Flavor=ANY
+Qualifiers="e4:prof"
+
+Flavor=ANY
+Qualifiers="nu:e4:debug"
+
+Flavor=ANY
+Qualifiers="nu:e4:prof"
+
 common:
 Action=Setup
    SetupEnv()
