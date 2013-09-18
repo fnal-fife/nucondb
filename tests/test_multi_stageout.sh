@@ -4,7 +4,7 @@
 # run 5 copies of an ifdhc cp with IFDH_STAGE_VIA set
 # check output files to make sure only one runs the copyback
 #
-export OSG_SITE_WRITE="srm://fndca1.fnal.gov:8443//pnfs/fnal.gov/usr/fermigrid/volatile"
+export OSG_SITE_WRITE="srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/fermigrid/volatile/nova/test_multi"
 export IFDH_STAGE_VIA='$OSG_SITE_WRITE' 
 
 watch ps --forest &
@@ -13,7 +13,7 @@ watchpid=$!
 # cleanup  past attempts...
 for i in 1 2 3 4 5 
 do
-   srmrm srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=/grid/data/mengel/nucondb-client-$i.tgz
+   srmrm srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=/grid/data/mengel/nucondb-client-$i.tgz > /dev/null 2>&1
 done
 
 cppid=""
@@ -31,8 +31,12 @@ assert() {
    test "$@" || echo "Failed."
 }
 
-assert `grep -l 'someone else'  out_[1-5] | wc -w` = 4
-assert `grep -l 'Obtained lock' out_[1-5] | wc -w` = 1
+obtained_count=`grep -l 'Obtained lock' out_[1-5] | wc -w`
+handed_off=`grep -l 'someone else'  out_[1-5] | wc -w`
+echo "$obtained_count got locks"
+echo "$handed_off let someone else do it"
+assert $handed_off = 4
+assert $obtained_count = 1
 
 srmls srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=/grid/data/mengel/
 

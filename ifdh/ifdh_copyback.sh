@@ -8,6 +8,25 @@
 # so we eval it to expand that
 #
 
+run_with_timeout() {
+    timeout=$1
+    poll=5
+    shift
+    "$@" &
+    cpid=$!
+    while kill -0 $cpid 2>/dev/null&& [ $timeout -gt 0 ]
+    do
+        sleep $poll
+        timeout=$((timeout - poll))
+    done
+    if kill -0 $cpid 2>/dev/null
+    then
+         echo "killing: $1 due to timeout"
+         kill -9 $cpid
+    fi
+    wait $cpid
+}
+
 init() {
 
     for cmd in "ifdh --help" "srmcp -help" "srm-copy -help" "srmls -help"
@@ -101,11 +120,17 @@ get_lock() {
 
    expired_lock
 
-   datestamp=`date +%FT%T | sed -e s/[^a-z0-9]/_/g`
+   datestamp=`date +%FT%T | sed -e 's/[^a-z0-9]/_/g'`
    uniqfile="t_${datestamp}_${host}_$$"
 
+   if [ "x$datestamp" = x  -o "x$host" = x ]
+   then
+      # lock algorithm is busted.. bail
+      return 1
+   fi
+
    echo lock > ${TMPDIR:-/tmp}/$uniqfile
-   srmcp -2  file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
+   run_with_timeout 300 srm-copy file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
    if i_am_first
    then
       sleep 5
@@ -144,7 +169,7 @@ copy_files() {
          filename=`basename $filename`
 
          printf "Fetching queue entry: $filename\n"
-         srmcp  $wprefix/queue/$filename file:///${filelist}
+         run_with_timeout 300 srm-copy  $wprefix/queue/$filename file:///${filelist}
 
          #printf "queue entry contents:\n-------------\n"
          #cat ${filelist}
@@ -171,7 +196,7 @@ copy_files() {
              cmd="srm-copy \"$src\" \"$dest\" -3partycopy -dcau false"
              echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
-             eval "$cmd"
+             run_with_timeout 3600 eval "$cmd"
              echo "status; $?"
          done < $filelist
 
@@ -201,8 +226,16 @@ copy_files() {
   )
 }
 
+debug_ls() {
+   echo "current stage area:"
+   srmls -2 --recursion_depth=4 $wprefix
+   echo
+}
+
 copy_daemon() {
    init
+
+   debug_ls
 
    trap "clean_lock" 0 1 2 3 4 5 6 7 8 10 12
 
