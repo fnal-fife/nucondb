@@ -83,7 +83,7 @@ _qualbits=prof-e4
 
 Action=setupbuild
      setupRequired( gcc v4_8_1 )
-     setupRequired( python v2_7_3 )
+     setupRequired( python v2_7_5 )
 
 Common:
 
