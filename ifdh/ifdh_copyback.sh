@@ -2,6 +2,10 @@
 
 #set -x
 
+srmcopycmd() {
+  lcg-cp  --sendreceive-timeout 4000 -b -D srmv2 "$@"
+}
+
 #
 # IFDH_STAGE_VIA is allowed to be a literal '$OSG_SITE_WRITE'
 # (or generally $E for some environment variable E)
@@ -29,8 +33,8 @@ run_with_timeout() {
 
 init() {
 
-    echo "Copyback 2013-09-24 starting"
-    for cmd in "ifdh --help" "srmcp -help" "srm-copy -help" "srmls -help"
+    echo "Copyback v2013-09-24-lcg starting"
+    for cmd in "ifdh --help" "lcg-cp -help" "srmls -help"
     do
 	if [ `$cmd 2>&1 | wc -l` -gt 2 ]
 	then
@@ -132,7 +136,7 @@ get_lock() {
    fi
 
    echo lock > ${TMPDIR:-/tmp}/$uniqfile
-   run_with_timeout 300 srm-copy file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
+   run_with_timeout 300 srmcopycmd file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
    if i_am_first
    then
       sleep 5
@@ -171,7 +175,7 @@ copy_files() {
          filename=`basename $filename`
 
          printf "Fetching queue entry: $filename\n"
-         run_with_timeout 300 srm-copy  $wprefix/queue/$filename file:///${filelist}
+         run_with_timeout 300 srmcopycmd  $wprefix/queue/$filename file:///${filelist}
 
          #printf "queue entry contents:\n-------------\n"
          #cat ${filelist}
@@ -181,9 +185,7 @@ copy_files() {
          ifdh log "ifdh_copyback.sh: starting copies for $filename"
 
          #
-         # for now, we need to use srm-copy with 3rdparty to
-         # actually do the copy; too many sites are bestman in
-         # gateway mode which doesn't do pushmode,etc. copies.
+         # switching to lcg-cp for now; not sure how it does on assorted third party copy options...
          #
          
          while read src dest
@@ -195,7 +197,7 @@ copy_files() {
 ;;
              esac
 
-             cmd="srm-copy \"$src\" \"$dest\" -3partycopy -dcau false"
+             cmd="srmcopycmd \"$src\" \"$dest\""
              echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
              run_with_timeout 3600 eval "$cmd"
