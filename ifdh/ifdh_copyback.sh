@@ -29,6 +29,7 @@ run_with_timeout() {
 
 init() {
 
+    echo "Copyback 2013-09-24 starting"
     for cmd in "ifdh --help" "srmcp -help" "srm-copy -help" "srmls -help"
     do
 	if [ `$cmd 2>&1 | wc -l` -gt 2 ]
@@ -75,7 +76,7 @@ get_first() {
    srmls -2 "$wprefix/lock" >&2
    printf "::\n" >&2
 
-   srmls -2 "$wprefix/lock" | sed -e '1d' -e '/^$/d' | sort -r | head -1
+   srmls -2 "$wprefix/lock" | sed -e '1d' -e '/^$/d' | sort | head -1
 }
 
 i_am_first() {
