@@ -94,14 +94,15 @@ expired_lock() {
    if [ "x$first_file" != "x" ] && [ "`basename $first_file`" != "lock" ]
    then
        printf "Checking lock file: $first_file ... "
-       first_time=`echo $first_file | sed -e 's;.*/t_\([^_]*\)_.*;\1;' -e 's/T/ /'`
+       # example timestamp:  t_2013-09-24_12_21_22_red-d21n13.red.hcc.unl.edu_30277
+       first_time=`echo $first_file | sed -e 's;.*/t_\([0-9]*\).\([0-9]*\).\([0-9]*\).\([0-9]*\).\([0-9]*\).\([0-9]*\).*;\1-\2-\3 \4:\5:\6;'`
        first_secs=`date --date="$first_time" '+%s'`
        cur_secs=`date '+%s'`
 
 
        delta=$((cur_secs - first_secs))
 
-       printf "$delta seconds old: "
+       printf "lock is $delta seconds old: "
 
        # if the lock is over 4 hours old, we consider it dead
 
