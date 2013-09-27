@@ -197,7 +197,7 @@ copy_files() {
 ;;
              esac
 
-             cmd="srmcopycmd \"$src\" \"$dest\""
+             cmd="srmcopycmd -n 8 \"$src\" \"$dest\""
              echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
              run_with_timeout 3600 eval "$cmd"
@@ -213,15 +213,17 @@ copy_files() {
              printf "removing: $src\n"
              ifdh log "ifdh_copyback.sh: cleaned up $src"
 
-             srmrm $src
+             srmrm $src &
              srcdir=`dirname $src`
          done < ${filelist}
 
+         wait
+
          printf "removing: $srcdir\n"
-         srmrmdir $srcdir
+         srmrmdir $srcdir &
 
          printf "removing: $wprefix/queue/$filename\n"
-         srmrm    $wprefix/queue/$filename
+         srmrm    $wprefix/queue/$filename &
          ifdh log "ifdh_copyback.sh: cleaned up $filename"
 
          rm $filelist

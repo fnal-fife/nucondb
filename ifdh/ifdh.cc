@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <exception>
 
 using namespace std;
 
@@ -124,40 +125,23 @@ ifdh::fetchInput( string src_uri ) {
     stringstream cmd;
     stringstream err;
     string path;
-    int res, res2;
-    int p1, p2;
 
-    if (src_uri.substr(0,7) == "file://") {
-        std::vector<std::string> args;
-        path = localPath( src_uri );
-        args.push_back(src_uri.substr(7));
-        args.push_back(path);
-        cp( args );
-        return path;
+    std::vector<std::string> args;
+    path = localPath( src_uri );
+    if (0 == src_uri.find("file:///"))
+       args.push_back(src_uri.substr(7));
+    else
+       args.push_back(src_uri);
+    args.push_back(path);
+    try {
+       if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK))
+          return path;
+       else
+          return "";
+    } catch( exception &e )  {
+       std::cerr << "fetchInput: Exception: " << e.what();
+       return "";
     }
-    if (src_uri.substr(0,6) == "srm://"  ||
-           src_uri.substr(0,9) == "gsiftp://") {
-        cmd << (src_uri[0] == 's' ? "srmcp -2 " : "globus-url-copy")
-            << " " << src_uri 
-            << " " << "file:///" << localPath( src_uri )
-            << " >&2" ;
-        _debug && std::cerr << "running: " << cmd.str() << "\n";
-        res = system(cmd.str().c_str());
-        _debug && std::cerr << "res is: " << res << "\n";
-        p1 = cmd.str().rfind(" ");
-        p2 = cmd.str().rfind(" ", p1-1);
-        path = cmd.str().substr(p2 + 8 , p1 - p2 - 8);
-        res2 = access(path.c_str(), R_OK);
-        _debug && std::cerr << "access res is: " << res2 << "\n";
-        if (res != 0 || res2 != 0) {
-            err << "exit code: " << res << " errno: " << errno << "path: " << path << "access:" << res2;
-            throw(WebAPIException("srmcp failed:", err.str() ));
-        }
-        _debug && std::cerr << "returning:" << path << "\n";
-        _lastinput = path;
-        return path;
-    }
-    throw(WebAPIException("Unknown uri type",src_uri.substr(0,8)));
 }
 
 // file output

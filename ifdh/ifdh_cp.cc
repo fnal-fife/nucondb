@@ -107,6 +107,17 @@ is_bestman_server(std::string uri) {
    return found;
 }
 
+bool 
+ping_se(std::string uri) {
+   std::stringstream cmd;
+   int res;
+
+   ifdh::_debug && cout << "checking " << uri << " with srmping\n";
+   cmd << "srmping -2 -retry_num=2 " << uri;
+   res = system(cmd.str().c_str());
+   return res == 0;
+}
+
 #include <dirent.h>
 int
 is_empty(std::string dirname) {
@@ -221,7 +232,7 @@ public:
 std::vector<std::string> expandfile( std::string fname ) {
   std::vector<std::string> res;
   std::string line;
-  size_t pos;
+  size_t pos, pos2;
 
   bool first = true;
 
@@ -232,10 +243,18 @@ std::vector<std::string> expandfile( std::string fname ) {
   	 res.push_back( ";" );
       }
       first = false;
-      pos = line.find(' ');
+      // trim trailing whitespace
+      while ( ' ' == line[line.length()-1] || '\t' == line[line.length()-1] || '\r' == line[line.length()-1] ) {
+          line = line.substr(0,line.length()-1);
+      }
+      pos = line.find_first_of(" \t");
       if (pos != string::npos) {
+         pos2 = pos;
+         while ( ' ' == line[pos2+1] || '\t' == line[pos2+1]) {
+             pos2++;
+         }
          res.push_back( line.substr(0,pos) );
-         res.push_back( line.substr(pos+1) );
+         res.push_back( line.substr(pos2+1) );
       }
       getline(listf, line);
   }
@@ -496,6 +515,14 @@ ifdh::cp( std::vector<std::string> args ) {
     bool use_any_gridftp = false;
 
     char *stage_via = getenv("IFDH_STAGE_VIA");
+
+    if (stage_via && !ping_se(stage_via)) {
+       _debug && cout << "ignoring $IFDH_STAGE_VIA due to ping failure \n";
+       this->log("ignoring $IFDH_STAGE_VIA due to ping failure");
+       this->log(stage_via);
+       stage_via = 0;
+    }
+
     if (stage_via && force[0] == ' ') {
         force =  "srm";
         _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA \n";

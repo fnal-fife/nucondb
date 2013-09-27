@@ -61,6 +61,11 @@ class ifdh_cp_cases(unittest.TestCase):
     def tearDown(self):
         os.system("rm -rf %s" % self.work)
 
+    def test_00_fetchinput_fail(self):
+        f = os.popen("ifdh fetchinput file:////no/such/file | tail -1")
+        line = f.readline()
+        self.assertEqual(line,"\n")
+
     def test_0_OuputFiles(self):
         self.ifdh_handle.cleanup()
         self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
@@ -111,6 +116,16 @@ class ifdh_cp_cases(unittest.TestCase):
         self.make_test_txt()
         f = open("%s/list" % self.work,"w")
         f.write("%s/test.txt %s/test2.txt\n%s/test2.txt %s/test3.txt\n" % (self.work, self.work, self.work, self.work))
+        f.close()
+        self.ifdh_handle.cp([ "-f", "%s/list" % self.work])
+        os.system("mv %s/test3.txt %s/test.txt" % (self.work, self.work))
+        self.assertEqual(self.check_test_txt(), True)
+         
+    def test_2_list_copy_ws(self):
+        # make sure list files with whitespace work.
+        self.make_test_txt()
+        f = open("%s/list" % self.work,"w")
+        f.write("%s/test.txt   %s/test2.txt  \n%s/test2.txt\t%s/test3.txt \n" % (self.work, self.work, self.work, self.work))
         f.close()
         self.ifdh_handle.cp([ "-f", "%s/list" % self.work])
         os.system("mv %s/test3.txt %s/test.txt" % (self.work, self.work))
@@ -292,7 +307,6 @@ class ifdh_cp_cases(unittest.TestCase):
                l1 + ['%s/d'%self.work , ';'] +
                l2 + ['%s/d/b'%self.work, ';'] +
                l3 + ['%s/d/c'%self.work ] )
-
         self.ifdh_handle.cp(list)
 
         #afterwards, should have 6 files in work/d
