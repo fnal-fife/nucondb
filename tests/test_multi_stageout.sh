@@ -4,8 +4,9 @@
 # run 5 copies of an ifdhc cp with IFDH_STAGE_VIA set
 # check output files to make sure only one runs the copyback
 #
-export OSG_SITE_WRITE="srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/fermigrid/volatile/nova/test_multi"
-export IFDH_STAGE_VIA='$OSG_SITE_WRITE' 
+export EXPERIMENT=nova
+export IFDH_STAGE_VIA="srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/fermigrid/volatile/nova/test_multi"
+export IFDH_DEBUG=1
 
 watch ps --forest &
 watchpid=$!

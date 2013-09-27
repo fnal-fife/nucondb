@@ -2,9 +2,6 @@
 
 #set -x
 
-srmcopycmd() {
-  lcg-cp  --sendreceive-timeout 4000 -b -D srmv2 "$@"
-}
 
 #
 # IFDH_STAGE_VIA is allowed to be a literal '$OSG_SITE_WRITE'
@@ -136,7 +133,7 @@ get_lock() {
    fi
 
    echo lock > ${TMPDIR:-/tmp}/$uniqfile
-   run_with_timeout 300 srmcopycmd file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
+   run_with_timeout 300 lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
    if i_am_first
    then
       sleep 5
@@ -175,7 +172,7 @@ copy_files() {
          filename=`basename $filename`
 
          printf "Fetching queue entry: $filename\n"
-         run_with_timeout 300 srmcopycmd  $wprefix/queue/$filename file:///${filelist}
+         run_with_timeout 300 lcg-cp  --sendreceive-timeout 4000 -b -D srmv2   $wprefix/queue/$filename file:///${filelist}
 
          #printf "queue entry contents:\n-------------\n"
          #cat ${filelist}
@@ -197,11 +194,20 @@ copy_files() {
 ;;
              esac
 
-             cmd="srmcopycmd -n 8 \"$src\" \"$dest\""
+             cmd="lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n 8 \"$src\" \"$dest\""
              echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
              run_with_timeout 3600 eval "$cmd"
              echo "status; $?"
+
+             if  srmls -2 "$dest" > /dev/null 2>&1
+             then
+                 :
+             else
+                 echo "Not claning this queue entry, because destination would not list"
+                 ifdh log "failed copies for $filename, leaving for later"
+                 break 2
+             fi
          done < $filelist
 
          printf "completed.\n"

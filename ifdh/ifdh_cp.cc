@@ -517,9 +517,14 @@ ifdh::cp( std::vector<std::string> args ) {
     char *stage_via = getenv("IFDH_STAGE_VIA");
 
     if (stage_via && !ping_se(stage_via)) {
-       _debug && cout << "ignoring $IFDH_STAGE_VIA due to ping failure \n";
+       _debug && cerr << "ignoring $IFDH_STAGE_VIA due to ping failure \n";
        this->log("ignoring $IFDH_STAGE_VIA due to ping failure");
        this->log(stage_via);
+       stage_via = 0;
+    }
+    if (stage_via && !getenv("EXPERIMENT")) {
+       _debug && cerr << "ignoring $IFDH_STAGE_VIA: $EXPERIMENT not set\n";
+       this->log("ignoring $IFDH_STAGE_VIA-- $EXPERIMENT not set  ");
        stage_via = 0;
     }
 
@@ -748,7 +753,6 @@ ifdh::cp( std::vector<std::string> args ) {
             _debug && std::cerr << "expected error...\n";
             res = 0;
         }
-
 
         if (res != 0 && rres == 0) {
             rres = res;
