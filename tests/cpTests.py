@@ -17,13 +17,30 @@ class ifdh_cp_cases(unittest.TestCase):
 
 
     def list_remote_dir(self):
+
+        if 1: return
+
         f = os.popen('srmls "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s" 2>&1' % self.data_dir, "r")
-        # print f.read()
+        print f.read()
         f.close()
 
+    def check_data_f1_f2(self, char="f"):
+        f = os.popen('srmls "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s" 2>&1' % self.data_dir, "r")
+        count = 0
+        for l in f.readlines():
+            if l.endswith("/%s1\n" % char) or l.endswith("/%s2\n" % char):
+                count = count + 1
+        f.close()
+        return count > 1
+
+    def clean_dest(self):
+        os.system('srmrm -2 "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" > /dev/null 2>&1' % self.data_dir)
+        os.system('srmrm -2 "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/f1" > /dev/null 2>&1' % self.data_dir)
+        os.system('srmrm -2 "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/f2" > /dev/null 2>&1' % self.data_dir)
+
     def make_test_txt(self):
+        self.clean_dest();
         # clean out copy on data dir...
-        os.system('srmrm -2 "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt" 2>&1' % self.data_dir)
         ifdh_cp_cases.tc = ifdh_cp_cases.tc + 1
         out = open("%s/test.txt" % self.work, "w")
         out.write("testing testing %d \n" % ifdh_cp_cases.tc)
@@ -39,7 +56,7 @@ class ifdh_cp_cases(unittest.TestCase):
         os.environ['EXPERIMENT'] =  ifdh_cp_cases.experiment
         self.ifdh_handle = ifdh.ifdh(base_uri_fmt % ifdh_cp_cases.experiment)
         self.hostname = socket.gethostname()
-        self.work="/tmp/work%d" % os.getpid()
+        self.work="/tmp/work%d" % os.getppid()
 	self.data_dir="/grid/data/%s" % os.environ['USER']
         if not  os.environ.has_key('X509_USER_PROXY'):
             print "please run: /scratch/grid/kproxy %s" % ifdh_cp_cases.experiment
@@ -60,6 +77,7 @@ class ifdh_cp_cases(unittest.TestCase):
 
     def tearDown(self):
         os.system("rm -rf %s" % self.work)
+        pass
 
     def test_00_fetchinput_fail(self):
         f = os.popen("ifdh fetchinput file:////no/such/file | tail -1")
@@ -72,6 +90,7 @@ class ifdh_cp_cases(unittest.TestCase):
         self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
         self.ifdh_handle.copyBackOutput(self.data_dir)
         self.ifdh_handle.cleanup()
+        self.assertEqual(self.check_data_f1_f2(), True)
 
     def test_0_OuputRenameFiles(self):
         self.ifdh_handle.cleanup()
@@ -315,7 +334,32 @@ class ifdh_cp_cases(unittest.TestCase):
         l6 = glob.glob("%s/d/c/f*" % self.work)
         self.assertEqual(len(l4)+len(l5)+len(l6), 6)
  
-    
+    def test_stage_copyback(self):
+
+        self.clean_dest()
+        os.environ['EXPERIMENT'] = "nova"
+        os.environ['IFDH_STAGE_VIA'] = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/fermigrid/volatile/nova/test_multi"
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.copyBackOutput(self.data_dir)
+        self.ifdh_handle.cleanup()
+        del os.environ['EXPERIMENT'] 
+        del os.environ['IFDH_STAGE_VIA']
+        self.assertEqual(self.check_data_f1_f2(), True)
+
+    def test_borked_copyback(self):
+
+        self.clean_dest()
+        os.environ['EXPERIMENT'] = "nova"
+        os.environ['IFDH_STAGE_VIA'] = "srm://localhost:12345/foo/bar?SFN=/baz"
+        self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
+        self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
+        self.ifdh_handle.copyBackOutput(self.data_dir)
+        self.ifdh_handle.cleanup()
+        del os.environ['EXPERIMENT'] 
+        del os.environ['IFDH_STAGE_VIA']
+        self.assertEqual(self.check_data_f1_f2(), True)
+
         
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_cp_cases)
