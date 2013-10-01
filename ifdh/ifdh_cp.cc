@@ -655,6 +655,9 @@ ifdh::cp( std::vector<std::string> args ) {
 
      bool need_copyback = false;
 
+     int srcsize = 0, dstsize = 0;
+     struct stat statbuf;
+
      while( keep_going ) {
          stringstream cmd;
 
@@ -671,6 +674,14 @@ ifdh::cp( std::vector<std::string> args ) {
          error_expected  = 0;
 
          while (curarg < args.size() && args[curarg] != ";" ) {
+
+            if (0 == stat(args[curarg].c_str(),&statbuf)) {
+	        if (curarg == args.size() - 1 || args[curarg+1] == ";" ) {
+                    srcsize += statbuf.st_size;
+                } else {
+                    dstsize += statbuf.st_size;
+                }
+            }
 
             args[curarg] = fix_recursive_arg(args[curarg],recursive);
 
@@ -785,11 +796,22 @@ ifdh::cp( std::vector<std::string> args ) {
     if (_debug) {
          std::cout << "rusage blocks after: " << rusage_after.ru_inblock << " " << rusage_after.ru_oublock << "\n"; 
          std::cout << "total blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds\n";
+         std::cout << "total in st_size: " << srcsize << "\n";
+         std::cout << "total out st_size: " << dstsize << "\n";
     }
     stringstream logmessage;
+    // if we didn't get numbers from getrusage, try the sums of
+    // the stat() st_size values for in and out.
+    if (0 == delta_in) {
+        delta_in = srcsize / 512;
+    }
+    if (0 == delta_out) {
+        delta_in = dstsize / 512;
+    }
     logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds \n";
     this->log(logmessage.str());
 
+   
     cpn.free();
 
     return rres;
