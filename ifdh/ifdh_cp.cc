@@ -802,10 +802,10 @@ ifdh::cp( std::vector<std::string> args ) {
     stringstream logmessage;
     // if we didn't get numbers from getrusage, try the sums of
     // the stat() st_size values for in and out.
-    if (0 == delta_in) {
+    if (0 == delta_in && 0 == res) {
         delta_in = srcsize / 512;
     }
-    if (0 == delta_out) {
+    if (0 == delta_out && 0 == res) {
         delta_in = dstsize / 512;
     }
     logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds \n";
