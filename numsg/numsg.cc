@@ -45,7 +45,7 @@ numsg::init(const char *jobname, int parentflag) {
 	    port = 514;
 	}
     } else {
-        strcpy(hostbuf, "gpsn01.fnal.gov");
+        strcpy(hostbuf, "fifelog.fnal.gov");
         port = 5140;
     }
     if (jobname == 0 && getenv("NU_MSG_TAG"))  {
