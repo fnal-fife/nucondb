@@ -435,15 +435,13 @@ ifdh::cp( std::vector<std::string> args ) {
     bool recursive = false;
     bool dest_is_dir = false;
     bool cleanup_stage = false;
-    struct rusage rusage_before, rusage_after;
-    time_t time_before, time_after;
+    struct timeval time_before, time_after;
 
     if (_debug) {
          std::cout << "entering ifdh::cp( ";
          for( std::vector<std::string>::size_type i = 0; i < args.size(); i++ ) {
              std::cout << args[i] << " ";
          }
-         std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
     }
 
 
@@ -647,15 +645,11 @@ ifdh::cp( std::vector<std::string> args ) {
 
      cpn.lock();
 
-     getrusage(RUSAGE_CHILDREN, &rusage_before);
-     if (_debug) {
-         std::cout << "rusage blocks before: " << rusage_before.ru_inblock << " " << rusage_before.ru_oublock << "\n"; 
-     }
-     time(&time_before);
+     gettimeofday(&time_before, 0);
 
      bool need_copyback = false;
 
-     int srcsize = 0, dstsize = 0;
+     long int srcsize = 0, dstsize = 0;
      struct stat statbuf;
 
      while( keep_going ) {
@@ -675,13 +669,6 @@ ifdh::cp( std::vector<std::string> args ) {
 
          while (curarg < args.size() && args[curarg] != ";" ) {
 
-            if (0 == stat(args[curarg].c_str(),&statbuf)) {
-	        if (curarg == args.size() - 1 || args[curarg+1] == ";" ) {
-                    srcsize += statbuf.st_size;
-                } else {
-                    dstsize += statbuf.st_size;
-                }
-            }
 
             args[curarg] = fix_recursive_arg(args[curarg],recursive);
 
@@ -777,8 +764,17 @@ ifdh::cp( std::vector<std::string> args ) {
         }
     }
 
-    time(&time_after);
-    getrusage(RUSAGE_CHILDREN, &rusage_after);
+     for( curarg = 0 ; curarg < args.size(); curarg++ ) {
+	if (0 == stat(args[curarg].c_str(),&statbuf)) {
+	    if (curarg == args.size() - 1 || args[curarg+1] == ";" ) {
+		dstsize += statbuf.st_size;
+	    } else {
+		srcsize += statbuf.st_size;
+	    }
+	}
+     }
+
+    gettimeofday(&time_after,0);
 
     if (cleanup_stage) {
         _debug && std::cerr << "removing: " << args[curarg - 2 ] << "\n";
@@ -789,26 +785,26 @@ ifdh::cp( std::vector<std::string> args ) {
         system("ifdh_copyback.sh");
     }
 
-    long int delta_in = rusage_after.ru_inblock - rusage_before.ru_inblock;
-    long int delta_out = rusage_after.ru_oublock - rusage_before.ru_oublock;
-    long int delta_t = time_after - time_before;
-
-    if (_debug) {
-         std::cout << "rusage blocks after: " << rusage_after.ru_inblock << " " << rusage_after.ru_oublock << "\n"; 
-         std::cout << "total blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds\n";
-         std::cout << "total in st_size: " << srcsize << "\n";
-         std::cout << "total out st_size: " << dstsize << "\n";
-    }
+    long int copysize;
     stringstream logmessage;
     // if we didn't get numbers from getrusage, try the sums of
     // the stat() st_size values for in and out.
-    if (0 == delta_in && 0 == res) {
-        delta_in = srcsize / 512;
+    if (srcsize > dstsize) {
+        copysize = srcsize ;
+    } else {
+        copysize = dstsize ;
     }
-    if (0 == delta_out && 0 == res) {
-        delta_in = dstsize / 512;
+
+    long int delta_t = time_after.tv_sec - time_before.tv_sec;
+    long int delta_ut = time_after.tv_usec - time_before.tv_usec;
+    // borrow from seconds if needed
+    if (delta_ut < 0) {
+        delta_ut += 1000000;
+        delta_t--;
     }
-    logmessage << "ifdh cp: blocks: " <<  delta_in << " in " << delta_out << " out " << delta_t << " seconds \n";
+    double fdelta_t = ((double)delta_ut / 100000.0) + delta_t;
+    logmessage << "ifdh cp: transferred: " <<  copysize << " bytes in " <<  fdelta_t << " seconds \n";
+    _debug && cerr << logmessage.str();
     this->log(logmessage.str());
 
    
