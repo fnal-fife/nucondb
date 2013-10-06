@@ -1,6 +1,16 @@
 *** ifdh_wrap.cxx.orig	2013-03-28 11:06:05.237183000 -0500
 --- ifdh_wrap.cxx	2013-03-28 11:07:38.087872000 -0500
 ***************
+*** 7,12 ****
+--- 7,13 ----
+   * changes to this file unless you know what you are doing--modify the SWIG 
+   * interface file instead. 
+   * ----------------------------------------------------------------------------- */
++ #include <malloc.h>
+  
+  #define SWIGPYTHON
+  #define SWIG_PYTHON_DIRECTOR_NO_VTABLE
+***************
 *** 2048,2054 ****
       void *vptr = 0;
       
