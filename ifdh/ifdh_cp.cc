@@ -414,7 +414,9 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 
    // copy our queue file in last, it means the others are ready to copy
    if ( staging_out ) {
-      res.push_back( stagefile );
+      std::string fullstage(get_current_dir_name());
+      fullstage += "/" +  stagefile;
+      res.push_back( fullstage );
       res.push_back( base_uri + "/ifdh_stage/queue/" + stagefile );
    } else {
       res.pop_back();
@@ -422,6 +424,8 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 
    return res;
 }
+
+const char *srm_copy_command = "lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n 4 ";
 
 int 
 ifdh::cp( std::vector<std::string> args ) {
@@ -655,7 +659,20 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? "srmcp -2 "  : use_any_gridftp ? "globus-url-copy " : "false" );
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy " : "false" );
+
+         if (use_dd && getenv("IFDH_DD_EXTRA")) {
+            cmd << getenv("IFDH_DD_EXTRA") << " ";
+         }
+         if (use_cpn && getenv("IFDH_CP_EXTRA")) {
+            cmd << getenv("IFDH_CP_EXTRA") << " ";
+         }
+         if (use_srm && getenv("IFDH_SRM_EXTRA")) {
+            cmd << getenv("IFDH_SRM_EXTRA") << " ";
+         }
+         if (use_any_gridftp && getenv("IFDH_GRIDFTP_EXTRA")) {
+            cmd << getenv("IFDH_GRIDFTP_EXTRA") << " ";
+         }
 
          if (recursive) {
             cmd << "-r ";
@@ -719,15 +736,6 @@ ifdh::cp( std::vector<std::string> args ) {
                 else
 		    cmd << bestman_srm_uri << args[curarg] << " ";
 
-                //
-                // if it is a third party copy *to* a BestMan server
-                // use -pushmode=true See:
-                // http://ticket.grid.iu.edu/goc/5232?expandall=true&sort=up
-                //
-                if (( curarg == args.size() - 1 || args[curarg+1] == ";" ) && is_bestman_server( args[curarg]) && std::string::npos == cmd.str().find("file:///") ) {
-                    
-                    cmd.str( cmd.str().replace(5,1," -pushmode=true "));
-                }
 
             } else if (use_exp_gridftp) {
                 if( args[curarg].find("gsiftp:") == 0)  

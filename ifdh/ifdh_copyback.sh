@@ -9,6 +9,10 @@
 # so we eval it to expand that
 #
 
+debug() {
+    [ x$IFDH_DEBUG != x ] && echo "$@"
+}
+
 run_with_timeout() {
     timeout=$1
     poll=5
@@ -30,7 +34,7 @@ run_with_timeout() {
 
 init() {
 
-    echo "Copyback v2013-09-24-lcg starting"
+    echo "Copyback v1_2_5 starting"
     for cmd in "ifdh --help" "lcg-cp -help" "srmls -help"
     do
 	if [ `$cmd 2>&1 | wc -l` -gt 2 ]
@@ -82,7 +86,7 @@ get_first() {
 
 i_am_first() {
    lockfile=`get_first` 
-   echo "comparing $lockfile to $uniqfile" 
+   debug "comparing $lockfile to $uniqfile" 
    case "$lockfile" in
    *$uniqfile) return 0;;
    *)            return 1;;
@@ -133,7 +137,7 @@ get_lock() {
    fi
 
    echo lock > ${TMPDIR:-/tmp}/$uniqfile
-   run_with_timeout 300 lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  file:///${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
+   run_with_timeout 300 ifdh cp ${TMPDIR:-/tmp}/$uniqfile $wprefix/lock/$uniqfile
    if i_am_first
    then
       sleep 5
@@ -172,7 +176,7 @@ copy_files() {
          filename=`basename $filename`
 
          printf "Fetching queue entry: $filename\n"
-         run_with_timeout 300 lcg-cp  --sendreceive-timeout 4000 -b -D srmv2   $wprefix/queue/$filename file:///${filelist}
+         run_with_timeout 300  ifdh cp $wprefix/queue/$filename ${filelist}
 
          #printf "queue entry contents:\n-------------\n"
          #cat ${filelist}
@@ -182,7 +186,6 @@ copy_files() {
          ifdh log "ifdh_copyback.sh: starting copies for $filename"
 
          #
-         # switching to lcg-cp for now; not sure how it does on assorted third party copy options...
          #
          
          while read src dest
@@ -194,18 +197,19 @@ copy_files() {
 ;;
              esac
 
-             cmd="lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n 8 \"$src\" \"$dest\""
+             cmd="ifdh cp  \"$src\" \"$dest\""
              echo "ifdh_copyback.sh: $cmd"
              ifdh log "ifdh_copyback.sh: $cmd"
              run_with_timeout 3600 eval "$cmd"
-             echo "status; $?"
+             debug "status; $?"
 
              if  srmls -2 "$dest" > /dev/null 2>&1
              then
                  :
              else
-                 echo "Not claning this queue entry, because destination would not list"
-                 ifdh log "failed copies for $filename, leaving for later"
+                 msg="Not cleaning queue entry $filename, because destination $dest would not list"
+                 echo "$msg"
+                 ifdh log "$msg"
                  break 2
              fi
          done < $filelist
@@ -239,9 +243,9 @@ copy_files() {
 }
 
 debug_ls() {
-   echo "current stage area:"
-   srmls -2 --recursion_depth=4 $wprefix
-   echo
+   debug "current stage area:"
+   [ x$IFDH_DEBUG != x ] && srmls -2 --recursion_depth=4 $wprefix
+   debug ""
 }
 
 copy_daemon() {
