@@ -36,5 +36,5 @@ distrib:
 	mkdir src; cp ifbeam/*.[ch]*  [nuf]*/[^d]*.[ch]* src ; mv src/ifbeam.c src/ifbeam_c.c;  tar czvf nucondb-client.tgz src; rm -rf src
 	[ -d Linux* ] || tar czvf ifdhc.tar.gz Makefile bin lib/libifd* lib/python inc/ifdh* inc/[uSW]* inc/num* util ifdh numsg tests ups
 	[ -d Linux* ] &&  tar czvf ifdhc.tar.gz Makefile Linux*/bin Linux*/lib/libifd* Linux*/lib/python inc/ifdh* inc/[uSW]* inc/num* util ifdh numsg tests ups || true
-	[ -d Linux* ] || tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h lib/libsrc_IFBeamService_IFBeam_service.so`
-	[ -d Linux* ] &&  tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile Linux*/lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h Linux*/lib/libsrc_IFBeamService_IFBeam_service.so` || true
+	[ -d Linux* ] || tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h lib/*Beam*`
+	[ -d Linux* ] &&  tar czvf ifbeam.tar.gz Makefile ifbeam [uf]*/*.[ch]* [iuf]*/Makefile Linux*/lib/libifb* inc/ifb* inc/[uwW]*  ups `test -r inc/IFBeam_service.h && echo inc/IFBeam_service.h Linux*/lib/*Beam*` || true
