@@ -360,6 +360,10 @@ class ifdh_cp_cases(unittest.TestCase):
         del os.environ['IFDH_STAGE_VIA']
         self.assertEqual(self.check_data_f1_f2(), True)
 
+    def test_copy_fail_dd(self):
+        res = self.ifdh_handle.cp(['--force=dd', 'nosuchfile', 'nosuchfile2']);
+        self.assertEqual(res,1)
+
         
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_cp_cases)
