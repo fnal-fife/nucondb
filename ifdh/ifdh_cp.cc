@@ -754,6 +754,12 @@ ifdh::cp( std::vector<std::string> args ) {
         _debug && std::cerr << "running: " << cmd.str() << "\n";
 
         res = system(cmd.str().c_str());
+        if (WIFEXITED(res)) {
+            res = WEXITSTATUS(res);
+        } else {
+            std::cerr << "program: " << cmd.str() << " died from signal " << WTERMSIG(res) << "-- exiting.\n";
+            exit(-1);
+        }
        
         if ( res != 0 && error_expected ) {
             _debug && std::cerr << "expected error...\n";
