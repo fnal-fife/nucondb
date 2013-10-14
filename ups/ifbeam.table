@@ -236,7 +236,7 @@ common:
 
 Action=Setup
     SetupEnv()
-    EnvSet(SETUP_${UPS_PROD_NAME_UC}, \"$SETUP_${UPS_PROD_NAME_UC}\")
+    EnvSet(SETUP_${UPS_PROD_NAME_UC}, $SETUP_${UPS_PROD_NAME_UC})
     EnvSet(${UPS_PROD_NAME_UC}_DIR,     ${UPS_PROD_DIR})
     EnvSet(${UPS_PROD_NAME_UC}_VERSION, ${UPS_PROD_VERSION} )
     EnvSet(${UPS_PROD_NAME_UC}_FQ_DIR , ${UPS_PROD_DIR}${_fq_subdir})
