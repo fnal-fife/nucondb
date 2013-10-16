@@ -1,4 +1,4 @@
-hostlist="minervagpvm02 novagpvm02 novagpvm03 fermicloud027 bel-kwinith "
+hostlist="minervagpvm02 novagpvm02 novagpvm03 fermicloud050 bel-kwinith "
 
 cat <<'EOF'
 Build bits:
