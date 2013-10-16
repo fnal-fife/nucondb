@@ -302,6 +302,6 @@ Common:
     PathPrepend(PYTHONPATH     , ${UPS_PROD_DIR}${_fq_subdir}/lib/python)
     PathPrepend(LD_LIBRARY_PATH, ${UPS_PROD_DIR}${_fq_subdir}/lib)
     SetupOptional(cpn)
-    ExeActionRequired(setupbuild)
+    ExeActionOptional(setupbuild)
 
 End:
