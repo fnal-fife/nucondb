@@ -23,7 +23,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e2:debug
     _fq_subdir=/Linux-2-6-2-5-e2-debug
 
@@ -39,7 +39,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e2:debug
     _fq_subdir=/Linux64bit-2-6-2-5-e2-debug
 
@@ -55,7 +55,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e2:prof
     _fq_subdir=/Linux-2-6-2-5-e2-prof
 
@@ -71,7 +71,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e2:prof
     _fq_subdir=/Linux64bit-2-6-2-5-e2-prof
 
@@ -87,7 +87,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e2:debug:nu
     _fq_subdir=/Linux-2-6-2-5-e2-debug
 
@@ -103,7 +103,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e2:debug:nu
     _fq_subdir=/Linux64bit-2-6-2-5-e2-debug
 
@@ -119,7 +119,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e2:prof:nu
     _fq_subdir=/Linux-2-6-2-5-e2-prof
 
@@ -135,7 +135,7 @@ Group:
        setupRequired( gcc v4_7_1 )
        setupRequired( python v2_7_3 -q gcc47 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e2:prof:nu
     _fq_subdir=/Linux64bit-2-6-2-5-e2-prof
 
@@ -151,7 +151,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e4:debug
     _fq_subdir=/Linux-2-6-2-5-e4-debug
 
@@ -167,7 +167,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e4:debug
     _fq_subdir=/Linux64bit-2-6-2-5-e4-debug
 
@@ -183,7 +183,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e4:prof
     _fq_subdir=/Linux-2-6-2-5-e4-prof
 
@@ -199,7 +199,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e4:prof
     _fq_subdir=/Linux64bit-2-6-2-5-e4-prof
 
@@ -215,7 +215,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e4:debug:nu
     _fq_subdir=/Linux-2-6-2-5-e4-debug
 
@@ -231,7 +231,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e4:debug:nu
     _fq_subdir=/Linux64bit-2-6-2-5-e4-debug
 
@@ -247,7 +247,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux+2.6.2.5
+  Flavor=Linux+2.6-2.5
   Qualifiers=e4:prof:nu
     _fq_subdir=/Linux-2-6-2-5-e4-prof
 
@@ -263,7 +263,7 @@ Group:
        setupRequired( gcc v4_8_1 )
        setupRequired( python v2_7_5 )
 
-  Flavor=Linux64bit+2.6.2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=e4:prof:nu
     _fq_subdir=/Linux64bit-2-6-2-5-e4-prof
 
