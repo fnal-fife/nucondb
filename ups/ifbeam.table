@@ -6,6 +6,19 @@ Flavor=ANY
 Qualifiers=""
  _fq_subdir=
 
+  # had to add these to make upd happy . sigh.
+
+  Flavor=ANY
+  Qualifiers=e2:debug
+
+  Flavor=ANY
+  Qualifiers=e4:debug
+
+  Flavor=ANY
+  Qualifiers=e2:prof
+
+  Flavor=ANY
+  Qualifiers=e4:prof
 
   Flavor=Linux+2.6-2.12
   Qualifiers=e2:debug
