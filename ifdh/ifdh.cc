@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <exception>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -106,9 +107,12 @@ string datadir() {
 
 int
 ifdh::cleanup() {
+    int res;
     string cmd("rm -rf ");
     cmd = cmd + datadir();
-    return system(cmd.c_str());
+    res = system(cmd.c_str());
+    if (WIFSIGNALED(res)) throw( std::logic_error("signalled while removing cleanup files"));
+    return WEXITSTATUS(res);
 }
 // file io
 

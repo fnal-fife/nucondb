@@ -56,7 +56,7 @@ class ifdh_cp_cases(unittest.TestCase):
         os.environ['EXPERIMENT'] =  ifdh_cp_cases.experiment
         self.ifdh_handle = ifdh.ifdh(base_uri_fmt % ifdh_cp_cases.experiment)
         self.hostname = socket.gethostname()
-        self.work="/tmp/work%d" % os.getppid()
+        self.work="/tmp/work%d" % os.getpid()
 	self.data_dir="/grid/data/%s" % os.environ['USER']
         if not  os.environ.has_key('X509_USER_PROXY'):
             print "please run: /scratch/grid/kproxy %s" % ifdh_cp_cases.experiment

@@ -115,6 +115,9 @@ ping_se(std::string uri) {
    ifdh::_debug && cout << "checking " << uri << " with srmping\n";
    cmd << "srmping -2 -retry_num=2 " << uri;
    res = system(cmd.str().c_str());
+   if (WIFSIGNALED(res)) {
+       throw( std::logic_error("signalled while doing srmping"));
+   }
    return res == 0;
 }
 
@@ -153,6 +156,7 @@ public:
 	char buf[512];
 	FILE *pf;
         int parent_pid;
+        int status;
 
         if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
             return;
@@ -170,7 +174,8 @@ public:
 	    pclose(pf);
 	    throw( std::logic_error("Could not get CPN lock: error reading lock output"));
         }
-	pclose(pf);
+	status = pclose(pf);
+        if (WIFSIGNALED(status)) throw( std::logic_error("signalled while  getting lock"));
 
 	// pick lockfile name out of last line
 	std::string lockfilename(buf);
@@ -204,18 +209,21 @@ public:
 
     void
     free() {
-        int res;
+        int res, res2;
         if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
             return;
         }
         kill(_heartbeat_pid, 9);
         waitpid(_heartbeat_pid, &res, 0);
-        system("$CPN_DIR/bin/lock free");
+        res2 = system("$CPN_DIR/bin/lock free");
         _heartbeat_pid = -1;
         if (!WIFSIGNALED(res) || 9 != WTERMSIG(res)) {
             stringstream basemessage;
             basemessage <<"lock touch process exited code " << res << " signalled: " << WIFSIGNALED(res) << " signal: " << WTERMSIG(res);
             throw( std::logic_error(basemessage.str()));
+        }
+        if (WIFSIGNALED(res2)) {
+            throw( std::logic_error("signalled while doing srmping"));
         }
     }
 
@@ -356,6 +364,7 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    std::string stagefile("stage_");
    std::string ustring;
    std::string stage_location;
+   int status;
 
    // unique string for this stage out
    ustring = unique_string();
@@ -380,11 +389,16 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    }
 
    // make sure directory hierarchy is there..
-   system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
-   system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring + ">/dev/null 2>&1").c_str() );
+   status = system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
+   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   status = system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
+   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   status = system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
+   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   status = system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
+   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   status = system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring + ">/dev/null 2>&1").c_str() );
+   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
 
    // open our stageout queue file/copy back instructions
    fstream stageout(stagefile.c_str(), fstream::out);
@@ -796,7 +810,8 @@ ifdh::cp( std::vector<std::string> args ) {
     }
 
     if (need_copyback) {
-        system("ifdh_copyback.sh");
+        res =  system("ifdh_copyback.sh");
+        if (WIFSIGNALED(res)) throw( std::logic_error("signalled while running copyback"));
     }
 
     long int copysize;
@@ -849,6 +864,7 @@ ifdh::mv(vector<string> args) {
                 srmcmd +=  bestman_srm_uri + s + " ";
                 _debug && std::cout << "running: " << srmcmd << "\n";
                 res = system(srmcmd.c_str());
+                if (WIFSIGNALED(res)) throw( std::logic_error("signalled while cleaning stage directories"));
             }
         }
     }
