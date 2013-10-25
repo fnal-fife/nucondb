@@ -1,5 +1,17 @@
 #!/bin/sh
 
+usage() {
+cat >&2 <<EOF
+   usage: 
+      $0 [-e experiment] filename1 filename2 ...
+          find files in SAM and ifdh cp them here
+      $0 [-e experiment] --dims "dimension-string"
+          find files in SAM by dimension string and ifdh cp them here
+      $0 --help
+          print this message to stderr
+EOF
+}
+
 while :
 do
 case x$1 in 
@@ -33,7 +45,7 @@ voms-proxy-info -all | grep $EXPERIMENT > /dev/null || (
  kx509 && voms-proxy-init -noregen -voms fermilab:/fermilab/$EXPERIMENT/Role=Analysis)
 
 case x$EXPERIMENT in
-x) echo "Need EXPERIMENT set in the environment"
+x) echo "Need EXPERIMENT set in the environment" >&2
    exit 1
    ;;
 *) ;;

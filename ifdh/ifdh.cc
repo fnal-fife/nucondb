@@ -131,6 +131,13 @@ ifdh::fetchInput( string src_uri ) {
     string path;
 
     std::vector<std::string> args;
+
+    if (0 == src_uri.find("xrootd:")) {
+        // we don't do anything for xrootd, just pass
+        // it back, and let the application layer open
+        // it that way.
+        return src_uri;
+    }
     path = localPath( src_uri );
     if (0 == src_uri.find("file:///"))
        args.push_back(src_uri.substr(7));
