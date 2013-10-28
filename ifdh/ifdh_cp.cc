@@ -81,6 +81,25 @@ is_directory(std::string dirname) {
     return S_ISDIR(sb->st_mode) != 0;
 }
 
+bool
+have_stage_subdirs(std::string uri) {
+   std::stringstream cmd;
+   static char buf[512];
+   int count = 0;
+   FILE *pf;
+
+   ifdh::_debug && cout << "checking with srmls\n";
+   cmd << "srmls -2  " << uri;
+   pf = popen(cmd.str().c_str(),"r");
+   while (fgets(buf, 512, pf)) {
+       if(0 != strstr(buf,"ifdh_stage/queue/")) count++;
+       if(0 != strstr(buf,"ifdh_stage/lock/")) count++;
+       if(0 != strstr(buf,"ifdh_stage/data/")) count++;
+   }
+   pclose(pf);
+   return count == 3;
+}
+
 bool 
 is_bestman_server(std::string uri) {
    std::stringstream cmd;
@@ -389,14 +408,18 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    }
 
    // make sure directory hierarchy is there..
-   status = system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
-   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-   status = system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
-   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-   status = system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
-   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-   status = system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
-   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   if (!have_stage_subdirs(base_uri + "/ifdh_stage")) {
+     
+       status = system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
+       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+       status = system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
+       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+       status = system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
+       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+       status = system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
+       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   }
+
    status = system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring + ">/dev/null 2>&1").c_str() );
    if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
 

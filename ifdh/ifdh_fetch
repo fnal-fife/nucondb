@@ -60,7 +60,7 @@ do
    if [ x$bflocs != x ]
    then
        echo "found file on bluearc"
-       src="`echo $bflocs | head -1 | perl -pe 's/.*(_bluearc|data)://;'`/$f"
+       src="`echo $bflocs |  perl -pe 's/.*(_bluearc|data)://;'`/$f"
    else
        echo "found file on enstore, using dcache srm"
 

@@ -301,7 +301,7 @@ do_url_str(int postflag,...) {
     WebAPI *wap = do_url_2(postflag, ap);
     while (!wap->data().eof()) {
       getline(wap->data(), line);
-      res = res + line;
+      res = res + line + "\n";
     }
     if (ifdh::_debug) std::cerr << "got back string result: " << res << "\n";
     delete wap;
@@ -331,12 +331,12 @@ ifdh::createDefinition( string name, string dims, string user, string group) {
 
 int 
 ifdh::deleteDefinition( string name) {
-  return  do_url_int(1,_baseuri.c_str(),"deleteDefinition","","name", name.c_str(),"","");
+  return  do_url_int(1,_baseuri.c_str(),"definitions","name", name.c_str(),"delete","","");
 }
 
 string 
 ifdh::describeDefinition( string name) {
-  return do_url_str(0,_baseuri.c_str(),"describeDefinition", "", "name", name.c_str(), "","");
+  return do_url_str(0,_baseuri.c_str(),"definitions", "name", name.c_str(), "describe",  "","");
 }
 
 vector<string> 
@@ -347,11 +347,11 @@ ifdh::translateConstraints( string dims) {
 // files
 vector<string> 
 ifdh::locateFile( string name) {
-  return do_url_lst(0,_baseuri.c_str(), "locateFile", "", "file", name.c_str(), "", "" );  
+  return do_url_lst(0,_baseuri.c_str(), "files", "name", name.c_str(), "locations", "", "" );  
 }
 
 string ifdh::getMetadata( string name) {
-  return  do_url_str(0, _baseuri.c_str(),"getMetadata", "", "name", name.c_str(), "","");
+  return  do_url_str(0, _baseuri.c_str(),"files","name", name.c_str(), "metadata","","");
 }
 
 //
