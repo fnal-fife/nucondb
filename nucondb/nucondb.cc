@@ -118,6 +118,7 @@ Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIExc
 
 void
 Folder::fetchData(double when)  throw(WebAPIException){
+    char ebuf[40];
     int err;
     int i;
     if (_cache_start <= when  && when < _cache_end) {
@@ -137,15 +138,37 @@ Folder::fetchData(double when)  throw(WebAPIException){
         releaseDataset(_cache_dataset);
     }
 
-    _cache_dataset =  getData(fullurl.str().c_str(), (char*)0, &err);
+    int status = -1;
+    int tries = 0;
+    long int delay;
+   
+    // seed so we don't follow the same "random" as others
+    srandom(getpid() * getppid());
+
+    while (status != 200 && tries < 9) {
+        _debug && std::cout << " getting data at: " << fullurl.str() << "\n";
+        _cache_dataset =  getData(fullurl.str().c_str(), (char*)0, &err);
+        status = getHTTPstatus(_cache_dataset);
+        if ( status != 200 ) {
+            delay = random() % (5 * (1 << tries));
+	    _debug && std::cout << "sleeping " << delay << " and retrying for status: " << status << " message: " << getHTTPmessage(_cache_dataset) << "\n";
+            sleep( delay );
+        }
+        tries++;
+    }
 
     _n_datarows = getNtuples(_cache_dataset) - 4;
+
+    if (status != 200) {
+       sprintf(ebuf, "HTTP error: status: %d:", status);
+       throw(WebAPIException(ebuf, getHTTPmessage(_cache_dataset)));
+    }
 
     if (_n_datarows < 1) {
        sprintf(ebuf, "Time %f:", when);
        throw(WebAPIException(ebuf, "Data not found in database."));
+       _cache_start = _cache_end = when;
     }
-
 
     // get start and end times
     Tuple t;
@@ -153,7 +176,6 @@ Folder::fetchData(double when)  throw(WebAPIException){
     _cache_start = getDoubleValue(t,0, &err);
     releaseTuple(t);
 
-    char ebuf[40];
     t = getTuple(_cache_dataset, 1);
     getStringValue(t,0,ebuf,40, &err);
     if ( 0 == strcmp(ebuf,"-")) {
@@ -431,9 +453,11 @@ void
 test3() {
    static double d[8];
 
+   std::cout << "testing with new time:\n";
    Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
    d3.getNamedChannelData(
-	 1300969766.0,
+	 //1300969766.0,
+	 1334882296.546474,
          1210377216,
          "atten,atten_error,amp,amp_error,reflect,reflect_error",
          
