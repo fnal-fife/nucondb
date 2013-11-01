@@ -7,8 +7,8 @@ basequal=${1}
 
 fullqual=${basequal}:${extraqual}
 case $basequal in
-d*) qualdir=${extraqual}-${basequal};;
-*)  qualdir=${basequal}-${extraqual};;
+d*) qualdir=${basequal}-${extraqual};;
+*) qualdir=${extraqual}-${basequal};;
 esac
 
 if [ "x$basequal" = "x" -o "x$extraqual" = "x" ]
