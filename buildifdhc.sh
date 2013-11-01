@@ -26,7 +26,8 @@ export ARCH
 
 export PYTHON_CONF=`echo $PYTHON_LIB/python*/config`
 
-fqdir="`ups flavor -4`-$qualdir| sed -e 's/[^A-ZA-z0-9]/-/g'" 
+fqdir="`ups flavor -4`-$qualdir"
+fqdir="`echo $fqdir | sed -e 's/[^A-ZA-z0-9]/-/g'`" 
 
 for d in ifbeam ifdh nucondb numsg ups util fife_wda
 do
