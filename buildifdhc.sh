@@ -6,10 +6,7 @@ extraqual=${2}
 basequal=${1}
 
 fullqual=${basequal}:${extraqual}
-case $basequal in
-d*) qualdir=${basequal}-${extraqual};;
-*) qualdir=${extraqual}-${basequal};;
-esac
+qualdir=${extraqual}-${basequal}
 
 if [ "x$basequal" = "x" -o "x$extraqual" = "x" ]
 then
