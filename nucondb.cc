@@ -147,6 +147,7 @@ Folder::fetchData(double when)  throw(WebAPIException){
 
     while (status != 200 && tries < 9) {
         _debug && std::cout << " getting data at: " << fullurl.str() << "\n";
+        /* ZZZ -- put in user agent bits in getData arg 2 ---vvv */
         _cache_dataset =  getData(fullurl.str().c_str(), (char*)0, &err);
         status = getHTTPstatus(_cache_dataset);
         if ( status != 200 ) {
