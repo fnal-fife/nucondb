@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "version.h"
 
 namespace ifdh_util_ns {
 
@@ -20,6 +21,8 @@ numsg::numsg(const char *jobname, char *host, int port, int parentflag) :
         _facility(17),
         _severity(5)
 {
+    _jobname.append("/");
+    _jobname.append(ifdh_version);
     _jobname.append("/");
     _jobname.append(getexperiment());
 }

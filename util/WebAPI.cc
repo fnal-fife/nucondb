@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include <pwd.h>
+#include "version.h"
 
 
 namespace ifdh_util_ns {
@@ -119,6 +120,9 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
      int redirect_or_retry_flag = 1;
      int hcount;
      int connected;
+     int totaltime = 0;
+     int timeoutafter = -1;
+
      __gnu_cxx::stdio_filebuf<char> *buf_out = 0;
      std::string method(postflag?"POST ":"GET ");
 
@@ -126,13 +130,17 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
      _debug && std::cerr.flush();
      retries = 0;
 
+     if (getenv("IFDH_WEB_TIMEOUT")) { 
+          timeoutafter = atoi(getenv("IFDH_WEB_TIMEOUT"));
+     }
+
      while( redirect_or_retry_flag ) {
          hcount = 0;
          _status = 500;
          retries++;
 
          // note that this retry limit includes 303 redirects, 503 errors, DNS fails, and connect errors...
-	 if (retries > 14) {
+	 if (retries > 10) {
 	     throw(WebAPIException(url,"FetchError: Retry count exceeded"));
 	 }
 
@@ -154,6 +162,7 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 		 _debug && std::cerr << "getaddrinfo failed , waiting ..." << retries << std::endl;
 		 _debug && std::cerr.flush();
 		 sleep(retries);
+                 totaltime += retries;
 		 continue;
 	     }
 
@@ -269,8 +278,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 _debug && std::cerr << "sending header: " << "Host: " << pu.host << "\r\n";
 	 _tosite << "From: " << ppasswd->pw_name << "@" << hostbuf  <<"\r\n";
 	 _debug && std::cerr << "sending header: " << "From: " << ppasswd->pw_name << "@" << hostbuf << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cerr << "sending header: " << "User-Agent: " << "WebAPI/" << "$Revision: 1.32 $ " << "Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << ifdh_version << "/Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cerr << "sending header: " << "User-Agent: " << "WebAPI/" << ifdh_version << "/Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cerr << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
@@ -316,22 +325,30 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 
          if (_status == 202 && retryafter > 0) {
             sleep(retryafter);
+            totaltime += retryafter;
             retries--;          // it doesnt count if they told us to...
          }
 
-         if (_status == 503) {
-	    _debug && std::cerr << "503 error , waiting ...";
-            sleep(5 << retries);
+         if (_status >= 500) {
+	    _debug && std::cerr << "50x error , waiting ...";
+            retryafter = random() % (5 << retries);
+            sleep(retryafter);
+            totaltime += retryafter;
          }
 
-         if ((_status < 301 || _status > 309) && _status != 503 && _status != 202 ) {
+         if ((_status < 301 || _status > 309) && _status < 500 && _status != 202 ) {
             redirect_or_retry_flag = 0;
 	 } else {
 	     // we're going to redirect/retry again, so close the _fromsite side
 	     _fromsite.close();
              delete _buf_in;
          }
+
+         if ( timeoutafter > 0 && totaltime > timeoutafter ) {
+            throw(WebAPIException(url, ": Timeout exceeded"));
+         }
      }
+
      if (_status != 200 and _status != 204) {
         std::stringstream message;
         message << "Status: " << _status << "\n";

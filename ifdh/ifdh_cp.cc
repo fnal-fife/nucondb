@@ -3,6 +3,7 @@
 #include "utils.h"
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <fstream>
 #include <iostream>
@@ -464,6 +465,52 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 
 const char *srm_copy_command = "lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n 4 ";
 
+
+int 
+host_matches(std::string hostglob) {
+   // match trivial globs for now: *.foo.bar
+   char namebuf[512];
+   gethostname(namebuf, 512);
+   std::string hostname(namebuf);
+   size_t ps = hostglob.find("*");
+   hostglob = hostglob.substr(ps+1);
+   if ( std::string::npos != hostname.find(hostglob)) {
+       return 1;
+   } else {
+       return 0;
+   }
+}
+
+char *
+parse_ifdh_stage_via() {
+   static char resultbuf[1024];
+   char *fullvia = getenv("IFDH_STAGE_VIA");
+   size_t start, loc1, loc2;
+
+   if (!fullvia)
+         return 0;
+   std::string svia(fullvia);
+   start = 0;
+   if (std::string::npos != (loc1 = svia.find("=>",start))) {
+      while (std::string::npos != (loc2 = svia.find(";;",start))) {
+           if (host_matches(svia.substr(start, loc1 - start))) {
+               strncpy(resultbuf,svia.substr( loc1+2,loc2 - loc1 - 2).c_str(),1024);
+               if ( 0 != strlen(resultbuf) ) {
+                  return resultbuf;
+               } else {
+                  return 0;
+               }
+           }
+           start = loc2+2;
+           loc1 = svia.find("=>",start);
+      }
+      return 0;
+   } else {
+      // no fancy stuff...
+      return fullvia;
+   }
+}
+
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
@@ -553,7 +600,7 @@ ifdh::cp( std::vector<std::string> args ) {
     bool use_dd = false;
     bool use_any_gridftp = false;
 
-    char *stage_via = getenv("IFDH_STAGE_VIA");
+    char *stage_via = parse_ifdh_stage_via();
 
     if (stage_via && !ping_se(stage_via)) {
        _debug && cerr << "ignoring $IFDH_STAGE_VIA due to ping failure \n";
