@@ -301,7 +301,11 @@ do_url_str(int postflag,...) {
     WebAPI *wap = do_url_2(postflag, ap);
     while (!wap->data().eof()) {
       getline(wap->data(), line);
-      res = res + line + "\n";
+      if (wap->data().eof()) {
+         res = res + line;
+      } else {
+         res = res + line + "\n";
+      }
     }
     if (ifdh::_debug) std::cerr << "got back string result: " << res << "\n";
     delete wap;
@@ -373,11 +377,12 @@ ifdh::findProject( string name, string station){
 string 
 ifdh::establishProcess( string projecturi, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
   char buf[64];
-  snprintf(buf, 64, "%d", filelimit); 
 
   if (filelimit == -1) {
      filelimit = 0;
   }
+
+  snprintf(buf, 64, "%d", filelimit); 
 
   return do_url_str(1,projecturi.c_str(),"establishProcess", "", "appname", appname.c_str(), "appversion", appversion.c_str(), "deliverylocation", location.c_str(), "username", user.c_str(), "appfamily", appfamily.c_str(), "description", description.c_str(), "filelimit", buf, "", "");
 }

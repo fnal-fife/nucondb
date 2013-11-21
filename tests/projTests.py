@@ -7,7 +7,7 @@ import time
 #
 # flag to use development sam instances
 #
-do_dev_sam = False
+do_dev_sam = True
 
 if do_dev_sam:
     base_uri_fmt = "http://samweb.fnal.gov:8480/sam/%s/dev/api"
@@ -72,13 +72,13 @@ class SAMCases(unittest.TestCase):
         self.assertNotEqual(url, '')
 
     def test_5_startclient(self):
-        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,SAMCases.experiment)
+        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,'')
         SAMCases.curconsumer = self.ifdh_handle.establishProcess(cpurl,"demo","1",self.hostname,os.environ['USER'], "","test suite job", 0)
         self.assertNotEqual(SAMCases.curconsumer, "")
 
     def test_6_getFetchNextFile(self):
         time.sleep(1)
-        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,SAMCases.experiment)
+        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,'')
         uri = self.ifdh_handle.getNextFile(cpurl, SAMCases.curconsumer)
         path = self.ifdh_handle.fetchInput(uri)
         res = os.access(path,os.R_OK)
@@ -88,12 +88,12 @@ class SAMCases(unittest.TestCase):
         self.assertEqual(res,True)
 
     def test_7_getLastFile(self):
-        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,SAMCases.experiment)
+        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,'')
         uri = self.ifdh_handle.getNextFile(cpurl, SAMCases.curconsumer)
         self.assertEqual(uri,'')
     
     def test_8_endProject(self):
-        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,SAMCases.experiment)
+        cpurl = self.ifdh_handle.findProject(SAMCases.curproject,'')
         self.ifdh_handle.endProject(cpurl)
         SAMCases.curproject = None
 
