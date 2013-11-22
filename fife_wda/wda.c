@@ -633,7 +633,8 @@ int getStringValue(Tuple tuple, int position, char *buffer, int buffer_size, int
         *error = EINVAL;
         return -1;
     }
-    strncpy(buffer, dataRec->columns[position], buffer_size);
+////strncpy(buffer, dataRec->columns[position], buffer_size);
+    memccpy(buffer, dataRec->columns[position], 0, buffer_size);
     *error = 0;
     return strlen(buffer);
 }
