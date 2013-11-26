@@ -16,7 +16,7 @@ python <<XXXX
 import ifdh
 XXXX
 setup upd
-VERSION=v1_2_7
+VERSION=v1_2_8
 make distrib
 upd addproduct -T ifdhc.tar.gz  -M ups -m ifdhc.table $DECLAREBITS ifdhc $VERSION
 upd addproduct -T ifbeam.tar.gz -M ups -m ifbeam.table $DECLAREBITS ifbeam $VERSION
