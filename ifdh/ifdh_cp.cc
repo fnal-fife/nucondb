@@ -11,6 +11,7 @@
 #include <../numsg/numsg.h>
 #include <stdarg.h>
 #include <string.h>
+#include <memory>
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -590,6 +591,45 @@ ifdh::cp( std::vector<std::string> args ) {
        }
     }
 
+    // now decide whether to get a cpn lock...
+    bool need_cpn_lock = false;
+    for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
+        if (args[i] == ";") {
+           continue;
+        }
+
+        if (args[i].find("/grid") == 0) {
+           _debug && cout << "need lock: " << args[i] << " /grid test\n";
+ 	   need_cpn_lock = true;
+           break;
+        }
+
+        if (args[i][0] == '/' && 0 == access(parent_dir(args[i]).c_str(),R_OK) && 0 != local_access(parent_dir(args[i]).c_str(),R_OK) && 0L != args[i].find("/pnfs") ) {
+           _debug && cout << "need lock: " << args[i] << " NFS test\n";
+            // we can see it but it's not local and not /pnfs
+            need_cpn_lock = true;
+           break;
+        }
+
+        if (args[i].find("gsiftp://if-gridftp") == 0 ) {
+           _debug && cout << "need lock: " << args[i] << " if-gridftp test\n";
+ 	   need_cpn_lock = true;
+           break;
+        }
+
+        if (args[i].find(bestman_srm_uri) == 0) {
+           _debug && cout << "need lock: " << args[i] << " bestman_srm test\n";
+ 	   need_cpn_lock = true;
+           break;
+        }
+
+        if (args[i].find(bestman_ftp_uri) == 0) {
+           _debug && cout << "need lock: " << args[i] << " bestman_ftp test\n";
+ 	   need_cpn_lock = true;
+           break;
+        }
+    }
+
 
     // now decide local/remote
     // if anything is not local, use remote
@@ -731,7 +771,9 @@ ifdh::cp( std::vector<std::string> args ) {
      int error_expected;
      int keep_going = 1;
 
-     cpn.lock();
+     if (need_cpn_lock) {
+         cpn.lock();
+     }
 
      gettimeofday(&time_before, 0);
 
@@ -907,7 +949,9 @@ ifdh::cp( std::vector<std::string> args ) {
     this->log(logmessage.str());
 
    
-    cpn.free();
+    if (need_cpn_lock) {
+        cpn.free();
+    }
 
     return rres;
 }
