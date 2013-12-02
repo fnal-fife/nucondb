@@ -34,6 +34,7 @@ namespace ifdh_ns {
 
 std::string bestman_srm_uri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
 std::string bestman_ftp_uri = "gsiftp://fg-bestman1.fnal.gov:2811";
+std::string pnfs_srm_uri = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
 
 
 int
@@ -589,6 +590,12 @@ ifdh::cp( std::vector<std::string> args ) {
        if (args[i][0] != ';' && args[i][0] != '/' && args[i].find("srm:") != 0 && args[i].find("gsiftp:") != 0) {
 	   args[i] = cwd + "/" + args[i];
        }
+       //
+       // for now, handle pnfs paths via srm
+       // 
+       if (0L == args[i].find("/pnfs/")) {
+	    args[i] = pnfs_srm_uri + args[i].substr(6);
+       }
     }
 
     // now decide whether to get a cpn lock...
@@ -682,6 +689,7 @@ ifdh::cp( std::vector<std::string> args ) {
 	    if( 0 != access(args[i].c_str(),R_OK) ) {
 	       
 		if ( i == args.size() - 1 || args[i+1] == ";" ) {
+
 
 		   if (0 != access(parent_dir(args[i]).c_str(),R_OK)) {
 		       // if last one (destination)  and parent isn't 
