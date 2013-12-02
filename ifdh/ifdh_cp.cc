@@ -594,7 +594,15 @@ ifdh::cp( std::vector<std::string> args ) {
        // for now, handle pnfs paths via srm
        // 
        if (0L == args[i].find("/pnfs/")) {
-	    args[i] = pnfs_srm_uri + args[i].substr(6);
+            if (0L == args[i].find("/pnfs/fnal.gov/usr/"))
+	        args[i] = args[i].substr(19);
+            else if (0L == args[i].find("/pnfs/usr/"))
+	        args[i] = args[i].substr(10);
+            else if (0L == args[i].find("/pnfs/fnal.gov/"))
+	        args[i] = args[i].substr(15);
+            else
+	        args[i] = args[i].substr(6);
+	    args[i] = pnfs_srm_uri + args[i];
        }
     }
 

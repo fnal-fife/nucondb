@@ -364,6 +364,23 @@ class ifdh_cp_cases(unittest.TestCase):
         res = self.ifdh_handle.cp(['--force=dd', 'nosuchfile', 'nosuchfile2']);
         self.assertEqual(res,1)
 
+    def test_pnfs_rewrite_1(self):
+         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/fermigrid/volatile/nova'])
+         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
+         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         self.assertEqual(r1, 0)
+         self.assertEqual(r2, 0)
+
+    def test_pnfs_rewrite_2(self):
+         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/fnal.gov/usr/fermigrid/volatile/nova'])
+         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
+         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         self.assertEqual(r1, 0)
+         self.assertEqual(r2, 0)
         
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_cp_cases)
