@@ -36,6 +36,11 @@ std::string bestman_srm_uri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SF
 std::string bestman_ftp_uri = "gsiftp://fg-bestman1.fnal.gov:2811";
 std::string pnfs_srm_uri = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
 
+//
+// string constant for number of streams for gridftp, srmcp
+// 
+#define NSTREAMS "4"
+
 
 int
 local_access(const char *path, int mode) {
@@ -465,7 +470,7 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    return res;
 }
 
-const char *srm_copy_command = "lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n 4 ";
+const char *srm_copy_command = "lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n " NSTREAMS " ";
 
 
 int 
@@ -801,7 +806,7 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -p 1 -restart -stall-timeout 14400 " : "false" );
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -p " NSTREAMS " -restart -stall-timeout 14400 " : "false" );
 
          if (use_dd && getenv("IFDH_DD_EXTRA")) {
             cmd << getenv("IFDH_DD_EXTRA") << " ";

@@ -338,7 +338,7 @@ class ifdh_cp_cases(unittest.TestCase):
 
         self.clean_dest()
         os.environ['EXPERIMENT'] = "nova"
-        os.environ['IFDH_STAGE_VIA'] = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/fermigrid/volatile/nova/test_multi"
+        os.environ['IFDH_STAGE_VIA'] = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/nova/ifdh_stage/test_multi"
         self.ifdh_handle.addOutputFile('%s/a/f1' % self.work)
         self.ifdh_handle.addOutputFile('%s/a/f2' % self.work)
         self.ifdh_handle.copyBackOutput(self.data_dir)
@@ -365,20 +365,20 @@ class ifdh_cp_cases(unittest.TestCase):
         self.assertEqual(res,1)
 
     def test_pnfs_rewrite_1(self):
-         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/fermigrid/volatile/nova'])
-         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
-         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
-         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
-         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/nova/ifdh_stage/test'])
+         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f1")
+         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f2")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f1")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f2")
          self.assertEqual(r1, 0)
          self.assertEqual(r2, 0)
 
     def test_pnfs_rewrite_2(self):
-         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/fnal.gov/usr/fermigrid/volatile/nova'])
-         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
-         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
-         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f1")
-         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/fermigrid/volatile/nova/f2")
+         res = self.ifdh_handle.cp(['-D','%s/a/f1' % self.work,'%s/a/f2' % self.work,'/pnfs/fnal.gov/usr/nova/ifdh_stage/test'])
+         r1 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f1")
+         r2 = os.system("srmls -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f2")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f1")
+         os.system("srmrm -2 srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/nova/ifdh_stage/test/f2")
          self.assertEqual(r1, 0)
          self.assertEqual(r2, 0)
         
