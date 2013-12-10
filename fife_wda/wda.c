@@ -11,10 +11,9 @@
 
 #include <curl/curl.h>
 
+#include "wda_version.h"
 #include "wda.h"
 
-#define xversion(v)     version(v)
-#define version(v)      #v
 
 //#define DEBUG   1
 /*
@@ -143,7 +142,7 @@ void *getHTTP(const char *url, const char *headers[], size_t nheaders, size_t *l
     if (curl_handle) {
         struct curl_slist *headerlist = NULL;
         char user_agent[256];
-        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", WDA_VERSION, getuid(), getpid());
         if (headers) {
             for (i = 0; i < nheaders; i++) {
                 if (headers[i])
@@ -262,7 +261,7 @@ void postHTTP(const char *url, const char *headers[], size_t nheaders, const cha
     if (curl) {
         struct curl_slist *headerlist = NULL;
         char user_agent[256];
-        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", WDA_VERSION, getuid(), getpid());
         if (headers) {
             for (i = 0; i < nheaders; i++) {
                 if (headers[i])
@@ -321,7 +320,7 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
     if (curl_handle) {
         struct curl_slist *headerlist = NULL;
         char user_agent[256];
-        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", xversion(VERSION), getuid(), getpid());
+        snprintf(user_agent, 256, "User-Agent: wdaAPI/%s (UID=%d, PID=%d)", WDA_VERSION, getuid(), getpid());
         if (headers) {
             for (i = 0; i < nheaders; i++) {
                 if (headers[i])

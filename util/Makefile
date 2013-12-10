@@ -1,5 +1,6 @@
 SRCDIR=../../util/
 VPATH=$(SRCDIR)
+GEN=ifdh_version.h
 SRC=$(notdir $(wildcard $(SRCDIR)*.cc *.cc))
 HDR=$(notdir $(wildcard $(SRCDIR)*.h *.h)
 OBJ=$(addsuffix .o,$(basename $(SRC)))
@@ -9,10 +10,16 @@ TESTDEFS=-DUNITTEST
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I../../util
 
 
-all: $(OBJ) $(TST)
+all: $(GEN) $(OBJ) $(TST)
 
 clean:
 	rm -f $(OBJ) *.a
+
+ifdh_version.h: FORCE
+	echo '#define IFDH_VERSION "'`git describe --tags --match 'v*'`'"' > $@
+
+FORCE:
+
 
 %-test: %.cc
 	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $< utils.o

@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include <pwd.h>
-#include "version.h"
+#include "ifdh_version.h"
 
 
 namespace ifdh_util_ns {
@@ -278,8 +278,8 @@ WebAPI::WebAPI(std::string url, int postflag, std::string postdata) throw(WebAPI
 	 _debug && std::cerr << "sending header: " << "Host: " << pu.host << "\r\n";
 	 _tosite << "From: " << ppasswd->pw_name << "@" << hostbuf  <<"\r\n";
 	 _debug && std::cerr << "sending header: " << "From: " << ppasswd->pw_name << "@" << hostbuf << "\r\n";
-	 _tosite << "User-Agent: " << "WebAPI/" << ifdh_version << "/Experiment/" << getexperiment() << "\r\n";
-	 _debug && std::cerr << "sending header: " << "User-Agent: " << "WebAPI/" << ifdh_version << "/Experiment/" << getexperiment() << "\r\n";
+	 _tosite << "User-Agent: " << "WebAPI/" << IFDH_VERSION << "/Experiment/" << getexperiment() << "\r\n";
+	 _debug && std::cerr << "sending header: " << "User-Agent: " << "WebAPI/" << IFDH_VERSION << "/Experiment/" << getexperiment() << "\r\n";
          if (postflag) {
              _debug && std::cerr << "sending post data: " << postdata << "\n" << "length: " << postdata.length() << "\n"; 
 
