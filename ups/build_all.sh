@@ -16,7 +16,7 @@ python <<XXXX
 import ifdh
 XXXX
 setup upd
-VERSION=v1_2_9
+VERSION=`git describe --tags --match 'v*' `
 make distrib
 #    
 upd addproduct -T ifdhc.tar.gz  -M ups -m ifdhc.table $DECLAREBITS ifdhc $VERSION
