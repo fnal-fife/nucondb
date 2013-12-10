@@ -9,15 +9,15 @@ Group:
 
      Action=setupbuild
 
-  Flavor=Linux+2.6-2.12
+  Flavor=Linux64bit+2.6-2.12
   Qualifiers=python27
-    _fq_subdir=/Linux-2-6-2-12-e4-debug
+    _fq_subdir=/Linux64bit-2-6-2-12-e4-debug
 
      Action=setupbuild
 
-  Flavor=Linux+2.6-2.5
+  Flavor=Linux64bit+2.6-2.5
   Qualifiers=python27
-    _fq_subdir=/Linux-2-6-2-5-e4-debug
+    _fq_subdir=/Linux64bit-2-6-2-5-e4-debug
 
      Action=setupbuild
 
