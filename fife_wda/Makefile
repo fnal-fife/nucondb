@@ -6,7 +6,7 @@ HDR=ifbeam_c.h wda.h
 OBJ=ifbeam.o wda.o
 SRC= ifbeam.c wda.c
 TST=test_ifbeam
-CXXFLAGS=-fPIC -g -O3 $(DEFS) $(ARCH) -I$(SRCDIR) 
+CXXFLAGS=-fPIC -g -O3 $(DEFS) $(ARCH) -I$(SRCDIR) -I.
 
 
 all: $(GEN) $(BIN) $(TST) $(LIB) $(SHLIB)
