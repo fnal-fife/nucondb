@@ -35,6 +35,7 @@ namespace ifdh_ns {
 std::string bestman_srm_uri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=";
 std::string bestman_ftp_uri = "gsiftp://fg-bestman1.fnal.gov:2811";
 std::string pnfs_srm_uri = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
+std::string pnfs_gsiftp_uri = "gsiftp://fndca1.fnal.gov/";
 
 //
 // string constant for number of streams for gridftp, srmcp
@@ -473,6 +474,68 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 const char *srm_copy_command = "lcg-cp  --sendreceive-timeout 4000 -b -D srmv2  -n " NSTREAMS " ";
 
 
+bool 
+check_grid_credentials() {
+    static char buf[512];
+    FILE *pf = popen("voms-proxy-info -all 2>/dev/null", "r");
+    bool found = false;
+    std::string experiment(getexperiment());
+
+    while(fgets(buf,512,pf)) {
+	 std::string s(buf);
+	 if ( 0 == s.find("attribute ") && std::string::npos != s.find(experiment)) { 
+	     found = true;
+             ifdh::_debug && std::cout << "found: " << buf ;
+	 }
+	 // if it is expired, its like we don't have it...
+	 if ( 0 == s.find("timeleft  : 0:00:00")) { 
+	     found = false;
+             ifdh::_debug && std::cout << "..but its expired\n " ;
+	 }
+    }
+    fclose(pf);
+    return found;
+}
+//
+// you call this if you need to do any kind of SRM or Gridftp
+// transfer, and if you're running interactive it grabs a 
+// proxy for you if you don't have one
+//
+void
+get_grid_credentials_if_needed() {
+    std::string cmd;
+    std::string experiment(getexperiment());
+    std::stringstream proxyfileenv;
+
+    ifdh::_debug && std::cout << "Checking for proxy cert...";
+   
+    if (!check_grid_credentials()) {
+        // if we don't have credentials, try our standard copy cache file
+        proxyfileenv << "/tmp/x509up_cp" << getuid();
+	ifdh::_debug && std::cout << "no credentials, trying " << proxyfileenv.str() << "\n";
+        setenv("X509_USER_PROXY", proxyfileenv.str().c_str(),1);
+        ifdh::_debug && std::cout << "Now X509_USER_PROXY is: " << getenv("X509_USER_PROXY");
+    }
+
+    if (!check_grid_credentials()) {
+        // if we still don't have credentials, try to get some from kx509
+	ifdh::_debug && std::cout << "trying to kx509/voms-proxy-init...\n " ;
+
+        ifdh::_debug && system("echo X509_USER_PROXY is $X509_USER_PROXY");
+
+	cmd = "kx509 && voms-proxy-init -rfc -noregen -debug -voms ";
+	if (experiment != "lbne" && experiment != "dzero") {
+	   cmd += "fermilab:/fermilab/" + experiment + "/Role=Analysis";
+	} else {
+	   cmd += experiment + ":/" + experiment + "/Role=Analysis";
+	}
+        cmd += " 2>/dev/null";
+	ifdh::_debug && std::cout << "running: " << cmd << "\n";
+	system(cmd.c_str());
+    }
+}
+ 
+
 int 
 host_matches(std::string hostglob) {
    // match trivial globs for now: *.foo.bar
@@ -596,7 +659,7 @@ ifdh::cp( std::vector<std::string> args ) {
 	   args[i] = cwd + "/" + args[i];
        }
        //
-       // for now, handle pnfs paths via srm
+       // for now, handle pnfs paths via gridftp
        // 
        if (0L == args[i].find("/pnfs/")) {
             if (0L == args[i].find("/pnfs/fnal.gov/usr/"))
@@ -607,7 +670,9 @@ ifdh::cp( std::vector<std::string> args ) {
 	        args[i] = args[i].substr(15);
             else
 	        args[i] = args[i].substr(6);
-	    args[i] = pnfs_srm_uri + args[i];
+            args[i] = args[i].substr(args[i].find("/",1)+1);
+	    args[i] = pnfs_gsiftp_uri + args[i];
+            _debug && std::cout << "ending up with pnfs uri of " <<  args[i] << "\n";
        }
     }
 
@@ -693,10 +758,20 @@ ifdh::cp( std::vector<std::string> args ) {
                break; 
             }
 
-            if( args[i].find("gsiftp:") == 0) { 
-               use_cpn = false; 
-               use_bst_gridftp = true; 
-               break; 
+            if( args[i].find("gsiftp:") == 0) {
+                use_cpn = false; 
+		if ( i == args.size() - 1 || args[i+1] == ";" ) {
+                    _debug && cout << "deciding to use bestman due to " << args[i] << " \n";
+                    // our destination is a specified gridftp server
+                    // so use bestman for (input) rewrites
+                    use_bst_gridftp = true; 
+                } else {
+                    // our source is a specified gridftp server
+                    // so use per-experiment gridftp for (output) rewrites
+                    _debug && cout << "deciding to use exp gridftp due to " << args[i] << " \n";
+                    use_exp_gridftp = true; 
+                }
+                break; 
             }
 
 	    if( 0 != access(args[i].c_str(),R_OK) ) {
@@ -754,6 +829,10 @@ ifdh::cp( std::vector<std::string> args ) {
      }
 
      use_any_gridftp = use_any_gridftp || use_exp_gridftp || use_bst_gridftp;
+
+     if (use_any_gridftp || use_srm) {
+	get_grid_credentials_if_needed();
+     }
 
      if (recursive && (use_srm || use_dd )) { 
         throw( std::logic_error("invalid use of -r with --force=srm or --force=dd"));
