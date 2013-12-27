@@ -130,6 +130,10 @@ ifdh::fetchInput( string src_uri ) {
     stringstream err;
     string path;
 
+    // be prepared for failure
+    std::string error_message("Copy Failed for: ");
+    error_message += src_uri;
+
     std::vector<std::string> args;
 
     if (0 == src_uri.find("xrootd:")) {
@@ -148,10 +152,12 @@ ifdh::fetchInput( string src_uri ) {
        if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK))
           return path;
        else
-          return "";
+         throw( std::logic_error("see error output"));
     } catch( exception &e )  {
-       std::cerr << "fetchInput: Exception: " << e.what();
-       return "";
+       // std::cerr << "fetchInput: Exception: " << e.what();
+       error_message += ": exception: ";
+       error_message += e.what();
+       throw( std::logic_error(error_message));
     }
 }
 

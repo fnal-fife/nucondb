@@ -12,9 +12,17 @@ cat >&2 <<EOF
 EOF
 }
 
+dest='./$f'
+
 while :
 do
 case x$1 in 
+
+x--prestage)
+    shift
+    dest='/dev/null'
+    ;;
+    
 x--dims)
     dims="$2"
     shift
@@ -52,6 +60,7 @@ x) echo "Need EXPERIMENT set in the environment" >&2
 esac
 
 eloc='srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/'
+
 for f in "$@"
 do
    flocs=`ifdh locateFile $f`
@@ -68,7 +77,8 @@ do
 	      sed -e "s;enstore:/pnfs/;$eloc;" -e 's/(.*//'`/$f"
 
    fi
-   echo "doing:" ifdh cp "$src"  "./$f" 
-   ifdh cp "$src"  "./$f"
+   eval "cmd='ifdh cp \"$src\"  \"$dest\"'"
+   echo "doing:"  $cmd
+   eval $cmd
 done
 

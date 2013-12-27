@@ -739,11 +739,6 @@ ifdh::cp( std::vector<std::string> args ) {
        stage_via = 0;
     }
 
-    if (stage_via && force[0] == ' ') {
-        force =  "srm";
-        _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA \n";
-    }
-
     if (force[0] == ' ') { // not forcing anything, so look
 
 	for( std::vector<std::string>::size_type i = curarg; i < args.size(); i++ ) {
@@ -784,11 +779,8 @@ ifdh::cp( std::vector<std::string> args ) {
 		       // local either default to per-experiment gridftp 
 		       // to get desired ownership. 
 		       use_cpn = 0;
-                       if (!getenv("CPN_DIR") || 0 != access(getenv("CPN_DIR"),R_OK)) {
-                           _debug && cout << "deciding to use srm because we don't have CPN and: "<< args[i] <<  "\n";
-                           use_srm = 1;
                            
-                       } else if (stage_via) {
+                       if (stage_via) {
                            use_srm = 1;
                            _debug && cout << "deciding to use srm due to $IFDH_STAGE_VIA and: " << args[i] << "\n";
                        } else {
@@ -797,7 +789,7 @@ ifdh::cp( std::vector<std::string> args ) {
                        }
 		   }      
 		} else {
-		   // for non-local sources, default to srm, for throttling
+		   // for non-local sources, default to srm, for throttling (?)
 		   use_cpn = 0;
 		   use_srm = 1;
 	           _debug && cout << "deciding to use bestman to: " << args[i] << "\n";
@@ -866,6 +858,8 @@ ifdh::cp( std::vector<std::string> args ) {
 	 // we now have a stage back file to clean up later...
          cleanup_stage = true;
          curarg = 0;
+         // workaround srmls heap limit hang problems
+         setenv("SRM_JAVA_OPTIONS", "-Xmx2048m" ,0);
      }
 
      int error_expected;
@@ -885,7 +879,7 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -p " NSTREAMS " -restart -stall-timeout 14400 " : "false" );
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -p 0 -dp -restart -stall-timeout 14400 " : "false" );
 
          if (use_dd && getenv("IFDH_DD_EXTRA")) {
             cmd << getenv("IFDH_DD_EXTRA") << " ";
