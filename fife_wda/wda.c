@@ -506,7 +506,7 @@ Dataset getData(const char *url, const char *uagent, int *error)
 # if DEBUG
     fprintf(stderr, "getData: url='%s'\n", url);
 # endif
-    errno = 0;
+    *error = errno = 0;
     response = (HttpResponse *)malloc(sizeof (HttpResponse));
     if (response == NULL) {
         /* out of memory! */

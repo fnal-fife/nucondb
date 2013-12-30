@@ -28,6 +28,8 @@ int main(void)
     char ss[81920];
     double dd[4096];
     
+    setUserAgent("Test_ifbeam_1");                    // Set User-Agent header for HTTP request
+    
     time_t t0 = time(NULL);
 //    ds = getBundleForInterval(url, "BNBShortTerm", t0-305, t0-300, &error);     // Get the data for bundle
 //    ds = getBundleForInterval(url, "Weather", t0-500, t0-300, &error);     // Get the data for bundle
@@ -35,7 +37,7 @@ int main(void)
      
     
     if (error) {																// Check for curl library errors
-	    fprintf(stderr, "error code=%d\n", error);    perror("error message");
+	    fprintf(stderr, "error code=%d(0x%x)\n", error, error);    perror("error message");
 	}
 	if (getHTTPstatus(ds) != 200) {												// Check for HTTP error
 	    fprintf(stderr, "HTTP code=%ld, message: '%s'\n", getHTTPstatus(ds), getHTTPmessage(ds));
