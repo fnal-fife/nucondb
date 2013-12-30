@@ -10,6 +10,8 @@
 #include "ifbeam_c.h"
 #define	MAX_VECTOR_SIZE	256
 
+#define MAX_UAGENT_SIZE 128
+static char g_uagent[MAX_UAGENT_SIZE] = {'\0'};
 /*
  * Returns dataset for the bundle from IFBeam DB for the specified time
  */
@@ -19,7 +21,7 @@ Dataset getBundleForTime(const char *url, const char *bundle, const double t, in
 
     snprintf(sbuf, sizeof (sbuf)-2, "%s/data?b=%s&t=%.3f&f=csv", url, bundle, t);
 
-    return getData(sbuf, NULL, error);
+    return getData(sbuf, g_uagent, error);
 }
 
 /*
@@ -31,7 +33,7 @@ Dataset getBundleForInterval(const char *url, const char *bundle, const double t
 
     snprintf(sbuf, sizeof (sbuf)-2, "%s/data?b=%s&t0=%.3f&t1=%.3f&f=csv", url, bundle, t0, t1);
 
-    return getData(sbuf, NULL, error);
+    return getData(sbuf, g_uagent, error);
 }
 
 
@@ -44,7 +46,7 @@ Dataset getEventVarForTime(const char *url, const char *event, const char *var, 
 
     snprintf(sbuf, sizeof (sbuf)-2, "%s/data?e=%s&v=%s&t=%.3f&f=csv", url, event, var, t);
 
-    return getData(sbuf, NULL, error);
+    return getData(sbuf, g_uagent, error);
 }
 
 
@@ -57,7 +59,7 @@ Dataset getEventVarForInterval(const char *url, const char *event, const char *v
 
     snprintf(sbuf, sizeof (sbuf)-2, "%s/data?e=%s&v=%s&t0=%.3f&t1=%.3f&f=csv", url, event, var, t0, t1);
 
-    return getData(sbuf, NULL, error);
+    return getData(sbuf, g_uagent, error);
 }
 
 /*
@@ -134,3 +136,7 @@ int releaseMeasurement(Measurement m)
     return 0;
 }
 
+void setUserAgent(char *text)
+{
+    memccpy(g_uagent, text, 0, MAX_UAGENT_SIZE);
+}

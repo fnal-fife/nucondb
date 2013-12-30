@@ -42,6 +42,10 @@ Measurement getFirstMeasurement(Dataset dataset);   /* Returns the first tuple i
 
 Measurement getNextMeasurement(Dataset dataset);    /* Returns the next tuple if available      		*/
 
+/*
+ * Utility functions
+ */
+void setUserAgent(char *text);                      /* Set User-Agent header for HTTP request           */
 
 #ifdef __cplusplus 
 } 
