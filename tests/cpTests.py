@@ -73,7 +73,7 @@ class ifdh_cp_cases(unittest.TestCase):
                 f = open("%s/%s/f%d" % (self.work,sd,count),"w")
                 f.write("foo\n")
                 f.close()
-        # os.system("ls -R %s" % self.work)
+        os.system("ls -R %s" % self.work)
 
     def tearDown(self):
         os.system("rm -rf %s" % self.work)

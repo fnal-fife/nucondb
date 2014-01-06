@@ -893,10 +893,12 @@ ifdh::cp( std::vector<std::string> args ) {
 
          cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -restart -stall-timeout 14400 " : "false" );
 
-         if (use_any_gridftp && use_passive()) {
-             cmd << " -dp ";
-         } else {
-             cmd << " -p 4 ";
+         if (use_any_gridftp) {
+            if ( use_passive()) {
+                cmd << " -dp ";
+            } else {
+                cmd << " -p 4 ";
+            }
          }
 
          if (use_dd && getenv("IFDH_DD_EXTRA")) {
