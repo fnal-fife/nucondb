@@ -581,6 +581,18 @@ parse_ifdh_stage_via() {
    }
 }
 
+bool
+use_passive() {
+   // for now, we do not use passive mode here at fermilab,
+   // in favor of parallel mode, but we do use passive
+   // pretty much everywhere else.
+   if (host_matches("*.fnal.gov")) {
+       return false;
+   } else {
+       return true;
+   }
+}
+
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
@@ -879,7 +891,13 @@ ifdh::cp( std::vector<std::string> args ) {
      while( keep_going ) {
          stringstream cmd;
 
-         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -p 0 -dp -restart -stall-timeout 14400 " : "false" );
+         cmd << (use_dd ? "dd bs=512k " : use_cpn ? "cp "  : use_srm ? srm_copy_command  : use_any_gridftp ? "globus-url-copy -nodcau -restart -stall-timeout 14400 " : "false" );
+
+         if (use_any_gridftp && use_passive()) {
+             cmd << " -dp ";
+         } else {
+             cmd << " -p 4 ";
+         }
 
          if (use_dd && getenv("IFDH_DD_EXTRA")) {
             cmd << getenv("IFDH_DD_EXTRA") << " ";
