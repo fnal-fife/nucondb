@@ -39,6 +39,8 @@ typedef struct {
 } HttpResponse;
 
 
+static int destroyHttpResponse(HttpResponse *response);
+static int initHttpResponse(HttpResponse *response);
 
 
 #define PRINT_ALLOC_ERROR(a)   fprintf(stderr, "Not enough memory (%s returned NULL)" \
@@ -131,8 +133,9 @@ void *getHTTP(const char *url, const char *headers[], size_t nheaders, size_t *l
     HttpResponse response;
 
 
-    response.memory = (char *)malloc(1);  /* will be grown as needed by the realloc above */
-    response.size = 0;                    /* no data at this point                        */
+//    response.memory = (char *)malloc(1);  /* will be grown as needed by the realloc above */
+//    response.size = 0;                    /* no data at this point                        */
+    initHttpResponse(&response);
 
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -174,7 +177,7 @@ void *getHTTP(const char *url, const char *headers[], size_t nheaders, size_t *l
         curl_easy_cleanup(curl_handle);
         curl_slist_free_all(headerlist);                                        /* Free the custom headers      */
 # if DEBUG
-        fprintf(stderr, "get_data_rows: %lu bytes retrieved\n", (long)response.size);
+        fprintf(stderr, "getHTTP: %lu bytes retrieved\n", (long)response.size);
 # endif
     }
     /* we're done with libcurl, so clean it up */
@@ -290,6 +293,7 @@ void postHTTP(const char *url, const char *headers[], size_t nheaders, const cha
 }
 
 
+# define RETRY_TIMEOUT 5.0
 /*
  * The function communicates with the server using CURL library
  * It returns the structure which contains the array of rows as strings
@@ -305,12 +309,14 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
     int i, k;
     char *row;
     char *running;
+    time_t t0 = time(NULL);
+    time_t t1 = t0;
 
-
-    response.memory = (char *)malloc(1);  /* will be grown as needed by the realloc above */
-    response.rows = NULL; 				  /* no data at this point                        */
-    response.nrows = response.size = 0;   /* no data at this point                        */
-    response.http_code = 0;
+//    response.memory = (char *)malloc(1);  /* will be grown as needed by the realloc above */
+//    response.rows = NULL; 				  /* no data at this point                        */
+//    response.nrows = response.size = 0;   /* no data at this point                        */
+//    response.http_code = 0;
+    initHttpResponse(&response);
 
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -343,21 +349,30 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
 
         ret = curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headerlist);    /* Set extra headers            */
 
-        /* get it! */
-        ret = curl_easy_perform(curl_handle);
-        *error = ret;
-        if (ret != CURLE_OK) {                                                  /* Check for errors             */
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
-            response.size = 0;
-		    response.http_code = 0;
-        } else {
-			curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &response.http_code);
-			if (response.http_code == 200 && ret != CURLE_ABORTED_BY_CALLBACK) {
-				//Succeeded
-			} else {
-				//Failed
-				//fprintf(stderr, "HTTP status code=%d: '%s'\n", response.http_code, response.memory);
-			}
+        for (k = 1; (t1 - t0) < RETRY_TIMEOUT; k++) {
+            /* get it! */
+            destroyHttpResponse(&response);
+            initHttpResponse(&response);
+            ret = curl_easy_perform(curl_handle);
+            *error = ret;
+            if (ret != CURLE_OK) {                                                  /* Check for errors             */
+                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+                response.size = 0;
+                response.http_code = 0;
+            } else {
+	            curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &response.http_code);
+                if (response.http_code == 200 && ret != CURLE_ABORTED_BY_CALLBACK) {
+                    //Succeeded
+                    break;
+                } else {
+                    //Failed
+                    //fprintf(stderr, "HTTP status code=%d: '%s'\n", response.http_code, response.memory);
+                }
+            }
+            int d = 1 + ((double)random()/(double)RAND_MAX) * k;
+            sleep(d);
+            t1 = time(NULL);
+            //fprintf(stderr, "ret=%d, k=%d, d=%d, t0=%ld, t1=%ld\n", ret, k, d, t0, t1);
 		}
         /* cleanup curl stuff */
         curl_easy_cleanup(curl_handle);
@@ -405,7 +420,7 @@ static HttpResponse get_data_rows(const char *url, const char *headers[], size_t
 /*
  * The function deallocates used memory buffers.
  */
-static int destroyHttpResponse(HttpResponse *response) 
+static int destroyHttpResponse(HttpResponse *response)
 {
     if (response!=NULL) {
         if (response->rows!=NULL) {
@@ -419,6 +434,21 @@ static int destroyHttpResponse(HttpResponse *response)
     }
     return 0;
 }
+
+
+
+/*
+ * The function initializes response structure.
+ */
+static int initHttpResponse(HttpResponse *response)
+{
+    response->memory = (char *)malloc(1);   /* will be grown as needed by the realloc above */
+    response->memory[0] = '\0';             /* Zero byte                                    */
+    response->rows = NULL;                  /* no data at this point                        */
+    response->nrows = response->size = 0;   /* no data at this point                        */
+    response->http_code = 0;
+}
+
 
 
 /*

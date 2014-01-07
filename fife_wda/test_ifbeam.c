@@ -37,10 +37,10 @@ int main(void)
      
     
     if (error) {																// Check for curl library errors
-	    fprintf(stderr, "error code=%d(0x%x)\n", error, error);    perror("error message");
+	    fprintf(stderr, "main(): error code=%d(0x%x)\n", error, error);    perror("error message");
 	}
 	if (getHTTPstatus(ds) != 200) {												// Check for HTTP error
-	    fprintf(stderr, "HTTP code=%ld, message: '%s'\n", getHTTPstatus(ds), getHTTPmessage(ds));
+	    fprintf(stderr, "main(): HTTP code=%ld, message: '%s'\n", getHTTPstatus(ds), getHTTPmessage(ds));
 	}
 
 
@@ -89,7 +89,7 @@ int main(void)
         fprintf(stderr, "[3]: v=%f\n", getDoubleValue(tu, 3, &err));// Now extract the double value from the 3-rd column
         fprintf(stderr, "e=%s\n\n", strerror(err));                 // Was it OK?
     } else {
-        fprintf(stderr, "No such tuple\n"); perror("...");
+        fprintf(stderr, "No such tuple"); perror("...");
     }
 //    releaseTuple(tu);                                   // Do not forget to release the structure if you do not need it
     
@@ -118,7 +118,7 @@ int main(void)
         
         fprintf(stderr, "e=%s\n\n", strerror(err));                   // Was it OK?
     } else {
-        fprintf(stderr, "No such tuple\n"); perror("...");
+        fprintf(stderr, "No such tuple"); perror("...");
     }
 //    releaseTuple(tu);                                               // Do not forget to release the structure if you do not need it
 
@@ -192,7 +192,7 @@ int main(void)
         fprintf(stderr, "[4]: v=%f\n", getDoubleValue(tu, 4, &err));// Now extract the double value from the 4-th column
         fprintf(stderr, "e=%s\n\n", strerror(err));                 // Was it OK?
     } else {
-        fprintf(stderr, "No such tuple\n"); perror("...");
+        fprintf(stderr, "No such tuple"); perror("...");
     }
 //    releaseTuple(tu);                                   // Do not forget to release the structure if you do not need it
     
