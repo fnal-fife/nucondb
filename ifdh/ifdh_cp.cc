@@ -593,6 +593,27 @@ use_passive() {
    }
 }
 
+string
+map_pnfs(string loc, int srmflag = 0) {
+
+            if (0L == loc.find("/pnfs/fnal.gov/usr/"))
+	        loc = loc.substr(19);
+            else if (0L == loc.find("/pnfs/usr/"))
+	        loc = loc.substr(10);
+            else if (0L == loc.find("/pnfs/fnal.gov/"))
+	        loc = loc.substr(15);
+            else
+	        loc = loc.substr(6);
+            if (srmflag) {
+               loc = pnfs_srm_uri + loc;
+            } else {
+                loc = loc.substr(loc.find("/",1)+1);
+	        loc = pnfs_gsiftp_uri + loc;
+            } 
+            ifdh::_debug && std::cout << "ending up with pnfs uri of " <<  loc << "\n";
+      
+            return loc;
+}
 int 
 ifdh::cp( std::vector<std::string> args ) {
 
@@ -674,17 +695,7 @@ ifdh::cp( std::vector<std::string> args ) {
        // for now, handle pnfs paths via gridftp
        // 
        if (0L == args[i].find("/pnfs/")) {
-            if (0L == args[i].find("/pnfs/fnal.gov/usr/"))
-	        args[i] = args[i].substr(19);
-            else if (0L == args[i].find("/pnfs/usr/"))
-	        args[i] = args[i].substr(10);
-            else if (0L == args[i].find("/pnfs/fnal.gov/"))
-	        args[i] = args[i].substr(15);
-            else
-	        args[i] = args[i].substr(6);
-            args[i] = args[i].substr(args[i].find("/",1)+1);
-	    args[i] = pnfs_gsiftp_uri + args[i];
-            _debug && std::cout << "ending up with pnfs uri of " <<  args[i] << "\n";
+            args[i] = map_pnfs(args[i]);
        }
     }
 
@@ -1099,4 +1110,109 @@ ifdh::mv(vector<string> args) {
     return res;
 }
 
+vector<string>
+ifdh::ls(string loc, int recursion_depth, string force) {
+    vector<string> res;
+    /* XX this should be factored & shared with ifdh_cp... */
+    bool use_gridftp = false;
+    bool use_srm = false;
+    bool use_fs = false;
+    std::stringstream cmd;
+
+    if ( -1 == recursion_depth )
+        recursion_depth = 0;
+
+    if (force.find("--force=") == 0L) {
+        switch(force[8]) {
+        case 'e': case 'g': use_gridftp = true; break;
+        case 's':           use_srm = true;     break;
+        default:
+        case 'c': case 'd': use_fs = true;      break;
+        }
+    }
+
+    if (loc.find(':') > 2) {
+        if (loc.find("srm:") == 0) {
+           use_srm = true;
+        }
+        if (loc.find("gsiftp:") == 0) {
+           use_gridftp = true;
+        }
+        if (loc.find("file:") == 0) {
+           use_fs = true;
+           loc = loc.substr(8);
+        }
+    }
+    if (!(use_fs || use_gridftp || use_srm)) {
+
+        // convert to absolute path
+        if (loc[0] != '/') {
+           string cwd(get_current_dir_name());
+           loc = cwd + '/' + loc;
+        }
+
+        // if it's not visible, it's assumed to be either
+        // dcache or bluearc...
+        int r1 =  local_access(parent_dir(loc).c_str(), R_OK);
+        _debug && std::cout << "ifdh ls: local_access returns " << r1 <<"\n";
+        
+        if (0 != r1 ) {
+            use_srm = true;
+            if ( loc.find("/pnfs") == 0 ) {
+                loc = map_pnfs(loc, 1);
+            } else {
+                loc = bestman_srm_uri + loc;
+            }
+        } else {
+            use_fs = true;
+        }
+    }
+    if (use_srm || use_gridftp) {
+        get_grid_credentials_if_needed();
+    }
+
+    if (use_srm) {
+       setenv("SRM_JAVA_OPTIONS", "-Xmx2048m" ,0);
+       cmd << "srmls -2 ";
+       if (recursion_depth > 1) {
+           cmd << "--recursion_depth " << recursion_depth << " ";
+       }
+       cmd << loc;
+    } else if (use_gridftp) {
+       cmd << "uberftp -ls ";
+       if (recursion_depth > 1) {
+           cmd << "-r ";
+       }
+       cmd << loc;
+    } else if (use_fs) {
+       // find uses an off by one depth from srmls
+       recursion_depth++;
+       cmd << "find " << loc << 
+           " -maxdepth " << recursion_depth << 
+          " \\( -type d -printf '%p/\\n' -o -printf '%p\\n' \\)  " <<
+           " " ;
+    }
+
+    _debug && std::cout << "ifdh ls: running: " << cmd.str() << "\n";
+
+    FILE *pf = popen(cmd.str().c_str(), "r");
+    char buf[512];
+    while (!feof(pf) && !ferror(pf)) {
+	if (fgets(buf, 512, pf)) {
+           string s(buf);
+           // trim leading stuff from srmls
+           size_t pos = s.find('/');
+           if (pos > 0 && pos != string::npos ) {
+               s = s.substr(pos);
+           }
+           // trim trailing newlines
+           if ('\n' == s[s.size()-1]) {
+               s = s.substr(0,s.size()-1);
+           }
+           res.push_back(s);
+        }
+    }
+    return res;
+}
+   
 }

@@ -98,6 +98,9 @@ class ifdh {
         int renameOutput(std::string how);
         // general file rename using mvn or srmcp
         int mv(std::vector<std::string> args);
+
+        // Get a list of directory contents, or check existence of files
+        std::vector<std::string> ls( std::string loc, int recursion_depth, std::string force = "");
 };
 
 }
