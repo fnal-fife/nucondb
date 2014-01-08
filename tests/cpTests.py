@@ -208,12 +208,12 @@ class ifdh_cp_cases(unittest.TestCase):
         self.ifdh_handle.cp([ "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SFN=%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         self.assertEqual(self.check_test_txt(), True)
 
-    def test_default__out(self):
+    def test_00_default__out(self):
         self.make_test_txt()
         self.ifdh_handle.cp([ "%s/test.txt"%self.work, "%s/test.txt" % self.data_dir])
         self.assertEqual(0,0)  # not sure how to verify if it is remote..
 
-    def test_default_in(self):
+    def test_01_default_in(self):
         self.list_remote_dir()
         self.ifdh_handle.cp([ "%s/test.txt"%self.data_dir, "%s/test.txt"%self.work])
         res = os.stat("%s/test.txt" % self.work)
