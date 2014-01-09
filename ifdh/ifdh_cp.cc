@@ -1294,4 +1294,58 @@ ifdh::mkdir(string loc, string force) {
     return 0;
 }
 
+int
+ifdh::rm(string loc, string force) {
+    bool use_gridftp = false;
+    bool use_srm = false;
+    bool use_fs = false;
+    std::stringstream cmd;
+
+    pick_type( loc, force, use_fs, use_gridftp, use_srm);
+
+    if (use_srm || use_gridftp) {
+        get_grid_credentials_if_needed();
+    }
+
+    if (use_fs)      cmd << "rm ";
+    if (use_gridftp) cmd << "uberftp -rm ";
+    if (use_srm)     cmd << "srmrm -2 ";
+
+    cmd << loc;
+
+    _debug && std::cout << "running: " << cmd.str();
+
+    int status = system(cmd.str().c_str());
+    if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing rm"));
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) throw( std::logic_error("rm failed"));
+    return 0;
+}
+
+int
+ifdh::rmdir(string loc, string force) {
+    bool use_gridftp = false;
+    bool use_srm = false;
+    bool use_fs = false;
+    std::stringstream cmd;
+
+    pick_type( loc, force, use_fs, use_gridftp, use_srm);
+
+    if (use_srm || use_gridftp) {
+        get_grid_credentials_if_needed();
+    }
+
+    if (use_fs)      cmd << "rmdir ";
+    if (use_gridftp) cmd << "uberftp -rmdir ";
+    if (use_srm)     cmd << "srmrmdir -2 ";
+
+    cmd << loc;
+
+    _debug && std::cout << "running: " << cmd.str();
+
+    int status = system(cmd.str().c_str());
+    if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing rmdir"));
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) throw( std::logic_error("rmdir failed"));
+    return 0;
+}
+
 }
