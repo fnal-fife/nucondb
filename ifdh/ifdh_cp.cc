@@ -307,6 +307,10 @@ std::string parent_dir(std::string path) {
    if (pos == path.length() - 1) {
        pos = path.rfind('/', pos - 1);
    }
+   // root of filesystem fix, return / for parent of /tmp ,etc.
+   if (0 == pos) { 
+      pos = 1;
+   }
    ifdh::_debug && cout << "parent of " << path << " is " << path.substr(0, pos ) << "\n";
    return path.substr(0, pos);
 }
@@ -472,6 +476,8 @@ check_grid_credentials() {
     FILE *pf = popen("voms-proxy-info -all 2>/dev/null", "r");
     bool found = false;
     std::string experiment(getexperiment());
+    
+    ifdh::_debug && std::cout << "check_grid_credentials:\n";
 
     while(fgets(buf,512,pf)) {
 	 std::string s(buf);
@@ -515,13 +521,24 @@ get_grid_credentials_if_needed() {
 
         ifdh::_debug && system("echo X509_USER_PROXY is $X509_USER_PROXY");
 
-	cmd = "kx509 && voms-proxy-init -rfc -noregen -debug -voms ";
+	cmd = "kx509 ";
+        if (ifdh::_debug) {
+            cmd += " >&2 ";
+        } else {
+            cmd += " >/dev/null 2>&1 ";
+        }
+        cmd += "&& voms-proxy-init -rfc -noregen -debug -voms ";
 	if (experiment != "lbne" && experiment != "dzero") {
 	   cmd += "fermilab:/fermilab/" + experiment + "/Role=Analysis";
 	} else {
 	   cmd += experiment + ":/" + experiment + "/Role=Analysis";
 	}
-        cmd += " 2>/dev/null";
+        if (ifdh::_debug) {
+            cmd += " >&2";
+        } else {
+            cmd += " >/dev/null 2>&1";
+        }
+
 	ifdh::_debug && std::cout << "running: " << cmd << "\n";
 	system(cmd.c_str());
     }
@@ -1162,6 +1179,7 @@ ifdh::ls(string loc, int recursion_depth, string force) {
     bool use_srm = false;
     bool use_fs = false;
     std::stringstream cmd;
+    std::string dir;
 
     if ( -1 == recursion_depth )
         recursion_depth = 0;
@@ -1185,6 +1203,7 @@ ifdh::ls(string loc, int recursion_depth, string force) {
            cmd << "-r ";
        }
        cmd << loc;
+       dir = loc.substr(loc.find("/",9));
     } else if (use_fs) {
        // find uses an off by one depth from srmls
        recursion_depth++;
@@ -1201,14 +1220,32 @@ ifdh::ls(string loc, int recursion_depth, string force) {
     while (!feof(pf) && !ferror(pf)) {
 	if (fgets(buf, 512, pf)) {
            string s(buf);
-           // trim leading stuff from srmls
-           size_t pos = s.find('/');
-           if (pos > 0 && pos != string::npos ) {
-               s = s.substr(pos);
-           }
            // trim trailing newlines
            if ('\n' == s[s.size()-1]) {
                s = s.substr(0,s.size()-1);
+           }
+           if ('\r' == s[s.size()-1]) {
+               s = s.substr(0,s.size()-1);
+           }
+           // trim leading stuff from srmls
+           if (use_srm) {
+	       size_t pos = s.find('/');
+	       if (pos > 0 && pos != string::npos ) {
+		   s = s.substr(pos);
+	       }
+           }
+           if (use_gridftp) {
+               // trim long listing bits, add slash if dir
+               if (s[0] == 'd') {
+                  s = s.substr(59) + "/";
+                  ifdh::_debug && std::cout << "directory: " << s << "\n";
+               } else {
+                  s = s.substr(59);
+               }
+               // only gridftp lists . and ..
+               if (s == "../" || s == "./" )
+                   continue;
+               s = dir + '/' + s;
            }
            res.push_back(s);
         }
