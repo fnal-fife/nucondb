@@ -1125,6 +1125,7 @@ ifdh::mv(vector<string> args) {
 void
 pick_type( string &loc, string force, bool &use_fs, bool &use_gridftp, bool &use_srm) {
     if (force.find("--force=") == 0L) {
+        ifdh::_debug && std::cout << "force type: " << force[8] << "\n";
         switch(force[8]) {
         case 'e': case 'g': use_gridftp = true; break;
         case 's':           use_srm = true;     break;
@@ -1133,7 +1134,7 @@ pick_type( string &loc, string force, bool &use_fs, bool &use_gridftp, bool &use
         }
     }
 
-    if (loc.find(':') > 2) {
+    if (loc.find(':') > 2 && loc.find(':') != string::npos) {
         if (loc.find("srm:") == 0) {
            use_srm = true;
         }
@@ -1144,7 +1145,16 @@ pick_type( string &loc, string force, bool &use_fs, bool &use_gridftp, bool &use
            use_fs = true;
            loc = loc.substr(8);
         }
+    } else {
+        // no xyz: on front...
+        
+        if(use_gridftp)  {
+            loc = bestman_ftp_uri + loc;
+            ifdh::_debug && std::cout << "use_gridftp converting to: " << loc << "\n";
+        }
+
     }
+
     if (!(use_fs || use_gridftp || use_srm)) {
 
         // convert to absolute path
