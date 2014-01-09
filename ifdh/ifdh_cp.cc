@@ -1113,18 +1113,8 @@ ifdh::mv(vector<string> args) {
     return res;
 }
 
-vector<string>
-ifdh::ls(string loc, int recursion_depth, string force) {
-    vector<string> res;
-    /* XX this should be factored & shared with ifdh_cp... */
-    bool use_gridftp = false;
-    bool use_srm = false;
-    bool use_fs = false;
-    std::stringstream cmd;
-
-    if ( -1 == recursion_depth )
-        recursion_depth = 0;
-
+void
+pick_type( string &loc, string force, bool &use_fs, bool &use_gridftp, bool &use_srm) {
     if (force.find("--force=") == 0L) {
         switch(force[8]) {
         case 'e': case 'g': use_gridftp = true; break;
@@ -1157,7 +1147,7 @@ ifdh::ls(string loc, int recursion_depth, string force) {
         // if it's not visible, it's assumed to be either
         // dcache or bluearc...
         int r1 =  local_access(parent_dir(loc).c_str(), R_OK);
-        _debug && std::cout << "ifdh ls: local_access returns " << r1 <<"\n";
+        ifdh::_debug && std::cout << "ifdh ls: local_access returns " << r1 <<"\n";
         
         if (0 != r1 ) {
             use_srm = true;
@@ -1170,6 +1160,22 @@ ifdh::ls(string loc, int recursion_depth, string force) {
             use_fs = true;
         }
     }
+}
+
+vector<string>
+ifdh::ls(string loc, int recursion_depth, string force) {
+    vector<string> res;
+    /* XX this should be factored & shared with ifdh_cp... */
+    bool use_gridftp = false;
+    bool use_srm = false;
+    bool use_fs = false;
+    std::stringstream cmd;
+
+    if ( -1 == recursion_depth )
+        recursion_depth = 0;
+
+    pick_type( loc, force, use_fs, use_gridftp, use_srm);
+
     if (use_srm || use_gridftp) {
         get_grid_credentials_if_needed();
     }
@@ -1215,7 +1221,36 @@ ifdh::ls(string loc, int recursion_depth, string force) {
            res.push_back(s);
         }
     }
+    int status = pclose(pf);
+    if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing ls"));
+    if (WIFEXITED(status) && WEXITSTATUS(status != 0) throw( std::logic_error("ls failed."));
+ 
     return res;
 }
    
+int
+ifdh::mkdir(string loc, string force) {
+    bool use_gridftp = false;
+    bool use_srm = false;
+    bool use_fs = false;
+    std::stringstream cmd;
+
+    pick_type( loc, force, use_fs, use_gridftp, use_srm);
+
+    if (use_srm || use_gridftp) {
+        get_grid_credentials_if_needed();
+    }
+
+    if (use_fs)      cmd << "mkdir ";
+    if (use_gridftp) cmd << "uberftp -mkdir ";
+    if (use_srm)     cmd << "srmmkdir -2 ";
+
+    cmd << loc;
+
+    int status = system(cmd.str().c_str());
+    if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing mkdir"));
+    if (WIFEXITED(status) && WEXITSTATUS(status != 0) throw( std::logic_error("mkdir failed"));
+ 
+}
+
 }
