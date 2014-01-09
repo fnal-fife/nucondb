@@ -392,11 +392,9 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
    std::string stagefile("stage_");
    std::string ustring;
    std::string stage_location;
-   int status;
 
    // unique string for this stage out
    ustring = unique_string();
-   std::string mkdirstring("srmmkdir -2 ");
 
    // if we are told how to stage, use it, fall back to OSG_SITE_WRITE,
    //  or worst case, the bestman gateway.
@@ -418,19 +416,13 @@ ifdh::build_stage_list(std::vector<std::string> args, int curarg, char *stage_vi
 
    // make sure directory hierarchy is there..
    if (!have_stage_subdirs(base_uri + "/ifdh_stage")) {
-     
-       status = system( (mkdirstring +  base_uri + "/ifdh_stage >/dev/null 2>&1").c_str() );
-       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-       status = system( (mkdirstring +  base_uri + "/ifdh_stage/queue >/dev/null 2>&1").c_str() );
-       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-       status = system( (mkdirstring +  base_uri + "/ifdh_stage/lock >/dev/null 2>&1").c_str() );
-       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
-       status = system( (mkdirstring +  base_uri + "/ifdh_stage/data >/dev/null 2>&1").c_str() );
-       if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+       this->mkdir( base_uri + "/ifdh_stage", "");
+       this->mkdir( base_uri + "/ifdh_stage/queue" , "");
+       this->mkdir( base_uri + "/ifdh_stage/lock", "");
+       this->mkdir( base_uri + "/ifdh_stage/data", "");
    }
 
-   status = system( (mkdirstring +  base_uri + "/ifdh_stage/data/" + ustring + ">/dev/null 2>&1").c_str() );
-   if (WIFSIGNALED(status)) throw( std::logic_error("signalled while building copyback spool directories"));
+   this->mkdir( base_uri + "/ifdh_stage/data/" + ustring, "");
 
    // open our stageout queue file/copy back instructions
    fstream stageout(stagefile.c_str(), fstream::out);
@@ -1223,7 +1215,7 @@ ifdh::ls(string loc, int recursion_depth, string force) {
     }
     int status = pclose(pf);
     if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing ls"));
-    if (WIFEXITED(status) && WEXITSTATUS(status != 0) throw( std::logic_error("ls failed."));
+    if (WIFEXITED(status) && 0 != WEXITSTATUS(status)) throw( std::logic_error("ls failed."));
  
     return res;
 }
@@ -1247,10 +1239,12 @@ ifdh::mkdir(string loc, string force) {
 
     cmd << loc;
 
+    _debug && std::cout << "running: " << cmd.str();
+
     int status = system(cmd.str().c_str());
     if (WIFSIGNALED(status)) throw( std::logic_error("signalled while doing mkdir"));
-    if (WIFEXITED(status) && WEXITSTATUS(status != 0) throw( std::logic_error("mkdir failed"));
- 
+    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) throw( std::logic_error("mkdir failed"));
+    return 0;
 }
 
 }

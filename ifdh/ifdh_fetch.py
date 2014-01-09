@@ -4,7 +4,7 @@ from ifdh import ifdh
 import os
 import re
 
-eloc='srm://fndca1.fnal.gov:8443/pnfs/fnal.gov/usr/'
+eloc='srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/'
 
 def ifdh_fetch( *flist, **kwargs ):
      ifdh_handle = ifdh()
