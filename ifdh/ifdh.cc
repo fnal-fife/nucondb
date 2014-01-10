@@ -257,12 +257,14 @@ do_url_2(int postflag, va_list ap) {
     char * name;
     char * val;
 
+    int count = 0;
     val = va_arg(ap,char *);
     if (val == 0 || *val == 0) {
         throw(WebAPIException("Environment variables IFDH_BASE_URI and EXPERIMENT not set and no URL set!",""));
     }
     while (strlen(val)) {
-        url << sep << val;
+ 
+        url << sep << (count++ ? WebAPI::encode(val) : val);
         val = va_arg(ap,char *);
         sep = "/";
     }
@@ -272,7 +274,7 @@ do_url_2(int postflag, va_list ap) {
     name = va_arg(ap,char *);
     val = va_arg(ap,char *);
     while (strlen(name)) {
-        (postflag ? postdata : url)  << sep << name << "=" << val;
+        (postflag ? postdata : url)  << sep << WebAPI::encode(name) << "=" << WebAPI::encode(val);
         sep = "&";
         name = va_arg(ap,char *);
         val = va_arg(ap,char *);
@@ -336,7 +338,7 @@ do_url_lst(int postflag,...) {
 //datasets
 int 
 ifdh::createDefinition( string name, string dims, string user, string group) {
-  return do_url_int(1,_baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", WebAPI::encode(dims).c_str(), "user", user.c_str(),"group", group.c_str(), "","");
+  return do_url_int(1,_baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", dims.c_str(), "user", user.c_str(),"group", group.c_str(), "","");
 }
 
 int 
@@ -351,7 +353,7 @@ ifdh::describeDefinition( string name) {
 
 vector<string> 
 ifdh::translateConstraints( string dims) {
-  return do_url_lst(0,_baseuri.c_str(),"files", "list", "", "dims", WebAPI::encode(dims).c_str(), "","" );
+  return do_url_lst(0,_baseuri.c_str(),"files", "list", "", "dims", dims.c_str(), "","" );
 }
 
 // files
