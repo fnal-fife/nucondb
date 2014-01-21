@@ -149,10 +149,12 @@ ifdh::fetchInput( string src_uri ) {
        args.push_back(src_uri);
     args.push_back(path);
     try {
-       if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK))
+       if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK)) {
+          _lastinput = path;
           return path;
-       else
+       } else {
          throw( std::logic_error("see error output"));
+       }
     } catch( exception &e )  {
        // std::cerr << "fetchInput: Exception: " << e.what();
        error_message += ": exception: ";
@@ -168,9 +170,36 @@ ifdh::fetchInput( string src_uri ) {
 //
 int 
 ifdh::addOutputFile(string filename) {
+    size_t pos;
+
+    if (0 != access(filename.c_str(), R_OK)) {
+         throw( std::logic_error((filename + ": file does not exist!").c_str()));
+    }
+    bool already_added = false;
+    try {
+        string line;
+        fstream outlog_in((datadir()+"/output_files").c_str(), ios_base::in);
+
+        while (!outlog_in.eof() && !outlog_in.fail()) {
+           getline(outlog_in, line);
+           if (line.substr(0,line.find(' ')) == filename) {
+               already_added = true;
+           }
+        }
+        outlog_in.close();
+    } catch (exception &e) {
+       ;
+    }
+    if (already_added) {
+        throw( std::logic_error((filename + ": added twice as output file").c_str()));
+    }
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
     if (!_lastinput.size() && getenv("IFDH_INPUT_FILE")) {
         _lastinput = getenv("IFDH_INPUT_FILE");
+    }
+    pos = _lastinput.rfind('/');
+    if (pos != string::npos) {
+        _lastinput = _lastinput.substr(pos+1);
     }
     outlog << filename << " " << _lastinput << "\n";
     outlog.close();
@@ -445,7 +474,7 @@ ifdh::dumpProject(string projecturi) {
   if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
       projecturi = this->findProject("","");
   }
-  return do_url_str(1,projecturi.c_str(),"dumpProject","","","");
+  return do_url_str(1,projecturi.c_str(),"status","","format","json""","");
 }
 
 int ifdh::setStatus(string projecturi, string processid, string status){
