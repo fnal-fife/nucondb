@@ -36,6 +36,8 @@ std::string bestman_srm_uri = "srm://fg-bestman1.fnal.gov:10443/srm/v2/server?SF
 std::string bestman_ftp_uri = "gsiftp://fg-bestman1.fnal.gov:2811";
 std::string pnfs_srm_uri = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
 std::string pnfs_gsiftp_uri = "gsiftp://fndca1.fnal.gov/";
+std::string pnfs_cdf_srm_uri = "srm://cdfdca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
+std::string pnfs_cdf_gsiftp_uri = "gsiftp://cdfdca1.fnal.gov/";
 
 //
 // string constant for number of streams for gridftp, srmcp
@@ -608,20 +610,41 @@ use_passive() {
 string
 map_pnfs(string loc, int srmflag = 0) {
 
+      bool cdfflag = false;
+
+            if (0L == loc.find("/pnfs/fnal.gov/usr/cdfen"/))
+	        loc = loc.substr(19);
+                cdfflag = true;
             if (0L == loc.find("/pnfs/fnal.gov/usr/"))
 	        loc = loc.substr(19);
+            else if (0L == loc.find("/pnfs/usr/cdfen"/))
+	        loc = loc.substr(10);
+                cdfflag = true;
             else if (0L == loc.find("/pnfs/usr/"))
 	        loc = loc.substr(10);
+            else if (0L == loc.find("/pnfs/fnal.gov/cdfen/"))
+	        loc = loc.substr(15);
+                cdfflag = true;
             else if (0L == loc.find("/pnfs/fnal.gov/"))
 	        loc = loc.substr(15);
             else
 	        loc = loc.substr(6);
+
+        if (cdfflag) {
+            if (srmflag) {
+               loc = pnfs_cdf_srm_uri + loc;
+            } else {
+                loc = loc.substr(loc.find("/",1)+1);
+	        loc = pnfs_cdf_gsiftp_uri + loc;
+            } 
+        } else {
             if (srmflag) {
                loc = pnfs_srm_uri + loc;
             } else {
                 loc = loc.substr(loc.find("/",1)+1);
 	        loc = pnfs_gsiftp_uri + loc;
             } 
+        }
             ifdh::_debug && std::cout << "ending up with pnfs uri of " <<  loc << "\n";
       
             return loc;
