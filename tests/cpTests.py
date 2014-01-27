@@ -58,10 +58,6 @@ class ifdh_cp_cases(unittest.TestCase):
         self.hostname = socket.gethostname()
         self.work="/tmp/work%d" % os.getpid()
 	self.data_dir="/grid/data/%s" % os.environ['USER']
-        if not  os.environ.has_key('X509_USER_PROXY'):
-            print "please run: /scratch/grid/kproxy %s" % ifdh_cp_cases.experiment
-            print "and export X509_USER_PROXY=/scratch/%s/grid/%s.%s.proxy" % ( 
-		os.environ['USER'], os.environ['USER'],ifdh_cp_cases.experiment)
 
         # setup test directory tree..
         count = 0
@@ -213,8 +209,8 @@ class ifdh_cp_cases(unittest.TestCase):
     def test_00_default__out(self):
         self.make_test_txt()
         self.ifdh_handle.cp([ "%s/test.txt"%self.work, "%s/test.txt" % self.data_dir])
-        self.ifdh_handle.ls("%s/test.txt" % self.data_dir, 0,"")
-        self.assertEqual(0,0)  # not sure how to verify if it is remote..
+        list = self.ifdh_handle.ls("%s/test.txt" % self.data_dir, 1,"")
+        self.assertEqual(len(list),1)  # not sure how to verify if it is remote..
 
     def test_01_default_in(self):
         self.list_remote_dir()
@@ -385,6 +381,22 @@ class ifdh_cp_cases(unittest.TestCase):
          self.assertEqual(r1, 0)
          self.assertEqual(r2, 0)
         
+    def test_pnfs_ls(self):
+         list = self.ifdh_handle.ls('/pnfs/nova/scratch', 1, "")
+         self.assertEqual(len(list) > 0, True)
+
+    def test_bluearc_ls_gftp(self):
+         list = self.ifdh_handle.ls('/grid/data/mengel', 1, "--force=gridftp")
+         self.assertEqual(len(list) > 0, True)
+
+    def test_pnfs_ls_gftp(self):
+         list = self.ifdh_handle.ls('/pnfs/nova/scratch', 1, "--force=gridftp")
+         self.assertEqual(len(list) > 0, True)
+
+    def test_pnfs_ls_srm(self):
+         list = self.ifdh_handle.ls('/pnfs/nova/scratch', 1, "--force=srm")
+         self.assertEqual(len(list) > 0, True)
+
 def suite():
     suite =  unittest.TestLoader().loadTestsFromTestCase(ifdh_cp_cases)
     return suite

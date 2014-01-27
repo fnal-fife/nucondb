@@ -12,7 +12,22 @@ cat >&2 <<EOF
 EOF
 }
 
-dest='./$f'
+case `df . | tail -1` in
+*/app) size=`echo "$@" | wc -w`
+         if [ $size -gt 10 ]
+         then
+             echo "Sorry, this utility won't copy large datasets to the /experiment/app areas" >& 2
+             exit 1
+         else
+             echo "Notice: copying data to /experiment/app areas is not recommended." >&2
+             echo "...but since it's only a few files, copying via /tmp"
+         fi
+         dest='/tmp/$f'
+         extra='; cp /tmp/$f ./$f; rm /tmp/$f'
+         ;;
+*)       dest='./$f'
+         extra=''
+esac
 
 while :
 do
@@ -73,7 +88,7 @@ do
 	      sed -e "s;enstore:/pnfs/;$eloc;" -e 's/(.*//'`/$f"
 
    fi
-   eval "cmd='ifdh cp \"$src\"  \"$dest\"'"
+   eval "cmd='ifdh cp \"$src\"  \"$dest\" $extra'"
    echo "doing:"  $cmd
    eval $cmd
 done

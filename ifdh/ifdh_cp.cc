@@ -1147,10 +1147,16 @@ pick_type( string &loc, string force, bool &use_fs, bool &use_gridftp, bool &use
         }
     } else {
         // no xyz: on front...
-        
-        if(use_gridftp)  {
+        if ( loc.find("/pnfs") == 0 ) {
+            loc = map_pnfs(loc, use_srm);
+            use_gridftp = !use_srm;
+
+        } else if( use_gridftp )  {
             loc = bestman_ftp_uri + loc;
             ifdh::_debug && std::cout << "use_gridftp converting to: " << loc << "\n";
+        } else if( use_srm )  {
+            loc = bestman_srm_uri + loc;
+            ifdh::_debug && std::cout << "use_srm converting to: " << loc << "\n";
         }
 
     }
@@ -1230,6 +1236,7 @@ ifdh::ls(string loc, int recursion_depth, string force) {
     while (!feof(pf) && !ferror(pf)) {
 	if (fgets(buf, 512, pf)) {
            string s(buf);
+           _debug && std::cout << "before cleanup: |" << s <<  "|\n";
            // trim trailing newlines
            if ('\n' == s[s.size()-1]) {
                s = s.substr(0,s.size()-1);
@@ -1243,20 +1250,27 @@ ifdh::ls(string loc, int recursion_depth, string force) {
 	       if (pos > 0 && pos != string::npos ) {
 		   s = s.substr(pos);
 	       }
+               if (s == "")
+                   continue;
            }
            if (use_gridftp) {
-               // trim long listing bits, add slash if dir
+               // trim long listing bits, (8 columns) add slash if dir
+               size_t pos = 0;
+               for( int i = 0; i < 8; i++ ) {
+                   pos = s.find(" ",pos);
+                   pos = s.find_first_not_of(" ", pos);
+               }
                if (s[0] == 'd') {
-                  s = s.substr(59) + "/";
+                  s = s.substr(pos) + "/";
                   ifdh::_debug && std::cout << "directory: " << s << "\n";
                } else {
-                  s = s.substr(59);
+                  s = s.substr(pos);
                }
                // only gridftp lists . and ..
                if (s == "../" || s == "./" )
                    continue;
                s = dir + '/' + s;
-           }
+           } 
            res.push_back(s);
         }
     }
