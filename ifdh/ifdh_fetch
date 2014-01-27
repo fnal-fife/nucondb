@@ -70,23 +70,20 @@ x) echo "Need EXPERIMENT set in the environment" >&2
 *) ;;
 esac
 
-eloc='srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/'
-
 for f in "$@"
 do
    flocs=`ifdh locateFile $f`
    eflocs=`echo "$flocs" | grep enstore: | head -1`
    bflocs=`echo "$flocs" | egrep '(_bluearc|data):' | head -1`
-   if [ x$bflocs != x ]
+   if [ x$eflocs != x ]
    then
-       echo "found file on bluearc"
-       src="`echo $bflocs |  perl -pe 's/.*(_bluearc|data)://;'`/$f"
-   else
        echo "found file on enstore, using dcache srm"
 
        src="`echo $eflocs |
-	      sed -e "s;enstore:/pnfs/;$eloc;" -e 's/(.*//'`/$f"
-
+	      sed -e "s/enstore://" -e 's/(.*//'`/$f"
+   else
+       echo "found file on bluearc"
+       src="`echo $bflocs |  perl -pe 's/.*(_bluearc|data)://;'`/$f"
    fi
    eval "cmd='ifdh cp \"$src\"  \"$dest\" $extra'"
    echo "doing:"  $cmd

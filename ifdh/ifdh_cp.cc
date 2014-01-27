@@ -704,10 +704,10 @@ ifdh::cp( std::vector<std::string> args ) {
 	   args[i] = cwd + "/" + args[i];
        }
        //
-       // for now, handle pnfs paths via gridftp
+       // for now, handle pnfs paths via gridftp, unless srm is specified
        // 
        if (0L == args[i].find("/pnfs/")) {
-            args[i] = map_pnfs(args[i]);
+            args[i] = map_pnfs(args[i],force[0]=='s');
        }
     }
 
