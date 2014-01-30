@@ -38,6 +38,8 @@ std::string pnfs_srm_uri = "srm://fndca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/f
 std::string pnfs_gsiftp_uri = "gsiftp://fndca1.fnal.gov/";
 std::string pnfs_cdf_srm_uri = "srm://cdfdca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
 std::string pnfs_cdf_gsiftp_uri = "gsiftp://cdfdca1.fnal.gov/";
+std::string pnfs_d0_srm_uri = "srm://d0dca1.fnal.gov:8443/srm/managerv2?SFN=/pnfs/fnal.gov/usr/";
+std::string pnfs_d0_gsiftp_uri = "gsiftp://d0dca1.fnal.gov/";
 
 //
 // string constant for number of streams for gridftp, srmcp
@@ -611,43 +613,45 @@ string
 map_pnfs(string loc, int srmflag = 0) {
 
       bool cdfflag = false;
+      bool d0flag = false;
+      std::string srmuri, gsiftpuri;
 
-            if (0L == loc.find("/pnfs/fnal.gov/usr/cdfen"/))
-	        loc = loc.substr(19);
-                cdfflag = true;
-            if (0L == loc.find("/pnfs/fnal.gov/usr/"))
-	        loc = loc.substr(19);
-            else if (0L == loc.find("/pnfs/usr/cdfen"/))
-	        loc = loc.substr(10);
-                cdfflag = true;
-            else if (0L == loc.find("/pnfs/usr/"))
-	        loc = loc.substr(10);
-            else if (0L == loc.find("/pnfs/fnal.gov/cdfen/"))
-	        loc = loc.substr(15);
-                cdfflag = true;
-            else if (0L == loc.find("/pnfs/fnal.gov/"))
-	        loc = loc.substr(15);
-            else
-	        loc = loc.substr(6);
+      if (0L == loc.find("/pnfs/fnal.gov/usr/")) {
+	  loc = loc.substr(19);
+      } else if (0L == loc.find("/pnfs/usr/")) {
+	  loc = loc.substr(10);
+      } else if (0L == loc.find("/pnfs/fnal.gov/")) {
+	  loc = loc.substr(15);
+      } else { // must have /pnfs/... to get here at all
+	  loc = loc.substr(6);
+      }
 
-        if (cdfflag) {
-            if (srmflag) {
-               loc = pnfs_cdf_srm_uri + loc;
-            } else {
-                loc = loc.substr(loc.find("/",1)+1);
-	        loc = pnfs_cdf_gsiftp_uri + loc;
-            } 
-        } else {
-            if (srmflag) {
-               loc = pnfs_srm_uri + loc;
-            } else {
-                loc = loc.substr(loc.find("/",1)+1);
-	        loc = pnfs_gsiftp_uri + loc;
-            } 
-        }
-            ifdh::_debug && std::cout << "ending up with pnfs uri of " <<  loc << "\n";
+      if (0L == loc.find("cdfen/")) 
+	    cdfflag = true;
+
+      if (0L == loc.find("d0en/")) 
+	    d0flag = true;
       
-            return loc;
+      if (cdfflag) {
+          srmuri = pnfs_cdf_srm_uri;
+          gsiftpuri = pnfs_cdf_gsiftp_uri;
+      } else if ( d0flag ) {
+          srmuri = pnfs_d0_srm_uri;
+          gsiftpuri = pnfs_d0_gsiftp_uri;
+      } else {
+          srmuri = pnfs_srm_uri;
+          gsiftpuri = pnfs_gsiftp_uri;
+      }
+
+      if (srmflag) {
+	 loc = srmuri + loc;
+      } else {
+	  loc = loc.substr(loc.find("/",1)+1);
+	  loc = gsiftpuri + loc;
+      } 
+
+      ifdh::_debug && std::cout << "ending up with pnfs uri of " <<  loc << "\n";
+      return loc;
 }
 int 
 ifdh::cp( std::vector<std::string> args ) {

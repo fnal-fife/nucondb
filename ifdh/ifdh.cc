@@ -557,6 +557,9 @@ ifdh::renameOutput(std::string how) {
             if ( ! file.size() ) {
                break;
             }
+            if ( ! infile.size() ) {
+               std::cerr << "Notice: renameOutput found no input file name to base renaming on!\n";
+            }
   
             spos = infile.rfind(froms);
             if (string::npos != spos) { 
