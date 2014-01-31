@@ -87,7 +87,7 @@ class ifdh {
         // end the process
         int endProcess(std::string projecturi, std::string processid);
         // say what the sam station knows about your process
-        std::string dumpProcess(std::string projecturi, std::string processid);
+        std::string dumpProject(std::string projecturi);
         // set process status
 	int setStatus(std::string projecturi, std::string processid, std::string status);
         // end the project
@@ -98,6 +98,12 @@ class ifdh {
         int renameOutput(std::string how);
         // general file rename using mvn or srmcp
         int mv(std::vector<std::string> args);
+
+        // Get a list of directory contents, or check existence of files
+        std::vector<std::string> ls( std::string loc, int recursion_depth, std::string force);
+        int mkdir(std::string loc, std::string force);
+        int rm(std::string loc, std::string force);
+        int rmdir(std::string loc, std::string force);
 };
 
 }

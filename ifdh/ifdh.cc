@@ -130,6 +130,10 @@ ifdh::fetchInput( string src_uri ) {
     stringstream err;
     string path;
 
+    // be prepared for failure
+    std::string error_message("Copy Failed for: ");
+    error_message += src_uri;
+
     std::vector<std::string> args;
 
     if (0 == src_uri.find("xrootd:")) {
@@ -145,13 +149,17 @@ ifdh::fetchInput( string src_uri ) {
        args.push_back(src_uri);
     args.push_back(path);
     try {
-       if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK))
+       if ( 0 == cp( args ) && 0 == access(path.c_str(),R_OK)) {
+          _lastinput = path;
           return path;
-       else
-          return "";
+       } else {
+         throw( std::logic_error("see error output"));
+       }
     } catch( exception &e )  {
-       std::cerr << "fetchInput: Exception: " << e.what();
-       return "";
+       // std::cerr << "fetchInput: Exception: " << e.what();
+       error_message += ": exception: ";
+       error_message += e.what();
+       throw( std::logic_error(error_message));
     }
 }
 
@@ -162,9 +170,36 @@ ifdh::fetchInput( string src_uri ) {
 //
 int 
 ifdh::addOutputFile(string filename) {
+    size_t pos;
+
+    if (0 != access(filename.c_str(), R_OK)) {
+         throw( std::logic_error((filename + ": file does not exist!").c_str()));
+    }
+    bool already_added = false;
+    try {
+        string line;
+        fstream outlog_in((datadir()+"/output_files").c_str(), ios_base::in);
+
+        while (!outlog_in.eof() && !outlog_in.fail()) {
+           getline(outlog_in, line);
+           if (line.substr(0,line.find(' ')) == filename) {
+               already_added = true;
+           }
+        }
+        outlog_in.close();
+    } catch (exception &e) {
+       ;
+    }
+    if (already_added) {
+        throw( std::logic_error((filename + ": added twice as output file").c_str()));
+    }
     fstream outlog((datadir()+"/output_files").c_str(), ios_base::app|ios_base::out);
     if (!_lastinput.size() && getenv("IFDH_INPUT_FILE")) {
         _lastinput = getenv("IFDH_INPUT_FILE");
+    }
+    pos = _lastinput.rfind('/');
+    if (pos != string::npos) {
+        _lastinput = _lastinput.substr(pos+1);
     }
     outlog << filename << " " << _lastinput << "\n";
     outlog.close();
@@ -251,12 +286,14 @@ do_url_2(int postflag, va_list ap) {
     char * name;
     char * val;
 
+    int count = 0;
     val = va_arg(ap,char *);
     if (val == 0 || *val == 0) {
         throw(WebAPIException("Environment variables IFDH_BASE_URI and EXPERIMENT not set and no URL set!",""));
     }
     while (strlen(val)) {
-        url << sep << val;
+ 
+        url << sep << (count++ ? WebAPI::encode(val) : val);
         val = va_arg(ap,char *);
         sep = "/";
     }
@@ -266,7 +303,7 @@ do_url_2(int postflag, va_list ap) {
     name = va_arg(ap,char *);
     val = va_arg(ap,char *);
     while (strlen(name)) {
-        (postflag ? postdata : url)  << sep << name << "=" << val;
+        (postflag ? postdata : url)  << sep << WebAPI::encode(name) << "=" << WebAPI::encode(val);
         sep = "&";
         name = va_arg(ap,char *);
         val = va_arg(ap,char *);
@@ -330,7 +367,7 @@ do_url_lst(int postflag,...) {
 //datasets
 int 
 ifdh::createDefinition( string name, string dims, string user, string group) {
-  return do_url_int(1,_baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", WebAPI::encode(dims).c_str(), "user", user.c_str(),"group", group.c_str(), "","");
+  return do_url_int(1,_baseuri.c_str(),"createDefinition","","name",name.c_str(), "dims", dims.c_str(), "user", user.c_str(),"group", group.c_str(), "","");
 }
 
 int 
@@ -345,7 +382,7 @@ ifdh::describeDefinition( string name) {
 
 vector<string> 
 ifdh::translateConstraints( string dims) {
-  return do_url_lst(0,_baseuri.c_str(),"files", "list", "", "dims", WebAPI::encode(dims).c_str(), "","" );
+  return do_url_lst(0,_baseuri.c_str(),"files", "list", "", "dims", dims.c_str(), "","" );
 }
 
 // files
@@ -361,22 +398,44 @@ string ifdh::getMetadata( string name) {
 //
 string 
 ifdh::dumpStation( string name, string what ) {
+  
+  if (name == "" && getenv("SAM_STATION"))
+      name = getenv("SAM_STATION}");
+
   return do_url_str(0,_baseuri.c_str(),"dumpStation", "", "station", name.c_str(), "dump", what.c_str(), "","");
 }
 
 // projects
 string ifdh::startProject( string name, string station,  string defname_or_id,  string user,  string group) {
+
+  if (name == "" && getenv("SAM_PROJECT"))
+      name = getenv("SAM_PROJECT}");
+
+  if (station == "" && getenv("SAM_STATIOn"))
+      station = getenv("SAM_STATION}");
+
   return do_url_str(1,_baseuri.c_str(),"startProject","","name",name.c_str(),"station",station.c_str(),"defname",defname_or_id.c_str(),"username",user.c_str(),"group",group.c_str(),"","");
 }
 
 string 
 ifdh::findProject( string name, string station){
-   return do_url_str(0,_baseuri.c_str(),"findProject","","name",name.c_str(),"station",station.c_str(),"","");
+   
+  if (name == "" && getenv("SAM_PROJECT"))
+      name = getenv("SAM_PROJECT}");
+
+  if (station == "" && getenv("SAM_STATIOn"))
+      station = getenv("SAM_STATION}");
+
+  return do_url_str(0,_baseuri.c_str(),"findProject","","name",name.c_str(),"station",station.c_str(),"","");
 }
 
 string 
 ifdh::establishProcess( string projecturi, string appname, string appversion, string location, string user, string appfamily , string description , int filelimit ) {
   char buf[64];
+
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
 
   if (filelimit == -1) {
      filelimit = 0;
@@ -388,29 +447,47 @@ ifdh::establishProcess( string projecturi, string appname, string appversion, st
 }
 
 string ifdh::getNextFile(string projecturi, string processid){
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
   return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"getNextFile","","","");
 }
 
 string ifdh::updateFileStatus(string projecturi, string processid, string filename, string status){
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
   return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"updateFileStatus","","filename", filename.c_str(),"status", status.c_str(), "","");
 }
 
 int 
 ifdh::endProcess(string projecturi, string processid) {
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
   cleanup();
   return do_url_int(1,projecturi.c_str(),"processes",processid.c_str(),"endProcess","","","");
 }
 
 string 
-ifdh::dumpProcess(string projecturi, string processid) {
-  return do_url_str(1,projecturi.c_str(),"processes",processid.c_str(),"dumpProcess","","","");
+ifdh::dumpProject(string projecturi) {
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
+  return do_url_str(1,projecturi.c_str(),"status","","format","json""","");
 }
 
 int ifdh::setStatus(string projecturi, string processid, string status){
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
   return do_url_int(1,projecturi.c_str(),"processes",processid.c_str(),"setStatus","","status",status.c_str(),"","");
 }
 
 int ifdh::endProject(string projecturi) {
+  if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
+      projecturi = this->findProject("","");
+  }
   return do_url_int(1,projecturi.c_str(),"endProject","","","");
 }
 
@@ -479,6 +556,9 @@ ifdh::renameOutput(std::string how) {
 
             if ( ! file.size() ) {
                break;
+            }
+            if ( ! infile.size() ) {
+               std::cerr << "Notice: renameOutput found no input file name to base renaming on!\n";
             }
   
             spos = infile.rfind(froms);
