@@ -474,7 +474,7 @@ ifdh::dumpProject(string projecturi) {
   if (projecturi == "" && getenv("SAM_PROJECT") && getenv("SAM_STATION") ) {
       projecturi = this->findProject("","");
   }
-  return do_url_str(1,projecturi.c_str(),"status","","format","json""","");
+  return do_url_str(0,projecturi.c_str(), "summary","", "format", "json","","");
 }
 
 int ifdh::setStatus(string projecturi, string processid, string status){

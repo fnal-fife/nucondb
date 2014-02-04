@@ -485,8 +485,11 @@ check_grid_credentials() {
 
     while(fgets(buf,512,pf)) {
 	 std::string s(buf);
-	 if ( 0 == s.find("attribute ") && std::string::npos != s.find(experiment)) { 
+	 if ( 0 == s.find("attribute ") && std::string::npos != s.find("Role=") && std::string::npos == s.find("Role=NULL")) { 
 	     found = true;
+             if (std::string::npos ==  s.find(experiment)) {
+                 std::cerr << "Notice: Expected a certificate for " << experiment << " but found " << s ;
+             }
              ifdh::_debug && std::cout << "found: " << buf ;
 	 }
 	 // if it is expired, its like we don't have it...
@@ -497,6 +500,14 @@ check_grid_credentials() {
     }
     fclose(pf);
     return found;
+}
+
+//
+// check for kerberos credentials --  use klist -s
+// 
+bool
+have_kerberos_creds() {
+    return 0 == system("klist -5 -s || klist -s");
 }
 //
 // you call this if you need to do any kind of SRM or Gridftp
@@ -511,7 +522,7 @@ get_grid_credentials_if_needed() {
 
     ifdh::_debug && std::cout << "Checking for proxy cert...";
    
-    if (!check_grid_credentials()) {
+    if (!check_grid_credentials() && have_kerberos_creds()) {
         // if we don't have credentials, try our standard copy cache file
         proxyfileenv << "/tmp/x509up_cp" << getuid();
 	ifdh::_debug && std::cout << "no credentials, trying " << proxyfileenv.str() << "\n";
@@ -519,7 +530,7 @@ get_grid_credentials_if_needed() {
         ifdh::_debug && std::cout << "Now X509_USER_PROXY is: " << getenv("X509_USER_PROXY");
     }
 
-    if (!check_grid_credentials()) {
+    if (!check_grid_credentials() && have_kerberos_creds() ) {
         // if we still don't have credentials, try to get some from kx509
 	ifdh::_debug && std::cout << "trying to kx509/voms-proxy-init...\n " ;
 
@@ -532,10 +543,10 @@ get_grid_credentials_if_needed() {
             cmd += " >/dev/null 2>&1 ";
         }
         cmd += "&& voms-proxy-init -rfc -noregen -debug -voms ";
-	if (experiment != "lbne" && experiment != "dzero") {
+	if (experiment != "lbne" && experiment != "dzero" && experiment != "cdf" ) {
 	   cmd += "fermilab:/fermilab/" + experiment + "/Role=Analysis";
 	} else {
-	   cmd += experiment + ":/" + experiment + "/Role=Analysis";
+	   cmd += experiment + ":/Role=Analysis";
 	}
         if (ifdh::_debug) {
             cmd += " >&2";
