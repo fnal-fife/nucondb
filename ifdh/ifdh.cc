@@ -112,6 +112,9 @@ ifdh::cleanup() {
     cmd = cmd + datadir();
     res = system(cmd.c_str());
     if (WIFSIGNALED(res)) throw( std::logic_error("signalled while removing cleanup files"));
+    cmd = "rm -f /tmp/x509up_cp$UID";
+    res = system(cmd.c_str());
+    if (WIFSIGNALED(res)) throw( std::logic_error("signalled while removing cleanup files"));
     return WEXITSTATUS(res);
 }
 // file io
@@ -227,7 +230,7 @@ ifdh::copyBackOutput(string dest_dir) {
 
         getline(outlog, line);
 
-        _debug && std::cout << "parsing: " << line << "\n";
+        _debug && std::cout << "parsing: |" << line << "|\n";
 	spos = line.find(' ');
 	if (spos != string::npos) {
 	    file = line.substr(0,spos);
@@ -237,8 +240,8 @@ ifdh::copyBackOutput(string dest_dir) {
 	if ( !file.size() ) {
 	   break;
 	}
-	spos = line.rfind('/');
-	if (spos != string::npos) {
+	spos = file.rfind('/');
+	if ( spos != string::npos ) {
 	    filelast = file.substr(spos+1);
 	} else {
 	    filelast = file;
@@ -249,6 +252,7 @@ ifdh::copyBackOutput(string dest_dir) {
         first = false;
         cpargs.push_back(file);
         cpargs.push_back(dest_dir + "/" + filelast);
+        _debug && std::cout << "adding cp of " << file << " " << dest_dir << "/" << filelast << "\n";
    
     }
     return cp(cpargs);
@@ -542,12 +546,23 @@ ifdh::renameOutput(std::string how) {
         stringstream perlcmd;
 
         perlcmd << "perl -pi.bak -e '" 
-                << "@pair=split()"
-                << "$pair[0] =~ " << how << ";"
-                << "rename($pair[1], $pair[0];"
-                << "print STDERR \"renaming $pair[1] to $pair[0]\";"
-                << "s{.*}{$pair[1] $pair[0]};"
+                << "print STDERR  \"got line $_\";"
+                << "@pair=split();"
+                << "next unless $pair[0] && $pair[1];"
+                << "$dir = $pair[0];"
+                << "$pair[0] =~ s{.*/}{};"
+                << "$dir =~ s{/?$pair[0]\\Z}{};"
+                << "print STDERR  \"got dir $dir\";"
+                << "$pair[1] =~ s{.*/}{};"
+                << "$pair[1] =~ " << how << ";"
+                << "rename(\"$dir/$pair[0]\", \"$dir/$pair[1]\");"
+                << "print STDERR \"renaming $dir/$pair[0] to $dir/$pair[1]\\n\";"
+                << "s{.*}{$dir/$pair[1] $dir/$pair[0]};"
+                << "print STDERR \"result line: $_\";"
                 << "' " << outfiles_name;
+        
+
+        _debug && std::cerr << "running: " << perlcmd.str() << "\n";
 
         return system(perlcmd.str().c_str());
     
@@ -555,6 +570,9 @@ ifdh::renameOutput(std::string how) {
 
         size_t loc = how.find(':');
         std::string cmd = how.substr(loc+1) + " " + outfiles_name;
+
+        _debug && std::cerr << "running: " << cmd << "\n";
+
         return system(cmd.c_str());
 
     } else if (how[0] == 'u') {
