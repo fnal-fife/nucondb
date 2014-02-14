@@ -437,6 +437,10 @@ ifdh::establishProcess( string projecturi, string appname, string appversion, st
       projecturi = this->findProject("","");
   }
 
+  if (description == "" && getenv("CLUSTER") && getenv("PROCESS")) {
+      description = description + getenv("CLUSTER") + "." + getenv("PROCESS");
+  }
+
   if (filelimit == -1) {
      filelimit = 0;
   }
@@ -528,56 +532,39 @@ ifdh::renameOutput(std::string how) {
     std::string outfiles_name = datadir()+"/output_files";
     std::string new_outfiles_name = datadir()+"/output_files.new";
     std::string line;
-    fstream outlog(outfiles_name.c_str(), ios_base::in);
-    fstream newoutlog(new_outfiles_name.c_str(), ios_base::out);
     std::string file, infile, froms, tos, outfile;
-    int res;
     size_t spos;
    
 
-    if ( outlog.fail()) {
-       return 0;
-    }
 
     if (how[0] == 's') {
 
-        spos = how.find('/',2);
-        froms = how.substr( 2, spos - 2);
-        tos = how.substr( spos+1, how.size() - spos - 2);
+        stringstream perlcmd;
 
-        _debug && std::cerr << "replacing " << froms << " with " << tos << "\n";
+        perlcmd << "perl -pi.bak -e '" 
+                << "@pair=split()"
+                << "$pair[0] =~ " << how << ";"
+                << "rename($pair[1], $pair[0];"
+                << "print STDERR \"renaming $pair[1] to $pair[0]\";"
+                << "s{.*}{$pair[1] $pair[0]};"
+                << "' " << outfiles_name;
 
-        while (!outlog.eof() && !outlog.fail()) {
-            getline(outlog,line);
-            spos = line.find(' ');
-         
-            file = line.substr(0,spos);
-            infile = line.substr(spos+1, line.size() - spos - 1);
+        return system(perlcmd.str().c_str());
+    
+    } else if (how[0] == 'e') {
 
-            if ( ! file.size() ) {
-               break;
-            }
-            if ( ! infile.size() ) {
-               std::cerr << "Notice: renameOutput found no input file name to base renaming on!\n";
-            }
-  
-            spos = infile.rfind(froms);
-            if (string::npos != spos) { 
-                outfile = infile;
-                outfile = outfile.replace(spos, froms.size(), tos);
-                _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";
-                res = rename(file.c_str(), outfile.c_str());
-                if ( 0 != res ) {
-                    throw(WebAPIException("rename failed:", file.c_str() ));
-                }
-            } else {
-                outfile = file;
-            }
-            newoutlog << outfile << " " << infile << "\n";
+        size_t loc = how.find(':');
+        std::string cmd = how.substr(loc+1) + " " + outfiles_name;
+        return system(cmd.c_str());
 
-        }
     } else if (how[0] == 'u') {
 
+        fstream outlog(outfiles_name.c_str(), ios_base::in);
+        fstream newoutlog(new_outfiles_name.c_str(), ios_base::out);
+
+        if ( outlog.fail()) {
+          return 0;
+        }
 
         while (!outlog.eof() && !outlog.fail()) {
 
@@ -604,10 +591,11 @@ ifdh::renameOutput(std::string how) {
 	    _debug && std::cerr << "renaming: " << file << " " << outfile << "\n";
             newoutlog << outfile << " " << infile << "\n";
         }
+        outlog.close();
+        newoutlog.close();
+        return rename(new_outfiles_name.c_str(), outfiles_name.c_str());
     }
-    outlog.close();
-    newoutlog.close();
-    return rename(new_outfiles_name.c_str(), outfiles_name.c_str());
+    return -1;
 }
 
 }
