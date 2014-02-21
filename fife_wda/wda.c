@@ -468,6 +468,7 @@ static DataRec *parse_csv(const char *s)
             PRINT_ALLOC_ERROR(malloc);
             return 0;
         }
+        memset(dataRec->columns, 0, csize);                         // Clear the column pointers
 
         sp = ss;                                                    // Start from the begining of the line
         //fprintf(stderr, "parse_csv: s='%s'\n", ss);
@@ -633,9 +634,13 @@ int getStringValue(Tuple tuple, int position, char *buffer, int buffer_size, int
         return -1;
     }
 ////strncpy(buffer, dataRec->columns[position], buffer_size);
-    memccpy(buffer, dataRec->columns[position], 0, buffer_size);
-    *error = 0;
-    return strlen(buffer);
+    if (dataRec->columns[position] > 0) {
+        memccpy(buffer, dataRec->columns[position], 0, buffer_size);
+        *error = 0;
+        return strlen(buffer);
+    }
+    *error = EINVAL;
+    return -1;
 }
 
 int getDoubleArray(Tuple tuple, int position, double *buffer, int buffer_size, int *error)
