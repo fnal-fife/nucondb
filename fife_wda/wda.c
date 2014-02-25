@@ -653,18 +653,22 @@ int getDoubleArray(Tuple tuple, int position, double *buffer, int buffer_size, i
     int i, len;
     double val;
     char *sptr;
-    char **eptr;
+    char *eptr;
 
     errno = 0;
     sptr = dataRec->columns[position];              // Start from the beginning of array
     if (strncmp(sptr, "\"[", 2)==0)
-        sptr = dataRec->columns[position] + 2;      // Skip double quote and square bracket
+        sptr += 2;                                  // Skip double quote and square bracket
     for (len = i = 0; i < buffer_size; i++) {
-        val = strtod(sptr, eptr);                   // Try to convert
-        if (sptr==*eptr) break;                     // End the loop if no coversion was performed
+        val = strtod(sptr, &eptr);                  // Try to convert
+# if DEBUG
+        fprintf(stderr, "s='%s' ", sptr);
+        fprintf(stderr, "[%d]=%f\n", i, val);
+# endif
+        if (sptr==eptr) break;                      // End the loop if no coversion was performed
         if (*sptr=='\0') break;                     // End the loop if buffer ends
         buffer[len++] = val;                        // Store converted value, increase the length
-        sptr = *eptr + 1;                           // Shift the pointer to the next number
+        sptr = eptr + 1;                            // Shift the pointer to the next number
     }
     *error = errno;
     return len;
@@ -704,7 +708,10 @@ int releaseDataset(Dataset dataset)
     HttpResponse *response = (HttpResponse *)dataset;
     /* First, release all stored dataRecs   */
     for (i = 0; i < response->nrows; i++) {
-        if (response->dataRecs[i]) {
+        if (response->dataRecs[i] > 0) {
+# if DEBUG
+            fprintf(stderr, "releaseDataset: destroyDataRec %d\n", i);
+# endif
             destroyDataRec(response->dataRecs[i]);
             response->dataRecs[i] = NULL;
         }
