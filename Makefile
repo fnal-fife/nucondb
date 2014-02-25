@@ -12,12 +12,12 @@ test:
 	cd tests && python TestSuite.py
 
 new_version:
-        git commit -am "version $(VERSION)"
+	git commit -am "version $(VERSION)"
 	git tag $(VERSION)
-        cd util && make ifdh_version.h
-        cd fife_wda && make wda_version.h
-        git commit -am "version $(VERSION)"
-        git tag --force $(VERSION)
+	cd util && make ifdh_version.h
+	cd fife_wda && make wda_version.h
+	git commit -am "version $(VERSION)"
+	git tag --force $(VERSION)
 
 install: install-headers install-libs
 
