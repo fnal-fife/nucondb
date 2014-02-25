@@ -684,18 +684,18 @@ int getIntArray(Tuple tuple, int position, long *buffer, int buffer_size, int *e
     int i, len;
     long val;
     char *sptr;
-    char **eptr;
+    char *eptr;
 
     errno = 0;
     sptr = dataRec->columns[position];              // Start from the beginning of array
     if (strncmp(sptr, "\"[", 2)==0)
         sptr = dataRec->columns[position] + 2;      // Skip double quote and square bracket
     for (len = i = 0; i < buffer_size; i++) {
-        val = strtol(sptr, eptr, 10);               // Try to convert
-        if (sptr==*eptr) break;                     // End the loop if no coversion was performed
+        val = strtol(sptr, &eptr, 10);              // Try to convert
+        if (sptr==eptr) break;                      // End the loop if no coversion was performed
         if (*sptr=='\0') break;                     // End the loop if buffer ends
         buffer[len++] = val;                        // Store converted value, increase the length
-        sptr = *eptr + 1;                           // Shift the pointer to the next number
+        sptr = eptr + 1;                            // Shift the pointer to the next number
     }
     *error = errno;
     return len;
