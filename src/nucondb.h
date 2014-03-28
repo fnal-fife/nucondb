@@ -3,8 +3,8 @@
 #include <list>
 #include <sstream>
 #include <fstream>
-#include "../util/WebAPI.h"
-#include "../fife_wda/wda.h"
+#include "WebAPI.h"
+#include "wda.h"
 
 namespace nucondb_ns {
 

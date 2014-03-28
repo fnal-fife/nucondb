@@ -10,7 +10,7 @@
 #include "nucondb.h"
 #include <sys/types.h>
 #include <unistd.h>
-#include "../util/utils.h"
+#include "utils.h"
 
 // debug flag
 int pad;

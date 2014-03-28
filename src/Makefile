@@ -1,14 +1,14 @@
 SRCDIR=../../nucondb/
+DEFS=-I$(IFDHC_DIR)/inc -I$(LIBWDA_DIR)/include
 VPATH=$(SRCDIR)
 LIB=libnucondb.a
 SHLIB=libnucondb.so
-UTLOBJ=../util/*.o
-UTLSRC=../util/*.cc
-HDR=nucondb.h ../util/*.h
-OBJ=nucondb.o $(UTL)
+OTHER_LIB=-L$(IFDHC_DIR) -lifdh
+HDR=nucondb.h 
+OBJ=nucondb.o
 SRC=nucondb.cc
 TST=nucondb-test 
-LDFLAGS=-L ../fife_wda -L ../../fife_wda -lcurl -lwda
+LDFLAGS=-L$(LIBWDA_DIR)/lib -L$(IFDHC_LIB) -lifdh -lwda -lcurl
 TESTDEFS=-DUNITTEST
 CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I$(SRCDIR)
 
@@ -23,21 +23,18 @@ install:
 clean:
 	rm -f *.o *.a  *.so
 
-$(LIB): $(OBJ) $(UTLOBJ)
+$(LIB): $(OBJ) 
 	rm -f $(LIB)
-	ar qv $(LIB) $(OBJ) $(UTLOBJ)
+	ar qv $(LIB) $(OBJ)
 
 $(SHLIB): $(OBJ) $(UTLOBJ)
 	rm -f $(SHLIB)
-	g++ --shared -o $(SHLIB) $(OBJ) $(UTLOBJ) $(LDFLAGS)
-
-$(UTLOBJ):
-	cd ../util; make
+	g++ --shared -o $(SHLIB) $(OBJ) $(OTHER_LIB) $(LDFLAGS)
 
 %-test: %.cc
-	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(UTLOBJ) $< $(LDFLAGS)
+	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(OTHER_LIB) $< $(LDFLAGS)
 
 %.o: %.cc
 	g++ -c -o $@  $(CXXFLAGS) $< 
 
-nucondb.o: nucondb.cc ../util/WebAPI.h ../util/utils.h
+nucondb.o: nucondb.cc 
