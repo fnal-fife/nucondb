@@ -152,4 +152,7 @@ Action=Setup
     # requirements
     exeActionRequired(ExtraSetup)
     setupRequired(libwda v2_22_2)
+    # useful variables
+    envPrepend(CMAKE_PREFIX_PATH, ${NUCONDB_FQ_DIR} )
+    envPrepend(PKG_CONFIG_PATH, ${NUCONDB_FQ_DIR} )
 end:
