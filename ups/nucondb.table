@@ -1,10 +1,9 @@
 FILE=Table
 Product=nucondb
 
+# p2715  -> python v2_7_15 (e17 e19 c2)
 # p2714b  -> python v2_7_14b (e15 e17 c2)
-# p2714  -> python v2_7_14  (e10 e14 e15)
-# p2713d -> python v2_7_13d (e10 e14)
-# p2713b -> python v2_7_13b (e10 e14)
+# p2714  -> python v2_7_14  (e15)
 
 group:
 
@@ -15,7 +14,27 @@ Qualifiers=""
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR} )
 
   Action = ExtraSetup
-    ##setupRequired( ifdhc v2_3_6 )
+    ##setupRequired( ifdhc v2_3_8 )
+
+Flavor=ANY
+Qualifiers=c2:p2715:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c2-p2715-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+c2:+debug )
+    setupRequired( clang v5_0_1 )
+
+Flavor=ANY
+Qualifiers=c2:p2715:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c2-p2715-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+c2:+prof )
+    setupRequired( clang v5_0_1 )
 
 Flavor=ANY
 Qualifiers=c2:p2714b:debug
@@ -24,7 +43,7 @@ Qualifiers=c2:p2714b:debug
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c2-p2714b-debug )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+c2:+debug )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+c2:+debug )
     setupRequired( clang v5_0_1 )
 
 Flavor=ANY
@@ -34,8 +53,48 @@ Qualifiers=c2:p2714b:prof
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c2-p2714b-prof )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+c2:+prof )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+c2:+prof )
     setupRequired( clang v5_0_1 )
+
+Flavor=ANY
+Qualifiers=e19:p2715:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e19-p2715-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+e19:+debug )
+    setupRequired( gcc v8_2_0 )
+
+Flavor=ANY
+Qualifiers=e19:p2715:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e19-p2715-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+e19:+prof )
+    setupRequired( gcc v8_2_0 )
+
+Flavor=ANY
+Qualifiers=e17:p2715:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2715-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+e17:+debug )
+    setupRequired( gcc v7_3_0 )
+
+Flavor=ANY
+Qualifiers=e17:p2715:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2715-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_3_8 -q +p2715:+e17:+prof )
+    setupRequired( gcc v7_3_0 )
 
 Flavor=ANY
 Qualifiers=e17:p2714b:debug
@@ -44,7 +103,7 @@ Qualifiers=e17:p2714b:debug
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2714b-debug )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+e17:+debug )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+e17:+debug )
     setupRequired( gcc v7_3_0 )
 
 Flavor=ANY
@@ -54,7 +113,7 @@ Qualifiers=e17:p2714b:prof
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2714b-prof )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+e17:+prof )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+e17:+prof )
     setupRequired( gcc v7_3_0 )
 
 Flavor=ANY
@@ -64,7 +123,7 @@ Qualifiers=e15:p2714b:debug
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e15-p2714b-debug )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+e15:+debug )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+e15:+debug )
     setupRequired( gcc v6_4_0 )
 
 Flavor=ANY
@@ -74,7 +133,7 @@ Qualifiers=e15:p2714b:prof
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e15-p2714b-prof )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714b:+e15:+prof )
+    setupRequired( ifdhc v2_3_8 -q +p2714b:+e15:+prof )
     setupRequired( gcc v6_4_0 )
 
 Flavor=ANY
@@ -84,7 +143,7 @@ Qualifiers=e15:p2714:debug
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e15-p2714-debug )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e15:+debug )
+    setupRequired( ifdhc v2_3_8 -q +p2714:+e15:+debug )
     setupRequired( gcc v6_4_0 )
 
 Flavor=ANY
@@ -94,128 +153,8 @@ Qualifiers=e15:p2714:prof
     EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e15-p2714-prof )
 
   Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e15:+prof )
+    setupRequired( ifdhc v2_3_8 -q +p2714:+e15:+prof )
     setupRequired( gcc v6_4_0 )
-
-Flavor=ANY
-Qualifiers=e14:p2714:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2714-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e14:+debug )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e14:p2714:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2714-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e14:+prof )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e10:p2714:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2714-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e10:+debug )
-    setupRequired( gcc v4_9_3a )
-
-Flavor=ANY
-Qualifiers=e10:p2714:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2714-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2714:+e10:+prof )
-    setupRequired( gcc v4_9_3a )
-
-Flavor=ANY
-Qualifiers=e14:p2713d:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2713d-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713d:+e14:+debug )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e14:p2713d:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2713d-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713d:+e14:+prof )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e10:p2713d:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2713d-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713d:+e10:+debug )
-    setupRequired( gcc v4_9_3a )
-
-Flavor=ANY
-Qualifiers=e10:p2713d:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2713d-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713d:+e10:+prof )
-    setupRequired( gcc v4_9_3a )
-
-Flavor=ANY
-Qualifiers=e14:p2713b:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2713b-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713b:+e14:+debug )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e14:p2713b:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e14-p2713b-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713b:+e14:+prof )
-    setupRequired( gcc v6_3_0 )
-
-Flavor=ANY
-Qualifiers=e10:p2713b:debug
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2713b-debug )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713b:+e10:+debug )
-    setupRequired( gcc v4_9_3a )
-
-Flavor=ANY
-Qualifiers=e10:p2713b:prof
-
-  Action=DefineFQ
-    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e10-p2713b-prof )
-
-  Action = ExtraSetup
-    setupRequired( ifdhc v2_3_6 -q +p2713b:+e10:+prof )
-    setupRequired( gcc v4_9_3a )
 
 common:
 
