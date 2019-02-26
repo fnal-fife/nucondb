@@ -212,7 +212,7 @@ int
 Folder::parse_fields(std::vector<std::string> names, const Tuple t, va_list al) {
     void *vp;
     int err;
-    std::vector<std::string>::iterator it, nit, cit;
+    std::vector<std::string>::iterator nit;
     std::vector<std::string> fields;
 
     const int buffer_size(128);
