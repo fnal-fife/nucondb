@@ -21,7 +21,7 @@ int Folder::_debug(0);
 static char ebuf[64];
 
 // initialize folder with folder name, server url
-Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPIException) {
+Folder::Folder( std::string name, std::string url, std::string tag) {
    _foldername = WebAPI::encode(name);
    _url = url;
    _cache_key = -1;
@@ -39,7 +39,7 @@ Folder::Folder( std::string name, std::string url, std::string tag) throw(WebAPI
 
 // get key for given time
 long int
-Folder::getKey(double when)  throw(WebAPIException){
+Folder::getKey(double when)  {
     std::string st;
     std::stringstream fullurl;
 
@@ -59,7 +59,7 @@ Folder::getKey(double when)  throw(WebAPIException){
 
 // get list of boundaries near given time from server
 std::vector<Folder::tk>
-Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIException){
+Folder::getTimes(double when, double lookback, double lookforw)  {
     const int seconds_in_week = 7 * 24 * 60 * 60;
     double window = lookback + lookforw;
     double start = when - lookback;
@@ -117,7 +117,7 @@ Folder::getTimes(double when, double lookback, double lookforw)  throw(WebAPIExc
 
 
 void
-Folder::fetchData(double when)  throw(WebAPIException){
+Folder::fetchData(double when)  {
     char ebuf[40];
     int err;
     int i;
@@ -212,7 +212,7 @@ int
 Folder::parse_fields(std::vector<std::string> names, const Tuple t, va_list al) {
     void *vp;
     int err;
-    std::vector<std::string>::iterator it, nit, cit;
+    std::vector<std::string>::iterator nit;
     std::vector<std::string> fields;
 
     const int buffer_size(128);
@@ -257,7 +257,7 @@ Folder::parse_fields(std::vector<std::string> names, const Tuple t, va_list al) 
 // finally unpack data with vsprintf
 
 int
-Folder::getChannelData(double t, unsigned long chan, ...) throw(WebAPIException) {
+Folder::getChannelData(double t, unsigned long chan, ...) {
     va_list al;
     va_start(al, chan);
     fetchData(t);
@@ -265,7 +265,7 @@ Folder::getChannelData(double t, unsigned long chan, ...) throw(WebAPIException)
 }
 
 int
-Folder::getNamedChannelData(double t, unsigned long chan, std::string names, ...) throw(WebAPIException) {
+Folder::getNamedChannelData(double t, unsigned long chan, std::string names, ...) {
     va_list al;
     va_start(al, names);
     std::vector<std::string> namev = split(names,',');
@@ -273,7 +273,7 @@ Folder::getNamedChannelData(double t, unsigned long chan, std::string names, ...
 }
 
 int
-Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::string> namev, va_list al) throw(WebAPIException) {
+Folder::getNamedChannelData_va(double t, unsigned long  chan, std::vector<std::string> namev, va_list al) {
     int l, m, r;
     unsigned long val;
     Tuple tup;

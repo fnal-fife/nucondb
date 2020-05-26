@@ -5,6 +5,9 @@ else
 SHLIB=so 
 endif
 
+# enable use of clang
+CXX ?= g++
+
 ##SRCDIR=../../nucondb/
 DEFS=-I$(IFDHC_FQ_DIR)/inc -I$(LIBWDA_FQ_DIR)/include
 ##VPATH=$(SRCDIR)
@@ -43,12 +46,12 @@ $(LIB): $(OBJ)
 
 $(NUCLIB): $(OBJ) $(UTLOBJ)
 	rm -f $(NUCLIB)
-	g++ --shared -o $(NUCLIB) $(OBJ) $(OTHER_LIB) $(LDFLAGS)
+	${CXX} --shared -o $(NUCLIB) $(OBJ) $(OTHER_LIB) $(LDFLAGS)
 
 %-test: %.cc
-	g++ -o $@ $(TESTDEFS) $(CXXFLAGS) $(OTHER_LIB) $< $(LDFLAGS)
+	${CXX} -o $@ $(TESTDEFS) $(CXXFLAGS) $(OTHER_LIB) $< $(LDFLAGS)
 
 %.o: %.cc
-	g++ -c -o $@  $(CXXFLAGS) $< 
+	${CXX} -c -o $@  $(CXXFLAGS) $< 
 
 nucondb.o: nucondb.cc 
