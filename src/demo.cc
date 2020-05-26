@@ -42,7 +42,7 @@ doit() {
    Folder::_debug = 1;
 
   try {
-   Folder f("pedcal", "http://dbweb0.fnal.gov:8080/IOVServer");
+   Folder f("pedcal", "https://dbweb0.fnal.gov/IOVServer");
    
    cout << setiosflags(ios::fixed) << setfill(' ') << setprecision(4) ;
 

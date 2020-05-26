@@ -382,7 +382,7 @@ test_getchannel_feb() {
      static double d[39];
      int hit_id = 2364544;
     try {
-     Folder f("minerva_febs","http://dbweb0.fnal.gov:8088/mnvcon_int/app/");
+     Folder f("minerva_febs","https://dbweb0.fnal.gov/mnvcon_prd/app/");
    
 
      f.getChannelData(g_time , hit_id, &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2],\
@@ -395,6 +395,26 @@ test_getchannel_feb() {
    }
 }
 
+void
+test_getchannel_nov() {
+    float g_time =  1414910050.0;
+
+     static int chbits[5];
+     static double d[39];
+     int hit_id = 2364544;
+    try {
+     Folder f("NuMI_Phisics_A9","https://dbweb0.fnal.gov/mnvcon/app/");
+   
+
+     f.getChannelData(g_time , hit_id, &chbits[0], &chbits[1], &chbits[2], &chbits[3], &chbits[4], &d[0], &d[1], &d[2],\
+                        &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10], &d[11], &d[12], &d[13], &d[14], &d[15],\
+                        &d[16], &d[17], &d[18], &d[19], &d[20], &d[21], &d[22], &d[23], &d[24], &d[25], &d[26], &d[27],\
+                        &d[28], &d[29], &d[30], &d[31], &d[32], &d[33], &d[34], &d[35], &d[36], &d[37], &d[38]);
+   
+   } catch (WebAPIException we) {
+       std::cout << "got exception:" << we.what() << "\n";
+   }
+}
 void
 test_getchanneldata_window(Folder &f) {
    static double  d1, d2, d3, d4, d5, d6, d7, d8, d9;
@@ -455,7 +475,7 @@ test3() {
    static double d[8];
 
    std::cout << "testing with new time:\n";
-   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
+   Folder d3("minerva_atten_id", "https://dbweb0.fnal.gov/mnvcon_prd/app");
    d3.getNamedChannelData(
 	 //1300969766.0,
 	 1334882296.546474,
@@ -559,7 +579,7 @@ void
 test_bad_time() {
    static double d[8];
 
-   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app");
+   Folder d3("minerva_atten_id", "https://dbweb0.fnal.gov/mnvcon_prd/app");
    d3.getNamedChannelData(
 	 500.0,
          1210377216,
@@ -575,7 +595,7 @@ test_tagged_folder() {
 static double d[8];
 
    // open folder with a tag name...
-   Folder d3("minerva_atten_id", "http://dbweb0.fnal.gov:8088/mnvcon_int/app/","old");
+   Folder d3("minerva_atten_id", "https://dbweb0.fnal.gov/mnvcon_prd/app/","old");
    for (int i = 0; i < 10; i++ ) {
    d3.getNamedChannelData(
 	 1300969766.0 - 10000 * i,
@@ -623,13 +643,13 @@ main() {
    }
    std::cout << "}" << std::endl;
 
-   //Folder d("myfolder", "http://www-oss.fnal.gov/~mengel/testcool");
+   //Folder d("myfolder", "https://dbweb0.fnal.gov/~mengel/testcool");
    //test_gettimes(d);
    //test_getchanneldata(d);
 
    //std::cout << "Now the real test...\n";
 
-   //Folder d2("sample32k", "http://rexdb01.fnal.gov:8088/IOVServer/IOVServerApp.py");
+   //Folder d2("sample32k", "https://dbweb0.fnal.gov/IOVServer/IOVServerApp.py");
    //
    try {
    test_tagged_folder();
@@ -637,11 +657,12 @@ main() {
       std::cout << "Exception:" << we.what() << std::endl;
    }
 
+   test_getchannel_nov();
    test_getchannel_feb();
    try {
            if (1) test3();
            if (0) {
-	   Folder d2("pedcal", "http://dbweb0.fnal.gov:8088/mnvcon_int/app/");
+	   Folder d2("pedcal", "https://dbweb0.fnal.gov/mnvcon_prd/app/");
 	   test_gettimes(d2);
 	   test_getchanneldata(d2);
 	   test_getchanneldata_window(d2);
