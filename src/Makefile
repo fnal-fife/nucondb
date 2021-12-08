@@ -46,7 +46,7 @@ $(LIB): $(OBJ)
 
 $(NUCLIB): $(OBJ) $(UTLOBJ)
 	rm -f $(NUCLIB)
-	${CXX} --shared -o $(NUCLIB) $(OBJ) $(OTHER_LIB) $(LDFLAGS)
+	${CXX} --shared -Wl,-soname,$(NUCLIB) -o $(NUCLIB) $(OBJ) $(OTHER_LIB) $(LDFLAGS)
 
 %-test: %.cc
 	${CXX} -o $@ $(TESTDEFS) $(CXXFLAGS) $(OTHER_LIB) $< $(LDFLAGS)
