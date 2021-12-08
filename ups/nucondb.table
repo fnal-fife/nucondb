@@ -1,6 +1,7 @@
 FILE=Table
 Product=nucondb
 
+# p399   -> python v3_9_9  (e19 e20 c7)
 # p392   -> python v3_9_2  (e19 e20 c7)
 # p383b   -> python v3_8_3b  (e19 e20 c7)
 # p372    -> python v3_7_2   (e17 e19 c2 c7)
@@ -17,6 +18,26 @@ Qualifiers=""
 
   Action = ExtraSetup
     ##setupRequired( ifdhc v2_5_19 )
+
+Flavor=ANY
+Qualifiers=c7:p399:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c7-p399-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+c7:+debug )
+    setupRequired( clang v7_0_0 )
+
+Flavor=ANY
+Qualifiers=c7:p399:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-c7-p399-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+c7:+prof )
+    setupRequired( clang v7_0_0 )
 
 Flavor=ANY
 Qualifiers=c7:p392:debug
@@ -159,6 +180,26 @@ Qualifiers=c2:p2714b:prof
     setupRequired( clang v5_0_1 )
 
 Flavor=ANY
+Qualifiers=e20:p399:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-p399-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+e20:+debug )
+    setupRequired( gcc v9_3_0 )
+
+Flavor=ANY
+Qualifiers=e20:p399:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e20-p399-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+e20:+prof )
+    setupRequired( gcc v9_3_0 )
+
+Flavor=ANY
 Qualifiers=e20:p392:debug
 
   Action=DefineFQ
@@ -197,6 +238,26 @@ Qualifiers=e20:p383b:prof
   Action = ExtraSetup
     setupRequired( ifdhc v2_5_19 -q +p383b:+e20:+prof )
     setupRequired( gcc v9_3_0 )
+
+Flavor=ANY
+Qualifiers=e19:p399:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e19-p399-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+e19:+debug )
+    setupRequired( gcc v8_2_0 )
+
+Flavor=ANY
+Qualifiers=e19:p399:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e19-p399-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_5_19 -q +p399:+e19:+prof )
+    setupRequired( gcc v8_2_0 )
 
 Flavor=ANY
 Qualifiers=e19:p392:debug
