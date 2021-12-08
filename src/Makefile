@@ -27,7 +27,7 @@ VPATH=../../src
 
 all: $(BIN) $(TST) $(LIB) $(NUCLIB)
 
-install: install-lib install-headers install-cmake
+install: install-lib install-headers
 
 install-lib:
 	test -d $(DESTDIR)/lib || mkdir -p $(DESTDIR)/lib
@@ -36,10 +36,6 @@ install-lib:
 install-headers:
 	test -d $(DESTDIR)/include || mkdir -p $(DESTDIR)/include
 	cp $(HDR) $(DESTDIR)/include
-
-install-cmake:
-	test -d $(DESTDIR)/lib/nucondb/cmake || mkdir -p $(DESTDIR)/lib/nucondb/cmake
-	cp Findnucondb.cmake $(DESTDIR)/lib/nucondb/cmake
 
 clean:
 	rm -f *.o *.a  ${NUCLIB}
