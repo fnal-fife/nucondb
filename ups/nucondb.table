@@ -386,7 +386,6 @@ Action=Setup
     endif ( test `uname` = "Darwin" )
     # requirements
     exeActionRequired(ExtraSetup)
-    setupRequired(libwda v2_29_1)
     # useful variables
     envPrepend(CMAKE_PREFIX_PATH, ${NUCONDB_FQ_DIR} )
     envPrepend(PKG_CONFIG_PATH, ${NUCONDB_FQ_DIR} )
