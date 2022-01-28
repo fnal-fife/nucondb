@@ -38,7 +38,7 @@ Qualifiers=c7:p399:prof
 
   Action = ExtraSetup
     setupRequired( ifdhc v2_6_1 -q +p399:+c7:+prof )
-    setupRequired( ifbeam v2_5_9 -q +p399:+c7:+prof )
+    setupRequired( ifbeam v2_6_0 -q +p399:+c7:+prof )
     setupRequired( clang v7_0_0 )
 
 Flavor=ANY
