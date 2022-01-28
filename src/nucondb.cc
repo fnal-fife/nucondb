@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "utils.h"
+#include <wda_singleton.h>
 
 // debug flag
 int pad;
@@ -32,6 +33,8 @@ Folder::Folder( std::string name, std::string url, std::string tag) {
    _cache_dataset = 0;
    _tag = WebAPI::encode(tag);
    _last_times_url = "";
+   // make sure we have initialized libwda...
+   (void*)wda_singleton::wda_init_cleanup_singleton::get_wda_init_cleanup_singleton();
    if (_url[_url.length()-1] == '/') {
       _url = _url.substr(0,_url.length()-1);
    }

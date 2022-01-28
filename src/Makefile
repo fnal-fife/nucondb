@@ -9,11 +9,11 @@ endif
 CXX ?= g++
 
 ##SRCDIR=../../nucondb/
-DEFS=-I$(IFDHC_FQ_DIR)/inc -I$(LIBWDA_FQ_DIR)/include
+DEFS=-I$(IFDHC_FQ_DIR)/inc -I$(LIBWDA_FQ_DIR)/include -I$(IFBEAM_FQ_DIR)/include
 ##VPATH=$(SRCDIR)
 LIB=libnucondb.a
 NUCLIB=libnucondb.${SHLIB}
-OTHER_LIB=-L$(IFDHC_DIR) -lifdh
+OTHER_LIB=-L$(IFDHC_DIR)/lib -lifdh -L$(IFBEAM_FQ_DIR)/lib -lifbeam -L$(LIBWDA_FQ_DIR)/lib -lwda -lcurl
 HDR=nucondb.h 
 OBJ=nucondb.o
 SRC=nucondb.cc
