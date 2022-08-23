@@ -371,6 +371,28 @@ Qualifiers=e17:p372:prof
     setupRequired( ifbeam v2_5_13 -q +p372:+e17:+prof )
     setupRequired( gcc v7_3_0 )
 
+Flavor=ANY
+Qualifiers=e17:p2714b:debug
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2714b-debug )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_6_6 -q +p2714b:+e17:+debug )
+    setupRequired( ifbeam v2_5_13 -q +p2714b:+e17:+debug )
+    setupRequired( gcc v7_3_0 )
+
+Flavor=ANY
+Qualifiers=e17:p2714b:prof
+
+  Action=DefineFQ
+    EnvSet(NUCONDB_FQ_DIR , ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}-e17-p2714b-prof )
+
+  Action = ExtraSetup
+    setupRequired( ifdhc v2_6_6 -q +p2714b:+e17:+prof )
+    setupRequired( ifbeam v2_5_13 -q +p2714b:+e17:+prof )
+    setupRequired( gcc v7_3_0 )
+
 common:
 
 Action=Setup
