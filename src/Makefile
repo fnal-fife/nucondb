@@ -20,7 +20,7 @@ SRC=nucondb.cc
 TST=nucondb-test 
 LDFLAGS=-L$(LIBWDA_LIB) -L$(IFDHC_LIB) -lifdh -lwda -lcurl
 TESTDEFS=-DUNITTEST
-CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I.
+CXXFLAGS=-pedantic-errors -Wall -Wextra -Werror -fPIC -g $(DEFS) $(ARCH) -I. -I$(LIBWDA_FQ_DIR)/include
 
 DESTDIR=..
 VPATH=../../src
